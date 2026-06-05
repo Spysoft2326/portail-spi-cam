@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// UTILISATEURS
+// ============================================================
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          String    @default("AGENT_SAISIE")
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+
+  saisies       ProductionData[]
+  notesRedigees NoteConjoncture[]
+  logs          AuditLog[]
+}
+
+// ============================================================
+// ENTREPRISES INDUSTRIELLES
+// ============================================================
+model Entreprise {
+  id                      String   @id @default(uuid())
+  referenceSPI            String   @unique
+  denomination            String   @unique
+  sigle                   String?
+  formeJuridique          String?
+  capitalSocial           Float?
+  dateCreation            DateTime?
+  numRegistreCommerce     String?
+  numContribuable         String?  @unique
+  adresse                 String?
+  ville                   String?
+  departement             String?
+  region                  String   @default("CENTRE")
+  codePostal              String?
+  latitude                Float?
+  longitude               Float?
+  telephone               String?
+  email                   String?
+  siteWeb                 String?
+  secteurActivite         String   @default("AUTRE")
+  sousSecteur             String?
+  produitsPrincipaux      String?
+  statut                  String   @default("ACTIF")
+  estExportateur          Boolean  @default(false)
+  estDansZoneIndustrielle Boolean  @default(false)
+  nomZoneIndustrielle     String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  productions      ProductionData[]
+  notesConjoncture NoteConjoncture[]
+  documents        Document[]
+}
+
+// ============================================================
+// DONNÉES DE PRODUCTION
+// ============================================================
+model ProductionData {
+  id                String   @id @default(uuid())
+  annee             Int
+  periode           String   @default("TRIMESTRIEL")
+  semestre          Int?
+  trimestre         Int?
+  volumeProduit     Float?
+  valeurProduction  Float?
+  chiffreAffaires   Float?
+  nombreEmployes    Int?
+  capaciteUtilisee  Float?
+  tauxQualite       Float?
+  tauxDisponibilite Float?
+  volumeExport      Float?
+  valeurExport      Float?
+  sourceDonnee      String?
+  statutValidation  String   @default("EN_ATTENTE")
+  dateSaisie        DateTime @default(now())
+  dateValidation    DateTime?
+  validePar         String?
+  commentaireRejet  String?
+
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  saisieParId  String
+  saisiePar    User       @relation(fields: [saisieParId], references: [id])
+
+  @@index([entrepriseId, annee])
+  @@index([saisieParId])
+}
+
+// ============================================================
+// NOTES DE CONJONCTURE
+// ============================================================
+model NoteConjoncture {
+  id                   String    @id @default(uuid())
+  titre                String
+  periodeReference     String
+  typeNote             String    @default("GLOBALE")
+  resumeExecutif       String?
+  analyseMacro         String?
+  analyseSectorielle   String?
+  perspectives         String?
+  recommandations      String?
+  ipcIndustriel        Float?
+  tauxCroissance       Float?
+  nombreEntreprisesActives Int?
+  dateRedaction        DateTime  @default(now())
+  datePublication      DateTime?
+  statutPublication    String    @default("BROUILLON")
+
+  redacteurId String
+  redacteur   User   @relation(fields: [redacteurId], references: [id])
+
+  entrepriseId String?
+  entreprise   Entreprise? @relation(fields: [entrepriseId], references: [id], onDelete: SetNull)
+
+  entreprisesCitees String?
+  secteursConcernes String?
+
+  documentPdf Document?
+}
+
+// ============================================================
+// DOCUMENTS & FICHIERS
+// ============================================================
+model Document {
+  id           String   @id @default(uuid())
+  nomFichier   String
+  typeDocument String   @default("AUTRE")
+  url          String
+  mimeType     String
+  taille       Int
+  uploadedBy   String
+  uploadedAt   DateTime @default(now())
+
+  entrepriseId String?
+  entreprise   Entreprise? @relation(fields: [entrepriseId], references: [id], onDelete: SetNull)
+
+  noteConjonctureId String?     @unique
+  noteConjoncture   NoteConjoncture? @relation(fields: [noteConjonctureId], references: [id])
+}
+
+// ============================================================
+// AUDIT & TRAÇABILITÉ
+// ============================================================
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  entite    String
+  entiteId  String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ============================================================
+// CONFIGURATION SYSTÈME
+// ============================================================
+model ConfigSystem {
+  id                    String   @id @default(uuid())
+  anneeEnCours          Int      @default(2026)
+  seuilAlerteProduction Float?
+  emailNotifications    String?
+  frequenceRappelSaisie String?
+}
