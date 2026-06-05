@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "portail-spi-cam",
   "version": "1.0.0",
   "description": "Portail de Suivi de la Production Industrielle du Cameroun",
@@ -60,3 +60,4 @@
     "typescript": "^5.4.0"
   }
 }
+
