@@ -4,7 +4,7 @@
     runtime: node
     plan: free
     buildCommand: npm install && npx prisma generate && npm run build
-    startCommand: npm start
+    startCommand: node .next/standalone/server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,5 +14,7 @@
         generateValue: true
       - key: NEXTAUTH_URL
         value: https://portail-spi-cam.onrender.com
+      - key: PORT
+        value: 10000
     healthCheckPath: /
     autoDeploy: true
