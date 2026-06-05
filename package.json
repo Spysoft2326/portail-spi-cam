@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Portail de Suivi de la Production Industrielle du Cameroun",
   "private": true,
-  "scripts": {
+  "engines": {\n    "node": ">=18.0.0"\n  },\n  "scripts": {
     "postinstall": "prisma generate",
     "build": "next build",
     "start": "next start -p 3000",
