@@ -23,7 +23,7 @@ export function canAccess(userRole: Role, minRole: Role): boolean {
 }
 
 // Permissions spécifiques
-export const PERMISSIONS = {
+export const PERMISSIONS: Record<string, Role[]> = {
   // Consultation
   VIEW_PUBLIC: [Role.PUBLIC, Role.AGENT_SAISIE, Role.ADMIN, Role.SUPER_ADMIN],
   VIEW_ENTERPRISE_DETAILS: [Role.AGENT_SAISIE, Role.ADMIN, Role.SUPER_ADMIN],
