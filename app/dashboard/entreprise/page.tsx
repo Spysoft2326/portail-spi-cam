@@ -16,6 +16,7 @@ interface Entreprise {
   telephone: string | null;
   email: string | null;
   siteWeb: string | null;
+  numContribuable: string | null;  // <-- AJOUTER CETTE LIGNE
   secteurActivite: string;
   sousSecteur: string | null;
   produitsPrincipaux: string | null;
