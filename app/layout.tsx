@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { getServerSession } from "next-auth/next";
 import SessionProvider from "@/components/session-provider";
