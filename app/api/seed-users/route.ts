@@ -1,23 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const users = [
-  { email: "superadmin@spi-cam.cm", name: "Super Administrateur", password: "SpiCam2026!", role: "SUPER_ADMIN" },
-  { email: "admin@spi-cam.cm", name: "Administrateur", password: "SpiCam2026!", role: "ADMIN" },
-  { email: "agent1@spi-cam.cm", name: "Agent 1", password: "SpiCam2026!", role: "AGENT" },
-];
-
 export async function POST(request: NextRequest) {
   try {
-    const existingCount = await prisma.user.count();
-    if (existingCount > 0) {
-      return NextResponse.json({ 
-        message: `Database already has ${existingCount} users`, 
-        status: "already_seeded" 
-      });
-    }
+    // Supprime les users existants (pour recréer avec hash)
+    await prisma.user.deleteMany();
+    
+    const hashedPassword = await bcrypt.hash("SpiCam2026!", 10);
+    
+    const users = [
+      { email: "superadmin@spi-cam.cm", name: "Super Administrateur", password: hashedPassword, role: "SUPER_ADMIN" },
+      { email: "admin@spi-cam.cm", name: "Administrateur", password: hashedPassword, role: "ADMIN" },
+      { email: "agent1@spi-cam.cm", name: "Agent 1", password: hashedPassword, role: "AGENT" },
+    ];
 
     let created = 0;
     for (const user of users) {
@@ -30,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ 
-      message: `Users seeding complete`, 
+      message: `Users recreated with hashed passwords`, 
       created,
       status: "success" 
     });
