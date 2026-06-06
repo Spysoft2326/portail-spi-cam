@@ -13,8 +13,7 @@ const credentialsSchema = z.object({
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
-  trustHost: true,
-
+  
   providers: [
     CredentialsProvider({
       name: "credentials",
