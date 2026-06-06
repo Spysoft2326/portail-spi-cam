@@ -1,4 +1,11 @@
-type Role = 'PUBLIC' | 'AGENT_SAISIE' | 'ADMIN' | 'SUPER_ADMIN';
+export const Role = {
+  PUBLIC: 'PUBLIC',
+  AGENT_SAISIE: 'AGENT_SAISIE',
+  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN'
+} as const;
+
+export type Role = typeof Role[keyof typeof Role];
 
 export const ROLES_HIERARCHY: Record<Role, number> = {
   PUBLIC: 0,
