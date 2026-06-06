@@ -113,6 +113,8 @@ const entreprises = [
   { denomination: "Zone Industrielle de Garoua", sigle: "ZIG", secteurActivite: "AUTRE", ville: "Garoua", region: "NORD", statut: "ACTIF", estExportateur: true, estDansZoneIndustrielle: true, nomZoneIndustrielle: "Garoua", telephone: "+237 222 53 99 99", email: "contact@zig.cm", formeJuridique: "SARL", capitalSocial: 20000000000 },
   { denomination: "Zone Industrielle de Bamenda", sigle: "ZIBam", secteurActivite: "AUTRE", ville: "Bamenda", region: "NORD_OUEST", statut: "ACTIF", estExportateur: false, estDansZoneIndustrielle: true, nomZoneIndustrielle: "Bamenda", telephone: "+237 233 54 11 11", email: "info@zibam.cm", formeJuridique: "SARL", capitalSocial: 10000000000 },
   { denomination: "Zone Industrielle de Maroua", sigle: "ZIM", secteurActivite: "AUTRE", ville: "Maroua", region: "EXTREME_NORD", statut: "ACTIF", estExportateur: false, estDansZoneIndustrielle: true, nomZoneIndustrielle: "Maroua", telephone: "+237 222 54 22 22", email: "contact@zim.cm", formeJuridique: "SARL", capitalSocial: 8000000000 },
+  { denomination: "Nouvelle Entreprise A", sigle: "NEA", secteurActivite: "AGROALIMENTAIRE", ville: "Bafoussam", region: "OUEST", statut: "ACTIF", estExportateur: false, telephone: "+237 233 55 11 11", email: "contact@nea.cm", formeJuridique: "SARL", capitalSocial: 5000000000 },
+  { denomination: "Nouvelle Entreprise B", sigle: "NEB", secteurActivite: "TIC_ET_NUMERIQUE", ville: "Bamenda", region: "NORD_OUEST", statut: "ACTIF", estExportateur: true, telephone: "+237 233 55 22 22", email: "contact@neb.cm", formeJuridique: "SAS", capitalSocial: 8000000000 },
 ];
 
 async function main() {
