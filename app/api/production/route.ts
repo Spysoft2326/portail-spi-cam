@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const production = await prisma.productionData.create({
       data: {
         ...validated,
-        saisieParId: session.user.id,
+        saisieParId: session.user.id || "",
         statutValidation: "EN_ATTENTE",
       },
     });
