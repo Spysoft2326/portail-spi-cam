@@ -18,13 +18,12 @@ import {
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
-  user: {
+  user?: {
     name?: string | null;
     email?: string | null;
     role?: string;
   };
 }
-
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const role = user.role || "AGENT_SAISIE";
