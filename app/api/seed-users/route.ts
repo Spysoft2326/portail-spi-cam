@@ -11,7 +11,6 @@ const users = [
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if users already exist
     const existingCount = await prisma.user.count();
     if (existingCount > 0) {
       return NextResponse.json({ 
@@ -20,7 +19,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Seed users
     let created = 0;
     for (const user of users) {
       try {
