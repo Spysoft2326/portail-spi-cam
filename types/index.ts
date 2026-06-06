@@ -1,54 +1,64 @@
-import { Role, Secteur, Region, StatutEntreprise, Periode, StatutValidation, TypeNote, StatutPublication } from '@prisma/client';
-
-export type { Role, Secteur, Region, StatutEntreprise, Periode, StatutValidation, TypeNote, StatutPublication };
-
-export interface DashboardStats {
-  totalEntreprises: number;
-  entreprisesActives: number;
-  totalProductions: number;
-  totalEmployes: number;
-  totalExport: number;
-  croissanceProduction: number;
+export enum Role {
+  PUBLIC = 'PUBLIC',
+  AGENT_SAISIE = 'AGENT_SAISIE',
+  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN'
 }
 
-export interface ProductionKPI {
-  periode: string;
-  volumeTotal: number;
-  valeurTotal: number;
-  emploisTotal: number;
-  capaciteMoyenne: number;
-  tauxQualiteMoyen: number;
+export enum Secteur {
+  AGROALIMENTAIRE = 'AGROALIMENTAIRE',
+  BOIS_ET_PAPETERIE = 'BOIS_ET_PAPETERIE',
+  CHIMIE_ET_PHARMACIE = 'CHIMIE_ET_PHARMACIE',
+  CONSTRUCTION_ET_BTP = 'CONSTRUCTION_ET_BTP',
+  ENERGIE_ET_EAU = 'ENERGIE_ET_EAU',
+  MECANIQUE_ET_ELECTRIQUE = 'MECANIQUE_ET_ELECTRIQUE',
+  METALLURGIE_ET_SIDÉRURGIE = 'METALLURGIE_ET_SIDÉRURGIE',
+  MINES_ET_CARRIERES = 'MINES_ET_CARRIERES',
+  TEXTILE_ET_HABILLEMENT = 'TEXTILE_ET_HABILLEMENT',
+  TIC_ET_NUMÉRIQUE = 'TIC_ET_NUMÉRIQUE',
+  AUTRE = 'AUTRE'
 }
 
-export interface SecteurStats {
-  secteur: Secteur;
-  nombreEntreprises: number;
-  volumeProduction: number;
-  valeurProduction: number;
-  pourcentage: number;
+export enum Region {
+  CENTRE = 'CENTRE',
+  LITTORAL = 'LITTORAL',
+  OUEST = 'OUEST',
+  NORD_OUEST = 'NORD_OUEST',
+  SUD_OUEST = 'SUD_OUEST',
+  EST = 'EST',
+  ADAMAOUA = 'ADAMAOUA',
+  NORD = 'NORD',
+  EXTREME_NORD = 'EXTREME_NORD',
+  SUD = 'SUD'
 }
 
-export interface RegionStats {
-  region: Region;
-  nombreEntreprises: number;
-  volumeProduction: number;
-  emplois: number;
+export enum StatutEntreprise {
+  ACTIF = 'ACTIF',
+  INACTIF = 'INACTIF',
+  EN_CREATION = 'EN_CREATION',
+  SUSPENDU = 'SUSPENDU'
 }
 
-export interface AlertItem {
-  id: string;
-  type: string;
-  niveau: 'INFO' | 'WARNING' | 'CRITICAL';
-  titre: string;
-  description: string;
-  date: Date;
+export enum Periode {
+  TRIMESTRIEL = 'TRIMESTRIEL',
+  SEMESTRIEL = 'SEMESTRIEL',
+  ANNUEL = 'ANNUEL'
 }
 
-export interface FilterParams {
-  secteur?: Secteur;
-  region?: Region;
-  statut?: StatutEntreprise;
-  ville?: string;
-  estExportateur?: boolean;
-  search?: string;
+export enum StatutValidation {
+  EN_ATTENTE = 'EN_ATTENTE',
+  VALIDE = 'VALIDE',
+  REJETE = 'REJETE'
+}
+
+export enum TypeNote {
+  CONJONCTURE = 'CONJONCTURE',
+  SECTEUR = 'SECTEUR',
+  REGIONALE = 'REGIONALE'
+}
+
+export enum StatutPublication {
+  BROUILLON = 'BROUILLON',
+  PUBLIE = 'PUBLIE',
+  ARCHIVE = 'ARCHIVE'
 }
