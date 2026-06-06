@@ -115,12 +115,12 @@ export function Sidebar({ user }: SidebarProps) {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-[#007A3D]/20 rounded-full flex items-center justify-center">
             <span className="text-sm font-bold text-[#007A3D]">
-              {user.name?.charAt(0).toUpperCase() || "U"}
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </span>
           </div>
           <div className="overflow-hidden">
-            <p className="text-sm font-medium truncate">{user.name}</p>
-            <p className="text-xs text-white/50 truncate">{user.email}</p>
+            <p className="text-sm font-medium truncate">{user?.name}</p>
+            <p className="text-xs text-white/50 truncate">{user?.email}</p>
             <span className="inline-block mt-1 px-2 py-0.5 bg-[#007A3D]/20 rounded text-xs text-[#007A3D]">
               {role === "SUPER_ADMIN" && "Super-Admin"}
               {role === "ADMIN" && "Administrateur"}
