@@ -26,7 +26,7 @@ interface SidebarProps {
 }
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
-  const role = user.role || "AGENT_SAISIE";
+  const role = user?.role || "AGENT_SAISIE";
 
   const navigation = [
     ...(role !== "PUBLIC"
