@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node prisma/migrate-db.js && npx prisma generate",
+   "prebuild": "node prisma/migrate-db.js && rm -rf node_modules/.prisma && rm -rf node_modules/@prisma/client && npx prisma generate",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
