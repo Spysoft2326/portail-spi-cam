@@ -91,31 +91,31 @@ model Production {
   id                  String     @id @default(uuid())
   entrepriseId        String
   entreprise          Entreprise @relation(fields: [entrepriseId], references: [id])
-
+  
   // Periode
   annee               Int
   trimestre           Int        // 1, 2, 3, 4
-
+  
   // Donnees de production
   productionPhysique  Float?     // Tonnes, unites...
   chiffreAffaires     Float?     // En FCFA
   effectifs           Int?       // Nombre de salaries
   investissements     Float?     // En FCFA
-
+  
   // Metadonnees
   commentaire         String?
-
+  
   // Workflow
   statut              String     @default("EN_ATTENTE") // EN_ATTENTE, VALIDEE, REJETEE
   saisiePar           String     // ID de l'agent
   validePar           String?    // ID de l'admin/super-admin
   dateSaisie          DateTime   @default(now())
   dateValidation      DateTime?
-
+  
   // Audit
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
-
+  
   @@unique([entrepriseId, annee, trimestre])
   @@index([entrepriseId])
   @@index([annee, trimestre])
