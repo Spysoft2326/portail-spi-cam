@@ -1,14 +1,10 @@
-﻿#!/bin/bash
+﻿#!/bin/sh
 rm -rf node_modules
-
-# Supprimer le postinstall pour eviter la generation prematuree
-sed -i '/"postinstall"/d' package.json
-
 npm install
 
 # Creer le schema Prisma directement
 cat > prisma/schema.prisma << 'EOF'
-...
+// ... contenu du schema ...
 EOF
 
 # Verifier
