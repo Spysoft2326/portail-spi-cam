@@ -13,7 +13,7 @@ const credentialsSchema = z.object({
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
-  
+
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
             where: { email: validated.email },
           });
 
-          if (!user || !user.isActive) {
+          if (!user) {
             return null;
           }
 
@@ -117,5 +117,3 @@ export function isAdmin(user: any) {
 export function isSuperAdmin(user: any) {
   return user?.role === "SUPER_ADMIN";
 }
-
-// Render build fix - force commit
