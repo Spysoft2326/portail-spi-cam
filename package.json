@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npx prisma db push --accept-data-loss && npx prisma generate",
+    "prebuild": "node prisma/migrate-db.js && npx prisma generate",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
