@@ -12,31 +12,31 @@ export async function GET() {
       recentes,
       avecProduction,
     ] = await Promise.all([
-      prisma.enterprise.count(),
-      prisma.enterprise.groupBy({
+      prisma.Entreprise.count(),
+      prisma.Entreprise.groupBy({
         by: ["secteurActivite"],
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
       }),
-      prisma.enterprise.groupBy({
+      prisma.Entreprise.groupBy({
         by: ["region"],
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
       }),
-      prisma.enterprise.groupBy({
+      prisma.Entreprise.groupBy({
         by: ["ville"],
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
         take: 10,
       }),
-      prisma.enterprise.groupBy({
+      prisma.Entreprise.groupBy({
         by: ["statut"],
         _count: { id: true },
       }),
-      prisma.enterprise.count({
+      prisma.Entreprise.count({
         where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
       }),
-      prisma.enterprise.count({ where: { productions: { some: {} } } }),
+      prisma.Entreprise.count({ where: { productions: { some: {} } } }),
     ]);
 
     return NextResponse.json({
@@ -50,7 +50,7 @@ export async function GET() {
         count: r._count.id,
       })),
       parVille: parVille.map((v) => ({
-        name: v.ville || "Non spécifié",
+        name: v.ville || "Non specifie",
         count: v._count.id,
       })),
       parStatut: parStatut.map((s) => ({
