@@ -45,6 +45,7 @@ model User {
   image         String?
   password      String?
   role          String    @default("AGENT_SAISIE")
+  isActive      Boolean   @default(true)
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime  @default(now())
@@ -59,7 +60,7 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Enterprise {
+model Entreprise {
   id                      String       @id @default(uuid())
   referenceSPI            String       @unique
   denomination            String
@@ -89,19 +90,19 @@ model Enterprise {
 model Production {
   id                  String     @id @default(uuid())
   entrepriseId        String
-  entreprise          Enterprise @relation(fields: [entrepriseId], references: [id])
+  entreprise          Entreprise @relation(fields: [entrepriseId], references: [id])
 
-  // Période
+  // Periode
   annee               Int
   trimestre           Int        // 1, 2, 3, 4
 
-  // Données de production
-  productionPhysique  Float?     // Tonnes, unités...
+  // Donnees de production
+  productionPhysique  Float?     // Tonnes, unites...
   chiffreAffaires     Float?     // En FCFA
-  effectifs           Int?       // Nombre de salariés
+  effectifs           Int?       // Nombre de salaries
   investissements     Float?     // En FCFA
 
-  // Métadonnées
+  // Metadonnees
   commentaire         String?
 
   // Workflow
