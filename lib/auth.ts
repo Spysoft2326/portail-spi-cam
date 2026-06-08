@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
             where: { email: validated.email },
           });
 
-          if (!user) {
+          if (!user || !user.password) {
             return null;
           }
 
