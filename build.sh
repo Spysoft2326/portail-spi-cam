@@ -1,11 +1,10 @@
 ﻿#!/bin/bash
 npm install
 
-# Vérifier et corriger le schéma Prisma si nécessaire
+# Verifier et corriger le schema Prisma si necessaire
 if ! grep -q "model Entreprise" prisma/schema.prisma; then
-  echo "Corriger le schéma Prisma..."
-  sed -i 's/model entreprise/model Entreprise/g' prisma/schema.prisma
-  sed -i 's/entreprise    Enterprise/Entreprise    Entreprise/g' prisma/schema.prisma
+  echo "Corriger le schema Prisma..."
+  node -e "const fs=require('fs'); let s=fs.readFileSync('prisma/schema.prisma','utf8'); s=s.replace(/model entreprise/g,'model Entreprise'); s=s.replace(/entreprise    Enterprise/g,'Entreprise    Entreprise'); fs.writeFileSync('prisma/schema.prisma',s);"
 fi
 
 rm -rf node_modules/.prisma
