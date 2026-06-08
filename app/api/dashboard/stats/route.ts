@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -13,34 +11,32 @@ export async function GET() {
       parStatut,
       recentes,
       avecProduction,
-      avecDocuments,
     ] = await Promise.all([
-      prisma.entreprise.count(),
-      prisma.entreprise.groupBy({
+      prisma.enterprise.count(),
+      prisma.enterprise.groupBy({
         by: ["secteurActivite"],
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
       }),
-      prisma.entreprise.groupBy({
+      prisma.enterprise.groupBy({
         by: ["region"],
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
       }),
-      prisma.entreprise.groupBy({
+      prisma.enterprise.groupBy({
         by: ["ville"],
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
         take: 10,
       }),
-      prisma.entreprise.groupBy({
+      prisma.enterprise.groupBy({
         by: ["statut"],
         _count: { id: true },
       }),
-      prisma.entreprise.count({
+      prisma.enterprise.count({
         where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
       }),
-      prisma.entreprise.count({ where: { productions: { some: {} } } }),
-      prisma.entreprise.count({ where: { documents: { some: {} } } }),
+      prisma.enterprise.count({ where: { productions: { some: {} } } }),
     ]);
 
     return NextResponse.json({
@@ -63,12 +59,9 @@ export async function GET() {
       })),
       recentes,
       avecProduction,
-      avecDocuments,
     });
   } catch (error) {
     console.error("Erreur stats:", error);
     return NextResponse.json({ error: "Erreur stats" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
