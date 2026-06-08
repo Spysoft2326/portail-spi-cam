@@ -2,10 +2,17 @@
 rm -rf node_modules
 npm install
 
-# Creer le schema Prisma directement
-cat > prisma/schema.prisma << 'EOF'
-// ... contenu du schema ...
-EOF
+# Verifier le schema actuel
+echo "Schema avant correction:"
+head -5 prisma/schema.prisma
+
+# Corriger le schema
+sed -i 's/model entreprise/model Entreprise/g' prisma/schema.prisma
+sed -i 's/entreprise    Enterprise/Entreprise    Entreprise/g' prisma/schema.prisma
+
+# Verifier le schema apres correction
+echo "Schema apres correction:"
+head -5 prisma/schema.prisma
 
 # Verifier
 if ! grep -q "model Entreprise" prisma/schema.prisma; then
