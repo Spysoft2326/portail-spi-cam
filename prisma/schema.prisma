@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,175 +8,131 @@ generator client {
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
-  
 }
 
-// ============================================================
-// UTILISATEURS
-// ============================================================
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
+  id            String    @id @default(cuid())
   name          String?
-  password      String
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
   role          String    @default("AGENT_SAISIE")
-  isActive      Boolean   @default(true)
+  accounts      Account[]
+  sessions      Session[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  lastLoginAt   DateTime?
-
-  saisies       ProductionData[]
-  notesRedigees NoteConjoncture[]
-  logs          AuditLog[]
 }
 
-// ============================================================
-// ENTREPRISES INDUSTRIELLES
-// ============================================================
-model Entreprise {
-  id                      String   @id @default(uuid())
-  referenceSPI            String   @unique
-  denomination            String   @unique
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Enterprise {
+  id                      String       @id @default(uuid())
+  referenceSPI            String       @unique
+  denomination            String
   sigle                   String?
   formeJuridique          String?
   capitalSocial           Float?
-  dateCreation            DateTime?
-  numRegistreCommerce     String?
-  numContribuable         String?  @unique
   adresse                 String?
   ville                   String?
   departement             String?
-  region                  String   @default("CENTRE")
-  codePostal              String?
-  latitude                Float?
-  longitude               Float?
+  region                  String
   telephone               String?
   email                   String?
   siteWeb                 String?
-  secteurActivite         String   @default("AUTRE")
+  numContribuable         String?
+  secteurActivite         String       @default("AUTRE")
   sousSecteur             String?
   produitsPrincipaux      String?
-  statut                  String   @default("ACTIF")
-  estExportateur          Boolean  @default(false)
-  estDansZoneIndustrielle Boolean  @default(false)
+  statut                  String       @default("ACTIF")
+  estExportateur          Boolean      @default(false)
+  estDansZoneIndustrielle Boolean      @default(false)
   nomZoneIndustrielle     String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-
-  productions      ProductionData[]
-  notesConjoncture NoteConjoncture[]
-  documents        Document[]
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  productions             Production[]
 }
 
-// ============================================================
-// DONNÉES DE PRODUCTION
-// ============================================================
-model ProductionData {
-  id                String   @id @default(uuid())
-  annee             Int
-  periode           String   @default("TRIMESTRIEL")
-  semestre          Int?
-  trimestre         Int?
-  volumeProduit     Float?
-  valeurProduction  Float?
-  chiffreAffaires   Float?
-  nombreEmployes    Int?
-  capaciteUtilisee  Float?
-  tauxQualite       Float?
-  tauxDisponibilite Float?
-  volumeExport      Float?
-  valeurExport      Float?
-  sourceDonnee      String?
-  statutValidation  String   @default("EN_ATTENTE")
-  dateSaisie        DateTime @default(now())
-  dateValidation    DateTime?
-  validePar         String?
-  commentaireRejet  String?
+model Production {
+  id                  String     @id @default(uuid())
+  entrepriseId        String
+  entreprise          Enterprise @relation(fields: [entrepriseId], references: [id])
 
-  entrepriseId String
-  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
-  saisieParId  String
-  saisiePar    User       @relation(fields: [saisieParId], references: [id])
+  // Période
+  annee               Int
+  trimestre           Int        // 1, 2, 3, 4
 
-  @@index([entrepriseId, annee])
-  @@index([saisieParId])
+  // Données de production
+  productionPhysique  Float?     // Tonnes, unités...
+  chiffreAffaires     Float?     // En FCFA
+  effectifs           Int?       // Nombre de salariés
+  investissements     Float?     // En FCFA
+
+  // Métadonnées
+  commentaire         String?
+
+  // Workflow
+  statut              String     @default("EN_ATTENTE") // EN_ATTENTE, VALIDEE, REJETEE
+  saisiePar           String     // ID de l'agent
+  validePar           String?    // ID de l'admin/super-admin
+  dateSaisie          DateTime   @default(now())
+  dateValidation      DateTime?
+
+  // Audit
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  @@unique([entrepriseId, annee, trimestre])
+  @@index([entrepriseId])
+  @@index([annee, trimestre])
+  @@index([statut])
 }
 
-// ============================================================
-// NOTES DE CONJONCTURE
-// ============================================================
-model NoteConjoncture {
-  id                   String    @id @default(uuid())
-  titre                String
-  periodeReference     String
-  typeNote             String    @default("GLOBALE")
-  resumeExecutif       String?
-  analyseMacro         String?
-  analyseSectorielle   String?
-  perspectives         String?
-  recommandations      String?
-  ipcIndustriel        Float?
-  tauxCroissance       Float?
-  nombreEntreprisesActives Int?
-  dateRedaction        DateTime  @default(now())
-  datePublication      DateTime?
-  statutPublication    String    @default("BROUILLON")
-
-  redacteurId String
-  redacteur   User   @relation(fields: [redacteurId], references: [id])
-
-  entrepriseId String?
-  entreprise   Entreprise? @relation(fields: [entrepriseId], references: [id], onDelete: SetNull)
-
-  entreprisesCitees String?
-  secteursConcernes String?
-
-  documentPdf Document?
+model ConfigSystem {
+  id          String   @id @default(uuid())
+  cle         String   @unique
+  valeur      String
+  description String?
+  updatedAt   DateTime @updatedAt
 }
 
-// ============================================================
-// DOCUMENTS & FICHIERS
-// ============================================================
-model Document {
-  id           String   @id @default(uuid())
-  nomFichier   String
-  typeDocument String   @default("AUTRE")
-  url          String
-  mimeType     String
-  taille       Int
-  uploadedBy   String
-  uploadedAt   DateTime @default(now())
-
-  entrepriseId String?
-  entreprise   Entreprise? @relation(fields: [entrepriseId], references: [id], onDelete: SetNull)
-
-  noteConjonctureId String?     @unique
-  noteConjoncture   NoteConjoncture? @relation(fields: [noteConjonctureId], references: [id])
-}
-
-// ============================================================
-// AUDIT & TRAÇABILITÉ
-// ============================================================
 model AuditLog {
   id        String   @id @default(uuid())
-  userId    String
   action    String
-  entite    String
-  entiteId  String?
+  userId    String?
   details   String?
-  ipAddress String?
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-// ============================================================
-// CONFIGURATION SYSTÈME
-// ============================================================
-model ConfigSystem {
-  id                    String   @id @default(uuid())
-  anneeEnCours          Int      @default(2026)
-  seuilAlerteProduction Float?
-  emailNotifications    String?
-  frequenceRappelSaisie String?
 }

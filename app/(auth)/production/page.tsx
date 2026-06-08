@@ -1,104 +1,97 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
+  Plus,
+  Search,
+  Filter,
   ClipboardList,
   CheckCircle2,
   Clock,
   XCircle,
+  ArrowUpDown,
   Loader2,
-  Filter,
-  ArrowLeft,
-  Plus,
 } from "lucide-react";
 
 interface Production {
   id: string;
   annee: number;
-  periode: string;
-  trimestre: number | null;
-  semestre: number | null;
-  volumeProduit: number | null;
-  valeurProduction: number | null;
-  nombreEmployes: number | null;
-  statutValidation: string;
+  trimestre: number;
+  productionPhysique: number | null;
+  chiffreAffaires: number | null;
+  effectifs: number | null;
+  investissements: number | null;
+  statut: string;
+  commentaire: string | null;
   dateSaisie: string;
+  dateValidation: string | null;
   entreprise: {
+    id: string;
     denomination: string;
     referenceSPI: string;
   };
-  saisiePar: {
-    name: string;
-    email: string;
-  };
 }
 
-export default function ProductionsListPage() {
+export default function ProductionPage() {
   const { data: session } = useSession();
   const [productions, setProductions] = useState<Production[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("");
+  const [filterStatut, setFilterStatut] = useState("");
+  const [filterAnnee, setFilterAnnee] = useState("");
+  const [search, setSearch] = useState("");
 
-  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
-
-  const fetchProductions = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (filter) params.set("statut", filter);
-
-      const res = await fetch(`/api/production?${params.toString()}`);
-      const data = await res.json();
-      setProductions(data.productions || []);
-    } catch (error) {
-      console.error("Erreur:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [filter]);
+  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(session?.user?.role || "");
 
   useEffect(() => {
     fetchProductions();
-  }, [fetchProductions]);
+  }, [filterStatut, filterAnnee]);
 
-  const handleValidate = async (id: string, action: "VALIDE" | "REJETE") => {
+  const fetchProductions = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`/api/production/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
+      const params = new URLSearchParams();
+      if (filterStatut) params.append("statut", filterStatut);
+      if (filterAnnee) params.append("annee", filterAnnee);
 
-      if (res.ok) {
-        fetchProductions();
-      }
+      const res = await fetch(`/api/production?${params}`);
+      const data = await res.json();
+      setProductions(data.productions || []);
     } catch (error) {
-      console.error("Erreur validation:", error);
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusBadge = (statut: string) => {
+  const filteredProductions = productions.filter((p) =>
+    search
+      ? p.entreprise.denomination.toLowerCase().includes(search.toLowerCase()) ||
+        p.entreprise.referenceSPI.toLowerCase().includes(search.toLowerCase())
+      : true
+  );
+
+  const getStatutBadge = (statut: string) => {
     switch (statut) {
-      case "VALIDE":
+      case "VALIDEE":
         return (
-          <span className="flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">
-            <CheckCircle2 className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+            <CheckCircle2 className="w-3.5 h-3.5" />
             Validée
           </span>
         );
-      case "REJETE":
+      case "REJETEE":
         return (
-          <span className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
-            <XCircle className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
+            <XCircle className="w-3.5 h-3.5" />
             Rejetée
           </span>
         );
       default:
         return (
-          <span className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-            <Clock className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700">
+            <Clock className="w-3.5 h-3.5" />
             En attente
           </span>
         );
@@ -107,125 +100,178 @@ export default function ProductionsListPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href={isAdmin ? "/dashboard/admin" : "/dashboard/agent"} className="text-gray-500 hover:text-gray-700">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Données de production</h2>
-            <p className="text-sm text-gray-500">
-              {isAdmin ? "Validation et supervision" : "Mes saisies"}
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Productions</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Saisies trimestrielles {isAdmin ? "- Toutes les données" : "- Mes saisies"}
+          </p>
         </div>
-        {!isAdmin && (
-          <Link
-            href="/production/new"
-            className="px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Nouvelle saisie
-          </Link>
-        )}
+        <Link
+          href="/production/new"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition-colors font-medium"
+        >
+          <Plus className="w-5 h-5" />
+          Nouvelle saisie
+        </Link>
+      </div>
+
+      {/* Stats rapides */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Total", value: productions.length, color: "bg-gray-50" },
+          {
+            label: "En attente",
+            value: productions.filter((p) => p.statut === "EN_ATTENTE").length,
+            color: "bg-yellow-50",
+          },
+          {
+            label: "Validées",
+            value: productions.filter((p) => p.statut === "VALIDEE").length,
+            color: "bg-emerald-50",
+          },
+          {
+            label: "Rejetées",
+            value: productions.filter((p) => p.statut === "REJETEE").length,
+            color: "bg-red-50",
+          },
+        ].map((stat) => (
+          <div key={stat.label} className={`${stat.color} rounded-xl p-4`}>
+            <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+            <div className="text-sm text-gray-600">{stat.label}</div>
+          </div>
+        ))}
       </div>
 
       {/* Filtres */}
-      <div className="flex items-center gap-2">
-        <Filter className="w-4 h-4 text-gray-400" />
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#007A3D] outline-none"
-        >
-          <option value="">Tous les statuts</option>
-          <option value="EN_ATTENTE">En attente</option>
-          <option value="VALIDE">Validées</option>
-          <option value="REJETE">Rejetées</option>
-        </select>
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher une entreprise..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] focus:border-transparent outline-none"
+            />
+          </div>
+          <div className="flex gap-3">
+            <select
+              value={filterStatut}
+              onChange={(e) => setFilterStatut(e.target.value)}
+              className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none bg-white"
+            >
+              <option value="">Tous les statuts</option>
+              <option value="EN_ATTENTE">En attente</option>
+              <option value="VALIDEE">Validées</option>
+              <option value="REJETEE">Rejetées</option>
+            </select>
+            <select
+              value={filterAnnee}
+              onChange={(e) => setFilterAnnee(e.target.value)}
+              className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none bg-white"
+            >
+              <option value="">Toutes les années</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      {/* Liste */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-[#007A3D]" />
-        </div>
-      ) : productions.length === 0 ? (
-        <div className="text-center py-12">
-          <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Aucune donnée de production</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* Tableau */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-[#007A3D]" />
+          </div>
+        ) : filteredProductions.length === 0 ? (
+          <div className="text-center py-12">
+            <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">Aucune production trouvée</p>
+            <Link
+              href="/production/new"
+              className="text-[#007A3D] hover:text-[#006633] text-sm mt-2 inline-block"
+            >
+              Créer une saisie →
+            </Link>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Entreprise</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Période</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Volume</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Valeur</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Emplois</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Statut</th>
-                  {isAdmin && <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Agent</th>}
-                  {isAdmin && <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Actions</th>}
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Entreprise
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Période
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    Production
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    CA (FCFA)
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                    Statut
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {productions.map((prod) => (
-                  <tr key={prod.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4">
+                {filteredProductions.map((production) => (
+                  <tr key={production.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{prod.entreprise.denomination}</p>
-                        <p className="text-xs text-gray-500">{prod.entreprise.referenceSPI}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {production.entreprise.denomination}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {production.entreprise.referenceSPI}
+                        </p>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm">
-                      {prod.annee} - {prod.periode}
-                      {prod.trimestre && ` T${prod.trimestre}`}
-                      {prod.semestre && ` S${prod.semestre}`}
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-900">
+                        T{production.trimestre} {production.annee}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-sm">
-                      {prod.volumeProduit?.toLocaleString() || "-"}
+                    <td className="px-6 py-4 text-right">
+                      <span className="text-sm text-gray-900">
+                        {production.productionPhysique?.toLocaleString() || "—"}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-sm">
-                      {prod.valeurProduction ? `${prod.valeurProduction.toLocaleString()} FCFA` : "-"}
+                    <td className="px-6 py-4 text-right">
+                      <span className="text-sm text-gray-900">
+                        {production.chiffreAffaires
+                          ? `${production.chiffreAffaires.toLocaleString()} F`
+                          : "—"}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-sm">{prod.nombreEmployes || "-"}</td>
-                    <td className="py-3 px-4">{getStatusBadge(prod.statutValidation)}</td>
-                    {isAdmin && (
-                      <td className="py-3 px-4 text-sm text-gray-500">
-                        {prod.saisiePar.name}
-                      </td>
-                    )}
-                    {isAdmin && prod.statutValidation === "EN_ATTENTE" && (
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleValidate(prod.id, "VALIDE")}
-                            className="px-3 py-1 bg-[#007A3D] text-white text-xs rounded hover:bg-[#006633]"
-                          >
-                            Valider
-                          </button>
-                          <button
-                            onClick={() => handleValidate(prod.id, "REJETE")}
-                            className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                          >
-                            Rejeter
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                    {isAdmin && prod.statutValidation !== "EN_ATTENTE" && (
-                      <td className="py-3 px-4 text-xs text-gray-400">-</td>
-                    )}
+                    <td className="px-6 py-4 text-center">
+                      {getStatutBadge(production.statut)}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Link
+                        href={`/production/${production.id}`}
+                        className="text-sm text-[#007A3D] hover:text-[#006633] font-medium"
+                      >
+                        Voir →
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

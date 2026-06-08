@@ -3,511 +3,502 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import {
-  ClipboardList,
-  Building2,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  ArrowLeft,
-} from "lucide-react";
 import Link from "next/link";
+import {
+  ArrowLeft,
+  Building2,
+  Plus,
+  Loader2,
+  Save,
+  Calendar,
+  Package,
+  Users,
+  DollarSign,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
 
-interface Entreprise {
+interface Enterprise {
   id: string;
   denomination: string;
   referenceSPI: string;
+  secteurActivite: string;
 }
 
-export default function SaisieProductionPage() {
+export default function NewProductionPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [loadingEntreprises, setLoadingEntreprises] = useState(true);
+  const [entreprises, setEntreprises] = useState<Enterprise[]>([]);
+  const [showNewEnterprise, setShowNewEnterprise] = useState(false);
   const [error, setError] = useState("");
-  const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
+  const [success, setSuccess] = useState("");
 
+  // Formulaire production
   const [formData, setFormData] = useState({
     entrepriseId: "",
-    annee: 2026,
-    periode: "TRIMESTRIEL",
-    trimestre: 1,
-    semestre: 1,
-    volumeProduit: "",
-    uniteMesure: "tonnes",
-    valeurProduction: "",
+    annee: new Date().getFullYear().toString(),
+    trimestre: "",
+    productionPhysique: "",
     chiffreAffaires: "",
-    nombreEmployes: "",
-    nombreEmployesTemporaires: "",
-    capaciteInstallee: "",
-    capaciteUtilisee: "",
-    tauxQualite: "",
-    tauxDisponibilite: "",
-    volumeExport: "",
-    valeurExport: "",
-    paysDestination: "",
-    matieresPremieresLocal: "",
-    matieresPremieresImport: "",
-    sourceDonnee: "Déclaration entreprise",
-    methodeCollecte: "Questionnaire en ligne",
+    effectifs: "",
+    investissements: "",
+    commentaire: "",
+  });
+
+  // Formulaire nouvelle entreprise
+  const [newEnterprise, setNewEnterprise] = useState({
+    referenceSPI: "",
+    denomination: "",
+    sigle: "",
+    formeJuridique: "",
+    capitalSocial: "",
+    adresse: "",
+    ville: "",
+    departement: "",
+    region: "",
+    telephone: "",
+    email: "",
+    siteWeb: "",
+    numContribuable: "",
+    secteurActivite: "AUTRE",
+    sousSecteur: "",
+    produitsPrincipaux: "",
+    estExportateur: false,
+    estDansZoneIndustrielle: false,
+    nomZoneIndustrielle: "",
   });
 
   useEffect(() => {
-    async function fetchEntreprises() {
-      try {
-        const res = await fetch("/api/entreprises?limit=100");
-        const data = await res.json();
-        setEntreprises(data.entreprises || []);
-      } catch {
-        console.error("Erreur chargement entreprises");
-      }
-    }
     fetchEntreprises();
   }, []);
+
+  const fetchEntreprises = async () => {
+    try {
+      const res = await fetch("/api/entreprises");
+      const data = await res.json();
+      setEntreprises(data.entreprises || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingEntreprises(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setSuccess(false);
+    setSuccess("");
 
     try {
-      const payload = {
-        ...formData,
-        annee: parseInt(formData.annee.toString()),
-        trimestre: formData.periode === "TRIMESTRIEL" ? parseInt(formData.trimestre.toString()) : undefined,
-        semestre: formData.periode === "SEMESTRIEL" ? parseInt(formData.semestre.toString()) : undefined,
-        volumeProduit: formData.volumeProduit ? parseFloat(formData.volumeProduit) : undefined,
-        valeurProduction: formData.valeurProduction ? parseFloat(formData.valeurProduction) : undefined,
-        chiffreAffaires: formData.chiffreAffaires ? parseFloat(formData.chiffreAffaires) : undefined,
-        nombreEmployes: formData.nombreEmployes ? parseInt(formData.nombreEmployes) : undefined,
-        nombreEmployesTemporaires: formData.nombreEmployesTemporaires ? parseInt(formData.nombreEmployesTemporaires) : undefined,
-        capaciteInstallee: formData.capaciteInstallee ? parseFloat(formData.capaciteInstallee) : undefined,
-        capaciteUtilisee: formData.capaciteUtilisee ? parseFloat(formData.capaciteUtilisee) : undefined,
-        tauxQualite: formData.tauxQualite ? parseFloat(formData.tauxQualite) : undefined,
-        tauxDisponibilite: formData.tauxDisponibilite ? parseFloat(formData.tauxDisponibilite) : undefined,
-        volumeExport: formData.volumeExport ? parseFloat(formData.volumeExport) : undefined,
-        valeurExport: formData.valeurExport ? parseFloat(formData.valeurExport) : undefined,
-        matieresPremieresLocal: formData.matieresPremieresLocal ? parseFloat(formData.matieresPremieresLocal) : undefined,
-        matieresPremieresImport: formData.matieresPremieresImport ? parseFloat(formData.matieresPremieresImport) : undefined,
-      };
+      let entrepriseId = formData.entrepriseId;
 
+      // Si nouvelle entreprise
+      if (showNewEnterprise) {
+        const resEnterprise = await fetch("/api/entreprises", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newEnterprise),
+        });
+
+        const dataEnterprise = await resEnterprise.json();
+
+        if (!resEnterprise.ok) {
+          setError(dataEnterprise.error || "Erreur création entreprise");
+          setLoading(false);
+          return;
+        }
+
+        entrepriseId = dataEnterprise.entreprise.id;
+      }
+
+      // Créer la production
       const res = await fetch("/api/production", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...formData,
+          entrepriseId,
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Erreur lors de la sauvegarde");
+        setError(data.error || "Erreur lors de la sauvegarde");
+      } else {
+        setSuccess("Production enregistrée avec succès !");
+        setTimeout(() => router.push("/production"), 1500);
       }
-
-      setSuccess(true);
-      setFormData({
-        ...formData,
-        entrepriseId: "",
-        volumeProduit: "",
-        valeurProduction: "",
-        chiffreAffaires: "",
-        nombreEmployes: "",
-        nombreEmployesTemporaires: "",
-        capaciteInstallee: "",
-        capaciteUtilisee: "",
-        tauxQualite: "",
-        tauxDisponibilite: "",
-        volumeExport: "",
-        valeurExport: "",
-      });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError("Erreur réseau");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      setFormData((prev) => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleNewEnterpriseChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      setNewEnterprise((prev) => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+    } else {
+      setNewEnterprise((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/agent" className="text-gray-500 hover:text-gray-700">
-          <ArrowLeft className="w-5 h-5" />
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6">
+        <Link
+          href="/production"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Nouvelle saisie de production</h2>
-          <p className="text-sm text-gray-500">Agent : {session?.user?.name}</p>
+          <h1 className="text-2xl font-bold text-gray-900">Nouvelle saisie</h1>
+          <p className="text-sm text-gray-500">Production trimestrielle</p>
         </div>
       </div>
 
-      {success && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2 text-emerald-700">
-          <CheckCircle2 className="w-5 h-5" />
-          Donnée de production enregistrée avec succès ! En attente de validation.
-        </div>
-      )}
-
+      {/* Messages */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600">
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
           <AlertCircle className="w-5 h-5" />
           {error}
         </div>
       )}
-
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
-        {/* Entreprise et Période */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Entreprise *
-            </label>
-            <select
-              required
-              value={formData.entrepriseId}
-              onChange={(e) => setFormData({ ...formData, entrepriseId: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-            >
-              <option value="">Sélectionner...</option>
-              {entreprises.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.denomination}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Année *
-            </label>
-            <input
-              type="number"
-              required
-              value={formData.annee}
-              onChange={(e) => setFormData({ ...formData, annee: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Période *
-            </label>
-            <select
-              value={formData.periode}
-              onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-            >
-              <option value="TRIMESTRIEL">Trimestrielle</option>
-              <option value="SEMESTRIEL">Semestrielle</option>
-              <option value="ANNUEL">Annuelle</option>
-            </select>
-          </div>
+      {success && (
+        <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700">
+          {success}
         </div>
+      )}
 
-        {/* Trimestre/Semestre */}
-        {formData.periode === "TRIMESTRIEL" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Trimestre *</label>
-            <select
-              value={formData.trimestre}
-              onChange={(e) => setFormData({ ...formData, trimestre: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-            >
-              <option value={1}>T1</option>
-              <option value={2}>T2</option>
-              <option value={3}>T3</option>
-              <option value={4}>T4</option>
-            </select>
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Section Entreprise */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-[#007A3D]" />
+            Entreprise
+          </h2>
 
-        {formData.periode === "SEMESTRIEL" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Semestre *</label>
-            <select
-              value={formData.semestre}
-              onChange={(e) => setFormData({ ...formData, semestre: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-            >
-              <option value={1}>S1</option>
-              <option value={2}>S2</option>
-            </select>
-          </div>
-        )}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <input
+                type="radio"
+                id="existing"
+                name="enterpriseType"
+                checked={!showNewEnterprise}
+                onChange={() => setShowNewEnterprise(false)}
+                className="w-4 h-4 text-[#007A3D]"
+              />
+              <label htmlFor="existing" className="text-sm text-gray-700">
+                Entreprise existante
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="radio"
+                id="new"
+                name="enterpriseType"
+                checked={showNewEnterprise}
+                onChange={() => setShowNewEnterprise(true)}
+                className="w-4 h-4 text-[#007A3D]"
+              />
+              <label htmlFor="new" className="text-sm text-gray-700">
+                Nouvelle entreprise
+              </label>
+            </div>
 
-        {/* Production */}
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-[#007A3D]" />
-            Données de production
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Volume produit</label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.volumeProduit}
-                  onChange={(e) => setFormData({ ...formData, volumeProduit: e.target.value })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                  placeholder="0"
-                />
+            {!showNewEnterprise ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sélectionner une entreprise *
+                </label>
                 <select
-                  value={formData.uniteMesure}
-                  onChange={(e) => setFormData({ ...formData, uniteMesure: e.target.value })}
-                  className="px-2 py-2 border border-gray-300 rounded-lg text-sm"
+                  name="entrepriseId"
+                  value={formData.entrepriseId}
+                  onChange={handleChange}
+                  required={!showNewEnterprise}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
                 >
-                  <option value="tonnes">tonnes</option>
-                  <option value="unités">unités</option>
-                  <option value="litres">litres</option>
-                  <option value="m³">m³</option>
+                  <option value="">Choisir...</option>
+                  {entreprises.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.denomination} ({e.referenceSPI})
+                    </option>
+                  ))}
                 </select>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Valeur production (FCFA)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.valeurProduction}
-                onChange={(e) => setFormData({ ...formData, valeurProduction: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Chiffre d'affaires (FCFA)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.chiffreAffaires}
-                onChange={(e) => setFormData({ ...formData, chiffreAffaires: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
-            </div>
+            ) : (
+              <div className="space-y-4 border-t pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Référence SPI *
+                    </label>
+                    <input
+                      type="text"
+                      name="referenceSPI"
+                      value={newEnterprise.referenceSPI}
+                      onChange={handleNewEnterpriseChange}
+                      required
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                      placeholder="SPI-XXXX"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Dénomination *
+                    </label>
+                    <input
+                      type="text"
+                      name="denomination"
+                      value={newEnterprise.denomination}
+                      onChange={handleNewEnterpriseChange}
+                      required
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Sigle
+                    </label>
+                    <input
+                      type="text"
+                      name="sigle"
+                      value={newEnterprise.sigle}
+                      onChange={handleNewEnterpriseChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Forme juridique
+                    </label>
+                    <input
+                      type="text"
+                      name="formeJuridique"
+                      value={newEnterprise.formeJuridique}
+                      onChange={handleNewEnterpriseChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Région *
+                    </label>
+                    <input
+                      type="text"
+                      name="region"
+                      value={newEnterprise.region}
+                      onChange={handleNewEnterpriseChange}
+                      required
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ville
+                    </label>
+                    <input
+                      type="text"
+                      name="ville"
+                      value={newEnterprise.ville}
+                      onChange={handleNewEnterpriseChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Secteur d'activité
+                  </label>
+                  <select
+                    name="secteurActivite"
+                    value={newEnterprise.secteurActivite}
+                    onChange={handleNewEnterpriseChange}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                  >
+                    <option value="AUTRE">Autre</option>
+                    <option value="AGROALIMENTAIRE">Agroalimentaire</option>
+                    <option value="TEXTILE">Textile</option>
+                    <option value="CHIMIE">Chimie</option>
+                    <option value="MINES">Mines</option>
+                    <option value="BOIS">Bois</option>
+                    <option value="ENERGIE">Énergie</option>
+                    <option value="CONSTRUCTION">Construction</option>
+                    <option value="TRANSPORT">Transport</option>
+                    <option value="SERVICES">Services</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Emplois */}
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#007A3D]" />
-            Emplois
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Section Période */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-[#007A3D]" />
+            Période
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Employés permanents</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Année *
+              </label>
               <input
                 type="number"
-                value={formData.nombreEmployes}
-                onChange={(e) => setFormData({ ...formData, nombreEmployes: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Employés temporaires</label>
-              <input
-                type="number"
-                value={formData.nombreEmployesTemporaires}
-                onChange={(e) => setFormData({ ...formData, nombreEmployesTemporaires: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Capacité et Qualité */}
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Capacité et Qualité</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Capacité installée</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.capaciteInstallee}
-                onChange={(e) => setFormData({ ...formData, capaciteInstallee: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Capacité utilisée (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={formData.capaciteUtilisee}
-                onChange={(e) => setFormData({ ...formData, capaciteUtilisee: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0-100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Taux qualité (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={formData.tauxQualite}
-                onChange={(e) => setFormData({ ...formData, tauxQualite: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0-100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Taux disponibilité (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={formData.tauxDisponibilite}
-                onChange={(e) => setFormData({ ...formData, tauxDisponibilite: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0-100"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Export */}
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Export</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Volume export</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.volumeExport}
-                onChange={(e) => setFormData({ ...formData, volumeExport: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Valeur export (FCFA)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.valeurExport}
-                onChange={(e) => setFormData({ ...formData, valeurExport: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Pays destination</label>
-              <input
-                type="text"
-                value={formData.paysDestination}
-                onChange={(e) => setFormData({ ...formData, paysDestination: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="France, Belgique, Nigeria..."
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Approvisionnement */}
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Approvisionnement</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Matières premières locales (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={formData.matieresPremieresLocal}
-                onChange={(e) => setFormData({ ...formData, matieresPremieresLocal: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0-100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Matières premières importées (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={formData.matieresPremieresImport}
-                onChange={(e) => setFormData({ ...formData, matieresPremieresImport: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0-100"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Source */}
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Source de la donnée</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Source *</label>
-              <input
-                type="text"
+                name="annee"
+                value={formData.annee}
+                onChange={handleChange}
                 required
-                value={formData.sourceDonnee}
-                onChange={(e) => setFormData({ ...formData, sourceDonnee: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                min="2020"
+                max="2030"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Méthode de collecte</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Trimestre *
+              </label>
               <select
-                value={formData.methodeCollecte}
-                onChange={(e) => setFormData({ ...formData, methodeCollecte: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                name="trimestre"
+                value={formData.trimestre}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
               >
-                <option value="Questionnaire en ligne">Questionnaire en ligne</option>
-                <option value="Visite sur site">Visite sur site</option>
-                <option value="Téléphone">Téléphone</option>
-                <option value="Email">Email</option>
-                <option value="Déclaration écrite">Déclaration écrite</option>
+                <option value="">Choisir...</option>
+                <option value="1">T1 (Jan-Mar)</option>
+                <option value="2">T2 (Avr-Juin)</option>
+                <option value="3">T3 (Juil-Sep)</option>
+                <option value="4">T4 (Oct-Déc)</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Submit */}
-        <div className="border-t border-gray-200 pt-6 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            * Champs obligatoires
-          </p>
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard/agent")}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <ClipboardList className="w-5 h-5" />
-                  Enregistrer la saisie
-                </>
-              )}
-            </button>
+        {/* Section Données */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Package className="w-5 h-5 text-[#007A3D]" />
+            Données de production
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Production physique (tonnes/unités)
+              </label>
+              <input
+                type="number"
+                name="productionPhysique"
+                value={formData.productionPhysique}
+                onChange={handleChange}
+                step="0.01"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Chiffre d'affaires (FCFA)
+              </label>
+              <input
+                type="number"
+                name="chiffreAffaires"
+                value={formData.chiffreAffaires}
+                onChange={handleChange}
+                step="0.01"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Effectifs
+              </label>
+              <input
+                type="number"
+                name="effectifs"
+                value={formData.effectifs}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Investissements (FCFA)
+              </label>
+              <input
+                type="number"
+                name="investissements"
+                value={formData.investissements}
+                onChange={handleChange}
+                step="0.01"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+                placeholder="0"
+              />
+            </div>
           </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Commentaire
+            </label>
+            <textarea
+              name="commentaire"
+              value={formData.commentaire}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
+              placeholder="Informations complémentaires..."
+            />
+          </div>
+        </div>
+
+        {/* Boutons */}
+        <div className="flex items-center justify-end gap-4">
+          <Link
+            href="/production"
+            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+          >
+            Annuler
+          </Link>
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition-colors font-medium disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5" />
+                Enregistrer
+              </>
+            )}
+          </button>
         </div>
       </form>
     </div>
