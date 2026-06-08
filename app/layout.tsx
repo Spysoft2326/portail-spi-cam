@@ -1,31 +1,29 @@
-﻿import type { Metadata } from "next";
+﻿// app/layout.tsx
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { getServerSession } from "next-auth/next";
-import SessionProvider from "../components/session-provider";
-import { authOptions } from "../lib/auth";
 import "./globals.css";
+import { Providers } from "@/components/providers";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Portail SPI Cam - Suivi de la Production Industrielle du Cameroun",
-  description: "Portail officiel de suivi de la production industrielle du Cameroun. Répertoire des entreprises, données de production, notes de conjoncture.",
-  keywords: "Cameroun, industrie, production, entreprises, MINMIDT, conjoncture",
+  title: "Portail SPI-Cam",
+  description: "Plateforme d'orientation professionnelle et insertion",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
-
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body className={inter.className}>
-        <SessionProvider session={session}>
+        <Providers>
           {children}
-        </SessionProvider>
+        </Providers>
+        <Toaster />
       </body>
     </html>
   );

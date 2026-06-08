@@ -24,6 +24,7 @@ interface SidebarProps {
     role?: string;
   };
 }
+
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const role = user?.role || "AGENT_SAISIE";
@@ -96,7 +97,7 @@ export function Sidebar({ user }: SidebarProps) {
   );
 
   return (
-    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-[#1a1a2e] text-white flex flex-col z-50">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-[#1a1a2e] text-white flex flex-col z-50 flex-shrink-0">
       {/* Logo */}
       <div className="p-6 border-b border-white/10">
         <Link href="/" className="flex items-center gap-3">
