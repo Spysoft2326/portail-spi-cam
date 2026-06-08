@@ -1,12 +1,10 @@
-﻿import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
     // Pour tester, on retourne la première entreprise
-    const entreprise = await prisma.entreprise.findFirst({
+    const entreprise = await prisma.enterprise.findFirst({
       orderBy: { denomination: "asc" },
     });
 
@@ -18,7 +16,5 @@ export async function GET() {
   } catch (error) {
     console.error("Erreur:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
