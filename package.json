@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-   "prebuild": "node prisma/migrate-db.js && rm -rf node_modules/.prisma && rm -rf node_modules/@prisma/client && npx prisma generate",
-    "build": "next build",
+    "build": "npx prisma generate --schema=prisma/schema.prisma && next build"
     "start": "next start",
     "lint": "next lint",
     "postinstall": "echo 'Skipping prisma generate in postinstall'"
