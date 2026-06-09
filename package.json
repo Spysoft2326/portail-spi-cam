@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "dev": "next dev",
     "prebuild": "prisma generate --schema=prisma/schema.prisma",
     "build": "next build",
+    "start": "next start",
     "postinstall": "prisma generate --schema=prisma/schema.prisma"
   },
   "dependencies": {
@@ -31,5 +33,6 @@
     "tailwindcss": "^3.0.0",
     "typescript": "^5.0.0",
     "zod": "^3.0.0"
-  }
+  },
+  "devDependencies": {}
 }
