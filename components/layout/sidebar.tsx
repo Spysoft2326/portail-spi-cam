@@ -111,3 +111,4 @@ export function Sidebar({ userRole = "SUPER_ADMIN", userName = "Super Administra
     </aside>
   );
 }
+
