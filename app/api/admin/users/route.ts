@@ -6,6 +6,36 @@ import bcrypt from "bcryptjs";
 
 export const dynamic = 'force-dynamic';
 
+// GET - Lister tous les utilisateurs
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role as string)) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+    }
+
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json(users);
+  } catch (error) {
+    console.error("Erreur API GET users:", error);
+    return NextResponse.json(
+      { error: "Erreur de chargement des utilisateurs" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Créer un utilisateur
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -53,7 +83,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    console.error("Erreur API create user:", error);
+    console.error("Erreur API POST users:", error);
     return NextResponse.json(
       { error: "Erreur lors de la création de l'utilisateur" },
       { status: 500 }
