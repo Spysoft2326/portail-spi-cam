@@ -1,5 +1,4 @@
-$content = @'
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -30,28 +29,28 @@ export async function GET() {
       prisma.entreprise.groupBy({
         by: ["secteurActivite"],
         _count: { id: true },
-      }).then((data) => data.map((item) => ({
+      }).then((data: any[]) => data.map((item: any) => ({
         name: item.secteurActivite,
         count: item._count.id,
       }))),
       prisma.entreprise.groupBy({
         by: ["region"],
         _count: { id: true },
-      }).then((data) => data.map((item) => ({
+      }).then((data: any[]) => data.map((item: any) => ({
         name: item.region,
         count: item._count.id,
       }))),
       prisma.entreprise.groupBy({
         by: ["ville"],
         _count: { id: true },
-      }).then((data) => data.map((item) => ({
+      }).then((data: any[]) => data.map((item: any) => ({
         name: item.ville || "Non specifie",
         count: item._count.id,
       }))),
       prisma.entreprise.groupBy({
         by: ["statut"],
         _count: { id: true },
-      }).then((data) => data.map((item) => ({
+      }).then((data: any[]) => data.map((item: any) => ({
         name: item.statut,
         count: item._count.id,
       }))),
@@ -89,6 +88,3 @@ export async function GET() {
     );
   }
 }
-'@
-
-Set-Content -Path "app/api/dashboard/stats/route.ts" -Value $content -Encoding UTF8
