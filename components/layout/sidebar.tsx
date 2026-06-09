@@ -1,13 +1,13 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Building2,
+  Factory,
   Settings,
   LogOut,
-  Factory,
   TrendingUp,
   AlertTriangle,
 } from "lucide-react";
@@ -30,7 +30,8 @@ export function Sidebar({ userRole = "SUPER_ADMIN", userName = "Super Administra
 
   const menuItems = [
     { path: "/dashboard/super-admin", label: "Tableau de bord", icon: LayoutDashboard, roles: ["SUPER_ADMIN", "ADMIN"] },
-    { path: "/entreprises", label: "Entreprises", icon: Building2, roles: ["SUPER_ADMIN", "ADMIN", "AGENT_SAISIE"] },`n    { path: "/production", label: "Production", icon: Factory, roles: ["SUPER_ADMIN", "ADMIN", "AGENT_SAISIE"] },
+    { path: "/entreprises", label: "Entreprises", icon: Building2, roles: ["SUPER_ADMIN", "ADMIN", "AGENT_SAISIE"] },
+    { path: "/production", label: "Production", icon: Factory, roles: ["SUPER_ADMIN", "ADMIN", "AGENT_SAISIE"] },
     { path: "/conjoncture", label: "Conjoncture", icon: TrendingUp, roles: ["SUPER_ADMIN", "ADMIN", "AGENT_SAISIE"] },
     { path: "/alertes", label: "Alertes", icon: AlertTriangle, roles: ["SUPER_ADMIN", "ADMIN"] },
     { path: "/parametres", label: "Parametres", icon: Settings, roles: ["SUPER_ADMIN"] },
@@ -111,4 +112,3 @@ export function Sidebar({ userRole = "SUPER_ADMIN", userName = "Super Administra
     </aside>
   );
 }
-
