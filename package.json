@@ -45,6 +45,7 @@
   "devDependencies": {
     "prisma": "^5.0.0",
     "eslint": "^8.0.0",
-    "eslint-config-next": "^14.0.0"
+    "eslint-config-next": "^14.0.0",
+    "@types/bcryptjs": "^2.4.6"
   }
 }
