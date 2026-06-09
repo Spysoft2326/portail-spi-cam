@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     // Pour tester, on retourne la première entreprise
-    const entreprise = await prisma.enterprise.findFirst({
+    const entreprise = await prisma.entreprise.findFirst({
       orderBy: { denomination: "asc" },
     });
 
