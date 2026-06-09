@@ -50,10 +50,12 @@ export default function EntreprisesPage() {
       if (!res.ok) throw new Error("Erreur de chargement");
 
       const data = await res.json();
-      setEntreprises(data.entreprises);
-      setTotalPages(data.totalPages);
-      setTotal(data.total);
-      setFilters(data.filters);
+      console.log("Donnees recues:", JSON.stringify(data, null, 2));
+
+      setEntreprises(data.entreprises || []);
+      setTotalPages(data.totalPages || 1);
+      setTotal(data.total || 0);
+      setFilters(data.filters || { sectors: [], regions: [], cities: [] });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -109,7 +111,6 @@ export default function EntreprisesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header harmonise avec le dashboard */}
       <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -134,11 +135,9 @@ export default function EntreprisesPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filtres */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Recherche */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Rechercher
@@ -160,7 +159,6 @@ export default function EntreprisesPage() {
                 </div>
               </div>
 
-              {/* Secteur */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Secteur
@@ -171,13 +169,12 @@ export default function EntreprisesPage() {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Tous les secteurs</option>
-                  {filters.sectors.map((s) => (
+                  {(filters?.sectors || []).map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Region */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Region
@@ -188,14 +185,13 @@ export default function EntreprisesPage() {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Toutes les regions</option>
-                  {filters.regions.map((r) => (
+                  {(filters?.regions || []).map((r) => (
                     <option key={r} value={r}>{r}</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* Ville + Reset */}
             <div className="flex items-end gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -207,7 +203,7 @@ export default function EntreprisesPage() {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Toutes les villes</option>
-                  {filters.cities.map((c) => (
+                  {(filters?.cities || []).map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
@@ -223,7 +219,6 @@ export default function EntreprisesPage() {
           </form>
         </div>
 
-        {/* Resultats */}
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -290,7 +285,6 @@ export default function EntreprisesPage() {
               ))}
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-8">
                 <button
@@ -316,7 +310,6 @@ export default function EntreprisesPage() {
         )}
       </div>
 
-      {/* Footer harmonise */}
       <footer className="bg-white border-t mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between text-sm text-gray-500">
