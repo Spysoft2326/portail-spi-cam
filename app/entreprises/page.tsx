@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Search, Filter, X, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { Search, X, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 
 interface Entreprise {
   id: string;
@@ -34,47 +34,56 @@ export default function EntreprisesPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // État séparé pour la recherche
 
-  const fetchEntreprises = async () => {
+  const fetchEntreprises = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const params = new URLSearchParams();
-      if (search) params.append("search", search);
+      if (searchQuery) params.append("search", searchQuery);
       if (selectedSector) params.append("sector", selectedSector);
       if (selectedRegion) params.append("region", selectedRegion);
       if (selectedCity) params.append("city", selectedCity);
       params.append("page", page.toString());
       params.append("limit", "20");
 
-      // Utiliser l'API publique
+      console.log("Fetching:", `/api/public/entreprises?${params.toString()}`);
+
       const res = await fetch(`/api/public/entreprises?${params.toString()}`);
-      if (!res.ok) throw new Error("Erreur de chargement");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Erreur HTTP ${res.status}`);
+      }
 
       const data = await res.json();
+      console.log("Data received:", data);
+
       setEntreprises(data.entreprises || []);
       setTotalPages(data.totalPages || 1);
       setTotal(data.total || 0);
       setFilters(data.filters || { sectors: [], regions: [], cities: [] });
     } catch (err: any) {
+      console.error("Fetch error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, selectedSector, selectedRegion, selectedCity, page]);
 
   useEffect(() => {
     fetchEntreprises();
-  }, [search, selectedSector, selectedRegion, selectedCity, page]);
+  }, [fetchEntreprises]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchEntreprises();
+    setSearchQuery(search); // Met à jour searchQuery qui déclenche useEffect
   };
 
   const clearFilters = () => {
     setSearch("");
+    setSearchQuery("");
     setSelectedSector("");
     setSelectedRegion("");
     setSelectedCity("");
@@ -120,7 +129,7 @@ export default function EntreprisesPage() {
               <h1 className="text-2xl font-bold text-gray-900">Annuaire des entreprises</h1>
             </div>
             <p className="text-gray-500">
-              {total} entreprises rÃ©fÃ©rencÃ©es dans le portail SPI-CAM
+              {total} entreprises referencees dans le portail SPI-CAM
             </p>
           </div>
         </div>
@@ -162,13 +171,13 @@ export default function EntreprisesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">RÃ©gion</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
                 <select
                   value={selectedRegion}
                   onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Toutes les rÃ©gions</option>
+                  <option value="">Toutes les regions</option>
                   {(filters?.regions || []).map((r) => (
                     <option key={r} value={r}>{r}</option>
                   ))}
@@ -196,13 +205,13 @@ export default function EntreprisesPage() {
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
               >
                 <X className="w-4 h-4" />
-                RÃ©initialiser
+                Reinitialiser
               </button>
             </div>
           </form>
         </div>
 
-        {/* RÃ©sultats */}
+        {/* Resultats */}
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -212,14 +221,14 @@ export default function EntreprisesPage() {
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <p className="text-red-700">{error}</p>
             <button onClick={fetchEntreprises} className="mt-2 text-red-600 hover:text-red-800 underline">
-              RÃ©essayer
+              Reessayer
             </button>
           </div>
         ) : (
           <>
             <div className="mb-4 text-sm text-gray-600">
-              {total} rÃ©sultat{total > 1 ? "s" : ""} trouvÃ©{total > 1 ? "s" : ""}
-              {(search || selectedSector || selectedRegion || selectedCity) && " (filtres)"}
+              {total} resultat{total > 1 ? "s" : ""} trouve{total > 1 ? "s" : ""}
+              {(searchQuery || selectedSector || selectedRegion || selectedCity) && " (filtres)"}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -267,7 +276,7 @@ export default function EntreprisesPage() {
                   className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  PrÃ©cÃ©dent
+                  Precedent
                 </button>
                 <span className="text-sm text-gray-600">Page {page} / {totalPages}</span>
                 <button
