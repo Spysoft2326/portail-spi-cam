@@ -55,7 +55,7 @@ function LoginForm() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Portail SPI Cam</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Espace professionnel — Authentification requise
+            Espace professionnel - Authentification requise
           </p>
         </div>
 
@@ -65,7 +65,7 @@ function LoginForm() {
           {(error || loginError) && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
               {error === "CredentialsSignin" && "Identifiants invalides"}
-              {error === "AccessDenied" && "Accès refusé"}
+              {error === "AccessDenied" && "Acces refuse"}
               {loginError}
             </div>
           )}
@@ -96,7 +96,7 @@ function LoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] focus:border-transparent outline-none transition-all pr-12"
-                  placeholder="••••••••"
+                  placeholder="********"
                 />
                 <button
                   type="button"
@@ -124,28 +124,30 @@ function LoginForm() {
             </button>
           </form>
 
-          {/* Test accounts */}
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <p className="text-xs text-gray-500 text-center mb-3">Comptes de test</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2 bg-gray-50 rounded-lg">
-                <span className="font-medium">Super-Admin</span>
-                <p className="text-gray-500">superadmin@spi-cam.cm</p>
-              </div>
-              <div className="p-2 bg-gray-50 rounded-lg">
-                <span className="font-medium">Admin</span>
-                <p className="text-gray-500">admin@spi-cam.cm</p>
-              </div>
-              <div className="p-2 bg-gray-50 rounded-lg">
-                <span className="font-medium">Agent</span>
-                <p className="text-gray-500">agent1@spi-cam.cm</p>
-              </div>
-              <div className="p-2 bg-gray-50 rounded-lg">
-                <span className="font-medium">Mot de passe</span>
-                <p className="text-gray-500">SpiCam2026!</p>
+          {/* Test accounts - MASQUE pour production */}
+          {process.env.NODE_ENV === "development" && (
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <p className="text-xs text-gray-500 text-center mb-3">Comptes de test</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <span className="font-medium">Super-Admin</span>
+                  <p className="text-gray-500">superadmin@spi-cam.cm</p>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <span className="font-medium">Admin</span>
+                  <p className="text-gray-500">admin@spi-cam.cm</p>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <span className="font-medium">Agent</span>
+                  <p className="text-gray-500">agent1@spi-cam.cm</p>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <span className="font-medium">Mot de passe</span>
+                  <p className="text-gray-500">SpiCam2026!</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Back to public */}
@@ -154,7 +156,7 @@ function LoginForm() {
             href="/"
             className="text-sm text-[#007A3D] hover:text-[#006633] transition-colors"
           >
-            ← Retour au portail public
+            Retour au portail public
           </Link>
         </div>
       </div>
