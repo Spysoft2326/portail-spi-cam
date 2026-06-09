@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { denomination: { contains: search, mode: "insensitive" } },
-        { referenceSPI: { contains: search, mode: "insensitive" } },
-        { sigle: { contains: search, mode: "insensitive" } },
+        { denomination: { contains: search } },
+        { referenceSPI: { contains: search } },
+        { sigle: { contains: search } },
       ];
     }
 
