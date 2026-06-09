@@ -47,7 +47,8 @@ export default function EntreprisesPage() {
       params.append("page", page.toString());
       params.append("limit", "20");
 
-      const res = await fetch(`/api/entreprises?${params.toString()}`);
+      // Utiliser l'API publique
+      const res = await fetch(`/api/public/entreprises?${params.toString()}`);
       if (!res.ok) throw new Error("Erreur de chargement");
 
       const data = await res.json();
@@ -119,7 +120,7 @@ export default function EntreprisesPage() {
               <h1 className="text-2xl font-bold text-gray-900">Annuaire des entreprises</h1>
             </div>
             <p className="text-gray-500">
-              {total} entreprises référencées dans le portail SPI-CAM
+              {total} entreprises rÃ©fÃ©rencÃ©es dans le portail SPI-CAM
             </p>
           </div>
         </div>
@@ -161,13 +162,13 @@ export default function EntreprisesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Région</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">RÃ©gion</label>
                 <select
                   value={selectedRegion}
                   onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Toutes les régions</option>
+                  <option value="">Toutes les rÃ©gions</option>
                   {(filters?.regions || []).map((r) => (
                     <option key={r} value={r}>{r}</option>
                   ))}
@@ -195,13 +196,13 @@ export default function EntreprisesPage() {
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
               >
                 <X className="w-4 h-4" />
-                Réinitialiser
+                RÃ©initialiser
               </button>
             </div>
           </form>
         </div>
 
-        {/* Résultats */}
+        {/* RÃ©sultats */}
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -211,13 +212,13 @@ export default function EntreprisesPage() {
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <p className="text-red-700">{error}</p>
             <button onClick={fetchEntreprises} className="mt-2 text-red-600 hover:text-red-800 underline">
-              Réessayer
+              RÃ©essayer
             </button>
           </div>
         ) : (
           <>
             <div className="mb-4 text-sm text-gray-600">
-              {total} résultat{total > 1 ? "s" : ""} trouvé{total > 1 ? "s" : ""}
+              {total} rÃ©sultat{total > 1 ? "s" : ""} trouvÃ©{total > 1 ? "s" : ""}
               {(search || selectedSector || selectedRegion || selectedCity) && " (filtres)"}
             </div>
 
@@ -266,7 +267,7 @@ export default function EntreprisesPage() {
                   className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Précédent
+                  PrÃ©cÃ©dent
                 </button>
                 <span className="text-sm text-gray-600">Page {page} / {totalPages}</span>
                 <button
