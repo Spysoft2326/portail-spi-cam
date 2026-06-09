@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -58,8 +58,8 @@ export default function EntrepriseDetailPage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const [entreprise, setEntreprise] = useState<<Entreprise | null>(null);
-  const [productions, setProductions] = useState<<Production[]>([]);
+  const [entreprise, setEntreprise] = useState<Entreprise | null>(null);
+  const [productions, setProductions] = useState<Production[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
