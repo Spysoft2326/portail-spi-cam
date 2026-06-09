@@ -18,7 +18,7 @@ export default withAuth(
       }
     }
 
-    // Routes Admin et Super-Admin
+    // Routes Admin et Super-Admin (incluant /parametres)
     if (path.startsWith("/dashboard/admin") || path.startsWith("/parametres") || path.startsWith("/entreprises/manage") || path.startsWith("/conjoncture/write")) {
       if (!["ADMIN", "SUPER_ADMIN"].includes(token?.role as string)) {
         return NextResponse.redirect(new URL("/dashboard/agent", req.url));

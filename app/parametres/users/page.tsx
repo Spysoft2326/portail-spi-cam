@@ -6,12 +6,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Users,
-  Shield,
   Search,
   ArrowLeft,
-  CheckCircle,
-  XCircle,
-  UserCog
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  Save,
+  UserPlus,
+  Shield,
+  AlertTriangle
 } from "lucide-react";
 
 interface User {
@@ -30,6 +34,21 @@ export default function ParametresUsersPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("");
+
+  // Modal states
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    role: "AGENT_SAISIE",
+    password: "",
+  });
+
+  // Delete confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -58,19 +77,106 @@ export default function ParametresUsersPage() {
     }
   };
 
-  const changeRole = async (userId: string, newRole: string) => {
+  const openCreateModal = () => {
+    setModalMode("create");
+    setFormData({ name: "", email: "", role: "AGENT_SAISIE", password: "" });
+    setShowModal(true);
+  };
+
+  const openEditModal = (user: User) => {
+    setModalMode("edit");
+    setSelectedUser(user);
+    setFormData({
+      name: user.name || "",
+      email: user.email || "",
+      role: user.role,
+      password: "",
+    });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedUser(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const res = await fetch(`/api/admin/users/${userId}/role`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole }),
+      if (modalMode === "create") {
+        const res = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (res.ok) {
+          closeModal();
+          fetchUsers();
+        } else {
+          const err = await res.json();
+          setError(err.error || "Erreur lors de la création");
+        }
+      } else if (modalMode === "edit" && selectedUser) {
+        const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            role: formData.role,
+            ...(formData.password ? { password: formData.password } : {}),
+          }),
+        });
+        if (res.ok) {
+          closeModal();
+          fetchUsers();
+        } else {
+          const err = await res.json();
+          setError(err.error || "Erreur lors de la modification");
+        }
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const confirmDelete = (user: User) => {
+    setUserToDelete(user);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      const res = await fetch(`/api/admin/users/${userToDelete.id}`, {
+        method: "DELETE",
       });
       if (res.ok) {
+        setShowDeleteConfirm(false);
+        setUserToDelete(null);
         fetchUsers();
+      } else {
+        const err = await res.json();
+        setError(err.error || "Erreur lors de la suppression");
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message);
     }
+  };
+
+  const canManageRole = (targetRole: string) => {
+    const currentRole = session?.user?.role;
+    if (currentRole === "SUPER_ADMIN") return true;
+    if (currentRole === "ADMIN" && targetRole !== "SUPER_ADMIN") return true;
+    return false;
+  };
+
+  const canDelete = (user: User) => {
+    const currentRole = session?.user?.role;
+    if (user.role === "SUPER_ADMIN") return false;
+    if (currentRole === "SUPER_ADMIN") return true;
+    if (currentRole === "ADMIN" && user.role !== "ADMIN") return true;
+    return false;
   };
 
   const filteredUsers = users.filter((u) => {
@@ -108,13 +214,20 @@ export default function ParametresUsersPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-[#007A3D] rounded-xl flex items-center justify-center">
-                <UserCog className="w-6 h-6 text-white" />
+                <Users className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Paramètres - Utilisateurs</h1>
                 <p className="text-gray-500">Gestion des utilisateurs et rôles</p>
               </div>
             </div>
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-2 px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#005a2d] transition"
+            >
+              <UserPlus className="w-4 h-4" />
+              Nouvel utilisateur
+            </button>
           </div>
         </div>
       </div>
@@ -198,26 +311,23 @@ export default function ParametresUsersPage() {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex justify-center gap-2">
-                      {u.role !== 'SUPER_ADMIN' && session?.user?.role === 'SUPER_ADMIN' && (
-                        <select
-                          value={u.role}
-                          onChange={(e) => changeRole(u.id, e.target.value)}
-                          className="text-sm border border-gray-300 rounded-lg px-3 py-1"
+                      {canManageRole(u.role) && (
+                        <button
+                          onClick={() => openEditModal(u)}
+                          className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition"
+                          title="Modifier"
                         >
-                          <option value="AGENT_SAISIE">Agent</option>
-                          <option value="ADMIN">Admin</option>
-                          <option value="SUPER_ADMIN">Super Admin</option>
-                        </select>
+                          <Pencil className="w-4 h-4" />
+                        </button>
                       )}
-                      {u.role !== 'SUPER_ADMIN' && session?.user?.role === 'ADMIN' && u.role !== 'ADMIN' && (
-                        <select
-                          value={u.role}
-                          onChange={(e) => changeRole(u.id, e.target.value)}
-                          className="text-sm border border-gray-300 rounded-lg px-3 py-1"
+                      {canDelete(u) && (
+                        <button
+                          onClick={() => confirmDelete(u)}
+                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
+                          title="Supprimer"
                         >
-                          <option value="AGENT_SAISIE">Agent</option>
-                          <option value="ADMIN">Admin</option>
-                        </select>
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       )}
                     </div>
                   </td>
@@ -227,6 +337,126 @@ export default function ParametresUsersPage() {
           </table>
         </div>
       </div>
+
+      {/* Modal Create/Edit */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">
+                {modalMode === "create" ? "Nouvel utilisateur" : "Modifier l'utilisateur"}
+              </h2>
+              <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="AGENT_SAISIE">Agent</option>
+                  <option value="ADMIN">Admin</option>
+                  {session?.user?.role === "SUPER_ADMIN" && (
+                    <option value="SUPER_ADMIN">Super Admin</option>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {modalMode === "create" ? "Mot de passe" : "Nouveau mot de passe (laisser vide pour ne pas changer)"}
+                </label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                  {...(modalMode === "create" ? { required: true } : {})}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#005a2d] transition flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  {modalMode === "create" ? "Créer" : "Enregistrer"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Delete Confirmation */}
+      {showDeleteConfirm && userToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 w-full max-w-md">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold">Confirmer la suppression</h2>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{userToDelete.name || userToDelete.email}</strong> ?
+              Cette action est irréversible.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
