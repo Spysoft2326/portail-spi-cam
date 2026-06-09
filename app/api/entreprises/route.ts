@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -46,22 +46,24 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ entreprises });
+    const total = await prisma.entreprise.count({ where });
+
+    return NextResponse.json({ entreprises, total });
   } catch (error) {
     console.error("[ENTREPRISES_GET]", error);
     return NextResponse.json(
-      { error: "Erreur lors de la récupération" },
+      { error: "Erreur lors de la recuperation" },
       { status: 500 }
     );
   }
 }
 
-// POST /api/entreprises - Créer une entreprise (Agent ou Admin)
+// POST /api/entreprises - Creer une entreprise (Agent ou Admin)
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -90,19 +92,19 @@ export async function POST(request: NextRequest) {
     // Validation minimale
     if (!referenceSPI || !denomination || !region) {
       return NextResponse.json(
-        { error: "Référence SPI, dénomination et région obligatoires" },
+        { error: "Reference SPI, denomination et region obligatoires" },
         { status: 400 }
       );
     }
 
-    // Vérifier si référence existe déjà
+    // Verifier si reference existe deja
     const existing = await prisma.entreprise.findUnique({
       where: { referenceSPI },
     });
 
     if (existing) {
       return NextResponse.json(
-        { error: "Référence SPI déjà utilisée" },
+        { error: "Reference SPI deja utilisee" },
         { status: 409 }
       );
     }
@@ -136,7 +138,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[ENTREPRISES_POST]", error);
     return NextResponse.json(
-      { error: "Erreur lors de la création" },
+      { error: "Erreur lors de la creation" },
       { status: 500 }
     );
   }
