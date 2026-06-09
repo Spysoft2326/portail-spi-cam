@@ -6,7 +6,9 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const session = await getServerSession(authOptions);
 
-  if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+  // Vérification sécurisée du rôle
+  const userRole = session?.user?.role;
+  if (!userRole || !["ADMIN", "SUPER_ADMIN"].includes(userRole)) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
 
@@ -16,13 +18,13 @@ export async function GET() {
       avecProduction,
       parSecteur,
     ] = await Promise.all([
-      prisma.entreprise.count(),        // <-- minuscule (convention Prisma client)
-      prisma.entreprise.findMany({      // <-- minuscule
+      prisma.entreprise.count(),
+      prisma.entreprise.findMany({
         where: {
           productions: { some: {} },
         },
       }).then((e: any[]) => e.length),
-      prisma.entreprise.groupBy({       // <-- minuscule
+      prisma.entreprise.groupBy({
         by: ["secteurActivite"],
         _count: { id: true },
       }),
