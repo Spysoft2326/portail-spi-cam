@@ -22,8 +22,14 @@ export async function GET() {
       take: 100,
     });
 
-    // Récupérer les noms des agents séparément
-    const agentIds = [...new Set(productions.map(p => p.saisiePar))];
+    // Récupérer les noms des agents séparément (compatible TypeScript)
+    const agentIds: string[] = [];
+    productions.forEach(p => {
+      if (!agentIds.includes(p.saisiePar)) {
+        agentIds.push(p.saisiePar);
+      }
+    });
+
     const agents = await prisma.user.findMany({
       where: { id: { in: agentIds } },
       select: { id: true, name: true },
