@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (secteur) where.secteurActivite = secteur;
     if (region) where.region = region;
 
-    const entreprises = await prisma.enterprise.findMany({
+    const entreprises = await prisma.entreprise.findMany({
       where,
       orderBy: { denomination: "asc" },
       select: {
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier si référence existe déjà
-    const existing = await prisma.enterprise.findUnique({
+    const existing = await prisma.entreprise.findUnique({
       where: { referenceSPI },
     });
 
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const entreprise = await prisma.enterprise.create({
+    const entreprise = await prisma.entreprise.create({
       data: {
         referenceSPI,
         denomination,
