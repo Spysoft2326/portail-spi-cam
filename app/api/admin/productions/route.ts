@@ -17,15 +17,26 @@ export async function GET() {
         entreprise: {
           select: { denomination: true },
         },
-        agent: {
-          select: { name: true },
-        },
       },
       orderBy: { createdAt: "desc" },
       take: 100,
     });
 
-    return NextResponse.json(productions);
+    // Récupérer les noms des agents séparément
+    const agentIds = [...new Set(productions.map(p => p.saisiePar))];
+    const agents = await prisma.user.findMany({
+      where: { id: { in: agentIds } },
+      select: { id: true, name: true },
+    });
+
+    const agentMap = new Map(agents.map(a => [a.id, a.name]));
+
+    const productionsWithAgent = productions.map(p => ({
+      ...p,
+      agent: { name: agentMap.get(p.saisiePar) || null },
+    }));
+
+    return NextResponse.json(productionsWithAgent);
   } catch (error) {
     console.error("Erreur API admin productions:", error);
     return NextResponse.json(
