@@ -225,7 +225,7 @@ export default function EntreprisesPage() {
               {entreprises.map((e) => (
                 <Link
                   key={e.id}
-                  href={`/entreprises/detail/${e.id}`}
+                  href={`/entreprises/${e.id}`}
                   className="bg-white rounded-xl shadow-sm hover:shadow-md transition p-6 group"
                 >
                   <div className="flex items-start justify-between mb-3">
