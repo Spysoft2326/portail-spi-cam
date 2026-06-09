@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node prisma/seed.js || echo 'Seeding skipped or failed'",
+    "postbuild": "echo 'Build completed'",
     "start": "next start",
     "lint": "next lint",
     "db:seed": "node prisma/seed.js",
