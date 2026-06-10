@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard/agent-saisie";
+  const callbackUrl = searchParams.get("callbackUrl");
   const error = searchParams.get("error");
 
   const [email, setEmail] = useState("");
@@ -18,12 +18,43 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
 
-    await signIn("credentials", {
-      email,
-      password,
-      redirect: true,
-      callbackUrl,
-    });
+    try {
+      // 1. Se connecter sans redirection automatique
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        console.error("Erreur de connexion:", result.error);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Récupérer la session pour connaître le rôle
+      const session = await getSession();
+      const role = session?.user?.role;
+
+      // 3. Rediriger selon le rôle
+      let redirectUrl = "/dashboard/agent-saisie"; // Par défaut
+
+      if (role === "SUPER_ADMIN" || role === "ADMIN") {
+        redirectUrl = "/dashboard/admin";
+      } else if (role === "AGENT_SAISIE") {
+        redirectUrl = "/dashboard/agent-saisie";
+      }
+
+      // Si un callbackUrl est fourni dans l'URL, l'utiliser (sauf si c'est la page de login)
+      if (callbackUrl && callbackUrl !== "/login") {
+        redirectUrl = callbackUrl;
+      }
+
+      window.location.href = redirectUrl;
+    } catch (error) {
+      console.error("Erreur lors de la connexion:", error);
+      setLoading(false);
+    }
   };
 
   return (
