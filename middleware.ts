@@ -21,6 +21,29 @@ export async function middleware(req: NextRequest) {
 
   const role = token.role as string;
 
+  // ============================================
+  // REDIRECTIONS FORCEES SELON LE ROLE
+  // ============================================
+
+  // Si un SUPER_ADMIN accede au dashboard agent ou admin, le rediriger vers super-admin
+  if (role === "SUPER_ADMIN" && (path.startsWith("/dashboard/agent-saisie") || path.startsWith("/dashboard/admin"))) {
+    return NextResponse.redirect(new URL("/dashboard/super-admin", req.url));
+  }
+
+  // Si un ADMIN accede au dashboard agent ou super-admin, le rediriger vers admin
+  if (role === "ADMIN" && (path.startsWith("/dashboard/agent-saisie") || path.startsWith("/dashboard/super-admin"))) {
+    return NextResponse.redirect(new URL("/dashboard/admin", req.url));
+  }
+
+  // Si un AGENT_SAISIE accede au dashboard admin ou super-admin, le rediriger vers agent-saisie
+  if (role === "AGENT_SAISIE" && (path.startsWith("/dashboard/admin") || path.startsWith("/dashboard/super-admin"))) {
+    return NextResponse.redirect(new URL("/dashboard/agent-saisie", req.url));
+  }
+
+  // ============================================
+  // PROTECTIONS DES ROUTES PAR ROLE
+  // ============================================
+
   // Routes Super-Admin uniquement
   if (path.startsWith("/dashboard/super-admin")) {
     if (role !== "SUPER_ADMIN") {
@@ -28,7 +51,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Routes Admin et Super-Admin (incluant /parametres et /conjoncture)
+  // Routes Admin et Super-Admin (incluant /parametres)
   if (
     path.startsWith("/dashboard/admin") ||
     path.startsWith("/parametres") ||
@@ -44,17 +67,6 @@ export async function middleware(req: NextRequest) {
   if (path.startsWith("/dashboard/agent-saisie") || path.startsWith("/production")) {
     if (!["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"].includes(role)) {
       return NextResponse.redirect(new URL("/", req.url));
-    }
-  }
-
-  // Si l'utilisateur arrive sur /dashboard sans suffixe, rediriger selon le rôle
-  if (path === "/dashboard") {
-    if (role === "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard/super-admin", req.url));
-    } else if (role === "ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard/admin", req.url));
-    } else {
-      return NextResponse.redirect(new URL("/dashboard/agent-saisie", req.url));
     }
   }
 
