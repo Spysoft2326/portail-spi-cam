@@ -11,7 +11,8 @@ async function seedUsers() {
   const users = [
     { email: "superadmin@spi-cam.cm", name: "Super Administrateur", password: hashedPassword, role: "SUPER_ADMIN" },
     { email: "admin@spi-cam.cm", name: "Administrateur", password: hashedPassword, role: "ADMIN" },
-    { email: "agent1@spi-cam.cm", name: "Agent 1", password: hashedPassword, role: "AGENT" },
+    { email: "agent1@spi-cam.cm", name: "Agent 1", password: hashedPassword, role: "AGENT_SAISIE" },
+    { email: "agent2@spi-cam.cm", name: "Agent 2", password: hashedPassword, role: "AGENT_SAISIE" },
   ];
 
   let created = 0;
