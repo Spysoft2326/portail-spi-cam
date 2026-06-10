@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard/agent-saisie";
   const error = searchParams.get("error");
@@ -30,7 +30,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
         <h1 className="text-2xl font-bold text-center mb-6">Portail SPI-Cam</h1>
-        <p className="text-center text-slate-500 mb-8">Connexion Ã  votre espace</p>
+        <p className="text-center text-slate-500 mb-8">Connexion à votre espace</p>
 
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
@@ -73,10 +73,25 @@ export default function LoginPage() {
         <p className="mt-6 text-center text-sm text-slate-500">
           Pas encore de compte ?{" "}
           <Link href="/register" className="text-blue-600 hover:underline">
-            S&apos;inscrire
+            S'inscrire
           </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
+          <h1 className="text-2xl font-bold text-center mb-6">Portail SPI-Cam</h1>
+          <p className="text-center text-slate-500">Chargement...</p>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
