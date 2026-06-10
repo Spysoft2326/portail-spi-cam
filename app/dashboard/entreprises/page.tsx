@@ -1,7 +1,7 @@
 "use client";
 
-import ParametresContent from "@/components/parametres/parametres-content";
+import EntreprisesContent from "@/components/entreprises/entreprises-content";
 
-export default function DashboardParametresPage() {
-  return <ParametresContent />;
+export default function DashboardEntreprisesPage() {
+  return <EntreprisesContent />;
 }
