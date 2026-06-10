@@ -36,6 +36,12 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          // Verifier que le mot de passe existe
+          if (!user.password) {
+            console.error("No password set for:", validated.email);
+            return null;
+          }
+
           // Verifier le mot de passe avec bcrypt
           const isPasswordValid = await bcrypt.compare(validated.password, user.password);
 
