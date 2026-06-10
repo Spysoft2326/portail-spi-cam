@@ -71,9 +71,8 @@ function LoginForm() {
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          Pas encore de compte ?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline">
-            S'inscrire
+          <Link href="/" className="text-blue-600 hover:underline">
+            ← Retour à l'accueil
           </Link>
         </p>
       </div>
