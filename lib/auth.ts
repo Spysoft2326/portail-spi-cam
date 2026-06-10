@@ -1,10 +1,9 @@
-import { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth/next";
+import type { NextAuthOptions } from "next-auth";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -12,8 +11,6 @@ const credentialsSchema = z.object({
 });
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
-
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -29,16 +26,25 @@ export const authOptions: NextAuthOptions = {
             where: { email: validated.email },
           });
 
-          if (!user || !user.password) {
+          if (!user) {
+            console.error("User not found:", validated.email);
             return null;
           }
 
-          const isValid = await bcrypt.compare(validated.password, user.password);
-
-          if (!isValid) {
+          if (!user.isActive) {
+            console.error("User inactive:", validated.email);
             return null;
           }
 
+          // Verifier le mot de passe avec bcrypt
+          const isPasswordValid = await bcrypt.compare(validated.password, user.password);
+
+          if (!isPasswordValid) {
+            console.error("Invalid password for:", validated.email);
+            return null;
+          }
+
+          // Retourner l'utilisateur avec le role
           return {
             id: user.id,
             email: user.email,
@@ -52,7 +58,6 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -61,49 +66,28 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-
     async session({ session, token }) {
-      if (token) {
+      if (session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
       }
       return session;
     },
-
-    async redirect({ url, baseUrl }) {
-      if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
-      }
-      else if (new URL(url).origin === baseUrl) {
-        return url;
-      }
-      return `${baseUrl}/dashboard`;
-    },
   },
-
   pages: {
     signIn: "/login",
     error: "/login",
-    newUser: "/dashboard",
   },
-
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60,
   },
-
-  secret: process.env.NEXTAUTH_SECRET || "spcam-secret-key-2026",
 };
 
-export { getServerSession };
-
-export async function getCurrentUser() {
-  const session = await getServerSession(authOptions);
-  return session?.user;
+export async function getAuthSession() {
+  return getServerSession(authOptions);
 }
 
-export async function requireAuth() {
-  const user = await getCurrentUser();
+export function requireAuth(user: any) {
   if (!user) {
     throw new Error("Unauthorized");
   }
