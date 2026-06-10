@@ -18,10 +18,11 @@ export async function GET(request: Request) {
     const where: any = {};
 
     if (search) {
+      const searchLower = search.toLowerCase();
       where.OR = [
-        { denomination: { contains: search, mode: "insensitive" } },
-        { sigle: { contains: search, mode: "insensitive" } },
-        { produitsPrincipaux: { contains: search, mode: "insensitive" } },
+        { denomination: { contains: searchLower } },
+        { sigle: { contains: searchLower } },
+        { produitsPrincipaux: { contains: searchLower } },
       ];
     }
 
@@ -30,26 +31,26 @@ export async function GET(request: Request) {
     if (city) where.ville = city;
 
     const [entreprises, total] = await Promise.all([
-      prisma.entreprise.findMany({
+      prisma.Entreprise.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { denomination: "asc" },
       }),
-      prisma.entreprise.count({ where }),
+      prisma.Entreprise.count({ where }),
     ]);
 
-    const sectors = await prisma.entreprise.findMany({
+    const sectors = await prisma.Entreprise.findMany({
       select: { secteurActivite: true },
       distinct: ["secteurActivite"],
     });
 
-    const regions = await prisma.entreprise.findMany({
+    const regions = await prisma.Entreprise.findMany({
       select: { region: true },
       distinct: ["region"],
     });
 
-    const cities = await prisma.entreprise.findMany({
+    const cities = await prisma.Entreprise.findMany({
       select: { ville: true },
       distinct: ["ville"],
       where: { ville: { not: null } },
