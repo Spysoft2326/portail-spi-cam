@@ -68,102 +68,75 @@ export function Sidebar({ user }: SidebarProps) {
           },
         ]
       : []),
-    ...(role === "SUPER_ADMIN"
+    ...(role === "SUPER_ADMIN" || role === "ADMIN"
       ? [
           {
             name: "Utilisateurs",
             href: "/parametres/users",
             icon: Users,
-            roles: ["SUPER_ADMIN"],
+            roles: ["SUPER_ADMIN", "ADMIN"],
           },
           {
             name: "Alertes",
             href: "/parametres/alertes",
             icon: AlertTriangle,
-            roles: ["SUPER_ADMIN"],
-          },
-          {
-            name: "Paramètres",
-            href: "/parametres",
-            icon: Settings,
-            roles: ["SUPER_ADMIN"],
+            roles: ["SUPER_ADMIN", "ADMIN"],
           },
         ]
       : []),
+    {
+      name: "Paramètres",
+      href: "/parametres",
+      icon: Settings,
+      roles: ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"],
+    },
   ];
 
-  const filteredNav = navigation.filter((item) =>
-    item.roles.includes(role)
-  );
-
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-[#1a1a2e] text-white flex flex-col z-50 flex-shrink-0">
-      {/* Logo */}
-      <div className="p-6 border-b border-white/10">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#007A3D] rounded-lg flex items-center justify-center">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="font-bold text-sm">Portail SPI Cam</h2>
-            <p className="text-xs text-white/50">Espace professionnel</p>
-          </div>
-        </Link>
+    <div className="flex flex-col h-full bg-slate-900 text-white w-64">
+      <div className="p-6 border-b border-slate-700">
+        <h2 className="text-xl font-bold">Portail SPI-Cam</h2>
+        <p className="text-xs text-slate-400 mt-1">
+          {user?.name || "Utilisateur"}
+        </p>
+        <p className="text-xs text-slate-500 capitalize">
+          {role.replace("_", " ").toLowerCase()}
+        </p>
       </div>
 
-      {/* User info */}
-      <div className="p-4 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#007A3D]/20 rounded-full flex items-center justify-center">
-            <span className="text-sm font-bold text-[#007A3D]">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
-            </span>
-          </div>
-          <div className="overflow-hidden">
-            <p className="text-sm font-medium truncate">{user?.name}</p>
-            <p className="text-xs text-white/50 truncate">{user?.email}</p>
-            <span className="inline-block mt-1 px-2 py-0.5 bg-[#007A3D]/20 rounded text-xs text-[#007A3D]">
-              {role === "SUPER_ADMIN" && "Super-Admin"}
-              {role === "ADMIN" && "Administrateur"}
-              {role === "AGENT_SAISIE" && "Agent de saisie"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {filteredNav.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+        {navigation.map((item) => {
+          const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+          const Icon = item.icon;
+
           return (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
                 isActive
-                  ? "bg-[#007A3D] text-white"
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
               )}
             >
-              <item.icon className="w-5 h-5 shrink-0" />
-              <span className="flex-1">{item.name}</span>
-              {isActive && <ChevronRight className="w-4 h-4" />}
+              <Icon className="h-5 w-5" />
+              <span>{item.name}</span>
+              {isActive && <ChevronRight className="h-4 w-4 ml-auto" />}
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-slate-700">
         <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm text-white/70 hover:bg-red-500/10 hover:text-red-400 transition-all"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="h-5 w-5" />
           <span>Déconnexion</span>
         </button>
       </div>
-    </aside>
+    </div>
   );
 }
