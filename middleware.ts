@@ -6,13 +6,13 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const path = req.nextUrl.pathname;
 
-  // Routes publiques — toujours autoriser
+  // Routes publiques - toujours autoriser
   const publicPaths = ["/", "/login", "/register", "/api/auth", "/entreprises", "/about", "/contact"];
   if (publicPaths.some((p) => path.startsWith(p))) {
     return NextResponse.next();
   }
 
-  // Si non authentifié — rediriger vers login
+  // Si non authentifie - rediriger vers login
   if (!token) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", path);
