@@ -14,7 +14,6 @@ import {
   X,
   Save,
   UserPlus,
-  Shield,
   AlertTriangle
 } from "lucide-react";
 
@@ -42,7 +41,7 @@ export default function ParametresUsersPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "AGENT_SAISIE",
+    role: "AGENT",
     password: "",
   });
 
@@ -62,15 +61,23 @@ export default function ParametresUsersPage() {
 
   const fetchUsers = async () => {
     setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/admin/users");
       if (res.ok) {
         const data = await res.json();
-        setUsers(data);
+        console.log("Users received:", data);
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else {
+          setError("Format de données invalide");
+        }
       } else {
-        setError("Erreur de chargement des utilisateurs");
+        const err = await res.json().catch(() => ({}));
+        setError(err.error || "Erreur de chargement des utilisateurs");
       }
     } catch (err: any) {
+      console.error("Fetch error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -79,7 +86,7 @@ export default function ParametresUsersPage() {
 
   const openCreateModal = () => {
     setModalMode("create");
-    setFormData({ name: "", email: "", role: "AGENT_SAISIE", password: "" });
+    setFormData({ name: "", email: "", role: "AGENT", password: "" });
     setShowModal(true);
   };
 
@@ -102,6 +109,7 @@ export default function ParametresUsersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     try {
       if (modalMode === "create") {
         const res = await fetch("/api/admin/users", {
@@ -113,7 +121,7 @@ export default function ParametresUsersPage() {
           closeModal();
           fetchUsers();
         } else {
-          const err = await res.json();
+          const err = await res.json().catch(() => ({}));
           setError(err.error || "Erreur lors de la création");
         }
       } else if (modalMode === "edit" && selectedUser) {
@@ -131,7 +139,7 @@ export default function ParametresUsersPage() {
           closeModal();
           fetchUsers();
         } else {
-          const err = await res.json();
+          const err = await res.json().catch(() => ({}));
           setError(err.error || "Erreur lors de la modification");
         }
       }
@@ -156,7 +164,7 @@ export default function ParametresUsersPage() {
         setUserToDelete(null);
         fetchUsers();
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         setError(err.error || "Erreur lors de la suppression");
       }
     } catch (err: any) {
@@ -164,10 +172,12 @@ export default function ParametresUsersPage() {
     }
   };
 
-  const canManageRole = (targetRole: string) => {
+  // Permissions
+  const canEdit = (user: User) => {
     const currentRole = session?.user?.role;
+    if (user.role === "SUPER_ADMIN" && currentRole !== "SUPER_ADMIN") return false;
     if (currentRole === "SUPER_ADMIN") return true;
-    if (currentRole === "ADMIN" && targetRole !== "SUPER_ADMIN") return true;
+    if (currentRole === "ADMIN" && user.role !== "SUPER_ADMIN") return true;
     return false;
   };
 
@@ -175,19 +185,19 @@ export default function ParametresUsersPage() {
     const currentRole = session?.user?.role;
     if (user.role === "SUPER_ADMIN") return false;
     if (currentRole === "SUPER_ADMIN") return true;
-    if (currentRole === "ADMIN" && user.role !== "ADMIN") return true;
+    if (currentRole === "ADMIN" && user.role === "AGENT") return true;
     return false;
   };
 
   const filteredUsers = users.filter((u) => {
     const matchSearch = !search ||
-      u.name?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase());
+      (u.name && u.name.toLowerCase().includes(search.toLowerCase())) ||
+      (u.email && u.email.toLowerCase().includes(search.toLowerCase()));
     const matchRole = !filterRole || u.role === filterRole;
     return matchSearch && matchRole;
   });
 
-  if (status === "loading" || loading) {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -253,7 +263,7 @@ export default function ParametresUsersPage() {
                 className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Tous les rôles</option>
-                <option value="AGENT_SAISIE">Agent</option>
+                <option value="AGENT">Agent</option>
                 <option value="ADMIN">Admin</option>
                 <option value="SUPER_ADMIN">Super Admin</option>
               </select>
@@ -267,75 +277,92 @@ export default function ParametresUsersPage() {
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-red-700">{error}</p>
+            <button onClick={fetchUsers} className="mt-2 text-red-600 hover:text-red-800 underline text-sm">
+              Réessayer
+            </button>
           </div>
         )}
 
-        {/* Tableau des utilisateurs */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left py-4 px-6">Utilisateur</th>
-                <th className="text-left py-4 px-6">Email</th>
-                <th className="text-left py-4 px-6">Rôle</th>
-                <th className="text-left py-4 px-6">Date d'inscription</th>
-                <th className="text-center py-4 px-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="border-b hover:bg-gray-50">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Users className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{u.name || "N/A"}</div>
-                        <div className="text-sm text-gray-500">{u.id.slice(0, 8)}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">{u.email}</td>
-                  <td className="py-4 px-6">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                      u.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' :
-                      u.role === 'ADMIN' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    {new Date(u.createdAt).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex justify-center gap-2">
-                      {canManageRole(u.role) && (
-                        <button
-                          onClick={() => openEditModal(u)}
-                          className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition"
-                          title="Modifier"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                      )}
-                      {canDelete(u) && (
-                        <button
-                          onClick={() => confirmDelete(u)}
-                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Chargement des utilisateurs...</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b bg-gray-50">
+                  <th className="text-left py-4 px-6">Utilisateur</th>
+                  <th className="text-left py-4 px-6">Email</th>
+                  <th className="text-left py-4 px-6">Rôle</th>
+                  <th className="text-left py-4 px-6">Date d'inscription</th>
+                  <th className="text-center py-4 px-6">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-gray-500">
+                      Aucun utilisateur trouvé
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((u) => (
+                    <tr key={u.id} className="border-b hover:bg-gray-50">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Users className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium">{u.name || "N/A"}</div>
+                            <div className="text-sm text-gray-500">{u.id.slice(0, 8)}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">{u.email}</td>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+                          u.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' :
+                          u.role === 'ADMIN' ? 'bg-blue-100 text-blue-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : 'N/A'}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex justify-center gap-2">
+                          {canEdit(u) && (
+                            <button
+                              onClick={() => openEditModal(u)}
+                              className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition"
+                              title="Modifier"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                          )}
+                          {canDelete(u) && (
+                            <button
+                              onClick={() => confirmDelete(u)}
+                              className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Modal Create/Edit */}
@@ -381,7 +408,7 @@ export default function ParametresUsersPage() {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="AGENT_SAISIE">Agent</option>
+                  <option value="AGENT">Agent</option>
                   <option value="ADMIN">Admin</option>
                   {session?.user?.role === "SUPER_ADMIN" && (
                     <option value="SUPER_ADMIN">Super Admin</option>
