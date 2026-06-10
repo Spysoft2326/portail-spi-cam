@@ -2,29 +2,31 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { 
-  TrendingUp, 
-  Calendar, 
-  Filter, 
-  Download, 
-  ArrowLeft, 
+import { useSession } from "next-auth/react";
+import {
+  TrendingUp,
+  Calendar,
+  Filter,
+  Download,
+  ArrowLeft,
   Building2,
   BarChart3,
   PieChart,
-  FileText
+  FileText,
+  Shield,
 } from "lucide-react";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   PieChart as RePieChart,
   Pie,
-  Cell
+  Cell,
 } from "recharts";
 
 interface Production {
@@ -54,6 +56,7 @@ interface Stats {
 const COLORS = ['#007A3D', '#CE1126', '#FCD116', '#0066CC', '#FF6600', '#9933CC', '#00CC99', '#FF3366'];
 
 export default function ConjoncturePage() {
+  const { data: session } = useSession();
   const [productions, setProductions] = useState<Production[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [selectedAnnee, setSelectedAnnee] = useState<string>("");
@@ -63,6 +66,9 @@ export default function ConjoncturePage() {
   const [error, setError] = useState("");
   const [annees, setAnnees] = useState<number[]>([]);
   const [secteurs, setSecteurs] = useState<string[]>([]);
+
+  const role = session?.user?.role || "";
+  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(role);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -184,7 +190,7 @@ export default function ConjoncturePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header harmonisé */}
       <div className="bg-white border-b px-8 py-6">
         <div className="max-w-7xl mx-auto">
           <Link
@@ -192,26 +198,33 @@ export default function ConjoncturePage() {
             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Retour a l'accueil
+            Retour au site
           </Link>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-[#007A3D] rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Notes de Conjoncture</h1>
                 <p className="text-gray-500">Analyse economique du secteur industriel camerounais</p>
               </div>
             </div>
-            <button
-              onClick={exportPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-[#CE1126] text-white rounded-lg hover:bg-[#a00d1e] transition"
-            >
-              <Download className="w-4 h-4" />
-              Exporter PDF
-            </button>
+            <div className="flex items-center gap-4">
+              {role && (
+                <span className="px-3 py-1 bg-[#007A3D]/10 text-[#007A3D] rounded-full text-sm font-medium">
+                  {role}
+                </span>
+              )}
+              <button
+                onClick={exportPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-[#CE1126] text-white rounded-lg hover:bg-[#a00d1e] transition"
+              >
+                <Download className="w-4 h-4" />
+                Exporter PDF
+              </button>
+            </div>
           </div>
         </div>
       </div>
