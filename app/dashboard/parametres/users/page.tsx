@@ -28,7 +28,13 @@ export default function DashboardUsersPage() {
 
   useEffect(() => {
     fetch("/api/admin/users")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          console.error("API Error:", res.status, res.statusText);
+          return { users: [] };
+        }
+        return res.json();
+      })
       .then((data) => {
         const apiUsers: ApiUser[] = data.users || [];
         const convertedUsers: User[] = apiUsers.map((user) => ({
@@ -45,7 +51,7 @@ export default function DashboardUsersPage() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Error loading users:", err);
+        console.error("Fetch Error:", err);
         setLoading(false);
       });
   }, []);
