@@ -8,13 +8,22 @@ interface ApiUser {
   name: string | null;
   email: string;
   role: string;
-  isActive: boolean;
   createdAt: string;
-  emailVerified: string | null;
+  emailVerified?: string | null;
+}
+
+interface User {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: Date;
+  emailVerified: Date | null;
 }
 
 export default function DashboardUsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,16 +31,23 @@ export default function DashboardUsersPage() {
       .then((res) => res.json())
       .then((data) => {
         const apiUsers: ApiUser[] = data.users || [];
-        // Convertir les dates string en Date
-        const convertedUsers = apiUsers.map((user) => ({
-          ...user,
+        const convertedUsers: User[] = apiUsers.map((user) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isActive: true, // Par défaut actif si non fourni par l'API
           createdAt: new Date(user.createdAt),
           emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
         }));
+        console.log("Users loaded:", convertedUsers.length);
         setUsers(convertedUsers);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("Error loading users:", err);
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {
