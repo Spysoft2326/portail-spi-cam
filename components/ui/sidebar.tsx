@@ -42,13 +42,13 @@ export function Sidebar({ user }: SidebarProps) {
       : []),
     {
       name: "Entreprises",
-      href: "/entreprises",
+      href: "/dashboard/entreprises",
       icon: Building2,
       roles: ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"],
     },
     {
       name: "Production",
-      href: "/production",
+      href: "/dashboard/production",
       icon: ClipboardList,
       roles: ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"],
     },
@@ -56,13 +56,13 @@ export function Sidebar({ user }: SidebarProps) {
       ? [
           {
             name: "Conjoncture",
-            href: "/conjoncture",
+            href: "/dashboard/conjoncture",
             icon: FileText,
             roles: ["ADMIN", "SUPER_ADMIN"],
           },
           {
             name: "Analytics",
-            href: "/dashboard/admin",
+            href: "/dashboard/analytics",
             icon: BarChart3,
             roles: ["ADMIN", "SUPER_ADMIN"],
           },
@@ -72,13 +72,13 @@ export function Sidebar({ user }: SidebarProps) {
       ? [
           {
             name: "Utilisateurs",
-            href: "/parametres/users",
+            href: "/dashboard/parametres/users",
             icon: Users,
             roles: ["SUPER_ADMIN", "ADMIN"],
           },
           {
             name: "Alertes",
-            href: "/parametres/alertes",
+            href: "/dashboard/alertes",
             icon: AlertTriangle,
             roles: ["SUPER_ADMIN", "ADMIN"],
           },
@@ -86,7 +86,7 @@ export function Sidebar({ user }: SidebarProps) {
       : []),
     {
       name: "Paramètres",
-      href: "/parametres",
+      href: "/dashboard/parametres",
       icon: Settings,
       roles: ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"],
     },
@@ -106,7 +106,7 @@ export function Sidebar({ user }: SidebarProps) {
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
-          const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+          const isActive = pathname === item.href || pathname === item.href + "/" || (pathname?.startsWith(item.href + "/") && item.href.split("/").filter(Boolean).length >= 3);
           const Icon = item.icon;
 
           return (
@@ -140,3 +140,4 @@ export function Sidebar({ user }: SidebarProps) {
     </div>
   );
 }
+

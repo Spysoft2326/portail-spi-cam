@@ -1,3 +1,7 @@
+# Script de correction automatique pour route.ts
+$routePath = "C:\Users\mlipc\OneDrive\Bureau\portail-spi-cam\portail-spi-cam-phase5\portail-spi-cam\app\api\public\entreprises\route.ts"
+
+$content = @"
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
@@ -18,8 +22,6 @@ export async function GET(request: Request) {
     const where: any = {};
 
     if (search) {
-      // SQLite ne supporte pas mode: "insensitive"
-      // On utilise une recherche case-insensitive manuelle avec toLowerCase
       const searchLower = search.toLowerCase();
       where.OR = [
         { denomination: { contains: searchLower } },
@@ -33,26 +35,26 @@ export async function GET(request: Request) {
     if (city) where.ville = city;
 
     const [entreprises, total] = await Promise.all([
-      prisma.entreprise.findMany({
+      prisma.Entreprise.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { denomination: "asc" },
       }),
-      prisma.entreprise.count({ where }),
+      prisma.Entreprise.count({ where }),
     ]);
 
-    const sectors = await prisma.entreprise.findMany({
+    const sectors = await prisma.Entreprise.findMany({
       select: { secteurActivite: true },
       distinct: ["secteurActivite"],
     });
 
-    const regions = await prisma.entreprise.findMany({
+    const regions = await prisma.Entreprise.findMany({
       select: { region: true },
       distinct: ["region"],
     });
 
-    const cities = await prisma.entreprise.findMany({
+    const cities = await prisma.Entreprise.findMany({
       select: { ville: true },
       distinct: ["ville"],
       where: { ville: { not: null } },
@@ -76,3 +78,17 @@ export async function GET(request: Request) {
     );
   }
 }
+"@
+
+Set-Content -Path $routePath -Value $content -Encoding UTF8
+Write-Host "✅ Fichier route.ts corrigé avec succès !" -ForegroundColor Green
+Write-Host ""
+Write-Host "📋 Corrections appliquées :" -ForegroundColor Cyan
+Write-Host "   1. prisma.entreprise -> prisma.Entreprise (casse corrigée x6)" -ForegroundColor White
+Write-Host "   2. Suppression de mode: 'insensitive' (non supporté par SQLite)" -ForegroundColor White
+Write-Host "   3. Conversion de la recherche en minuscules" -ForegroundColor White
+Write-Host ""
+Write-Host "🚀 Prochaines étapes :" -ForegroundColor Yellow
+Write-Host "   git add app/api/public/entreprises/route.ts" -ForegroundColor White
+Write-Host "   git commit -m 'fix: corrige casse Prisma Entreprise + mode insensitive SQLite'" -ForegroundColor White
+Write-Host "   git push origin main" -ForegroundColor White
