@@ -31,26 +31,26 @@ export async function GET(request: Request) {
     if (city) where.ville = city;
 
     const [entreprises, total] = await Promise.all([
-      prisma.Entreprise.findMany({
+      prisma.entreprise.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { denomination: "asc" },
       }),
-      prisma.Entreprise.count({ where }),
+      prisma.entreprise.count({ where }),
     ]);
 
-    const sectors = await prisma.Entreprise.findMany({
+    const sectors = await prisma.entreprise.findMany({
       select: { secteurActivite: true },
       distinct: ["secteurActivite"],
     });
 
-    const regions = await prisma.Entreprise.findMany({
+    const regions = await prisma.entreprise.findMany({
       select: { region: true },
       distinct: ["region"],
     });
 
-    const cities = await prisma.Entreprise.findMany({
+    const cities = await prisma.entreprise.findMany({
       select: { ville: true },
       distinct: ["ville"],
       where: { ville: { not: null } },
