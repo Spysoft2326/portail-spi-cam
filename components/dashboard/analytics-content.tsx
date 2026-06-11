@@ -88,7 +88,6 @@ export default function AnalyticsContent() {
       const usersRes = await fetch("/api/admin/users");
       if (usersRes.ok) {
         const usersData = await usersRes.json();
-        // Vérification : s'assurer que c'est bien un tableau
         setUsers(Array.isArray(usersData) ? usersData : []);
       } else {
         setUsers([]);
@@ -97,14 +96,12 @@ export default function AnalyticsContent() {
       const prodRes = await fetch("/api/admin/productions");
       if (prodRes.ok) {
         const prodData = await prodRes.json();
-        // Vérification : s'assurer que c'est bien un tableau
         setProductions(Array.isArray(prodData) ? prodData : []);
       } else {
         setProductions([]);
       }
     } catch (err: any) {
       setError(err.message);
-      // En cas d'erreur, s'assurer que les tableaux sont vides
       setUsers([]);
       setProductions([]);
     } finally {
@@ -150,7 +147,6 @@ export default function AnalyticsContent() {
 
   return (
     <div>
-      {/* Tabs */}
       <div className="flex gap-2 mb-8">
         {[
           { id: "overview", label: "Vue d'ensemble", icon: Activity },
@@ -177,7 +173,6 @@ export default function AnalyticsContent() {
         </div>
       )}
 
-      {/* Overview Tab */}
       {activeTab === "overview" && stats && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -264,7 +259,6 @@ export default function AnalyticsContent() {
         </div>
       )}
 
-      {/* Users Tab */}
       {activeTab === "users" && (
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
@@ -324,7 +318,6 @@ export default function AnalyticsContent() {
         </div>
       )}
 
-      {/* Productions Tab */}
       {activeTab === "productions" && (
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
@@ -385,7 +378,6 @@ export default function AnalyticsContent() {
         </div>
       )}
 
-      {/* Analytics Tab */}
       {activeTab === "analytics" && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm p-6">
