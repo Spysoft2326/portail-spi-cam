@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   Search, X, ChevronLeft, ChevronRight, Building2, Plus, Pencil, Trash2, Save,
@@ -25,8 +26,11 @@ interface Filters {
 }
 
 export default function EntreprisesContent() {
-  const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
-  const [filters, setFilters] = useState<Filters>({ sectors: [], regions: [], cities: [] });
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
+
+  const [entreprises, setEntreprises] = useState<<Entreprise[]>([]);
+  const [filters, setFilters] = useState<<Filters>({ sectors: [], regions: [], cities: [] });
   const [search, setSearch] = useState("");
   const [selectedSector, setSelectedSector] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
@@ -38,7 +42,7 @@ export default function EntreprisesContent() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editingEntreprise, setEditingEntreprise] = useState<Entreprise | null>(null);
+  const [editingEntreprise, setEditingEntreprise] = useState<<Entreprise | null>(null);
   const [formData, setFormData] = useState({
     denomination: "",
     sigle: "",
@@ -158,7 +162,7 @@ export default function EntreprisesContent() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cette entreprise ?")) {
+    if (confirm("Etes-vous sur de vouloir supprimer cette entreprise ?")) {
       setEntreprises((prev) => prev.filter((en) => en.id !== id));
       // TODO: Appel API
       // await fetch(`/api/entreprises/${id}`, { method: "DELETE" });
@@ -195,16 +199,18 @@ export default function EntreprisesContent() {
 
   return (
     <div>
-      {/* Bouton ajouter */}
-      <div className="mb-6 flex justify-end">
-        <button
-          onClick={openAddModal}
-          className="px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Ajouter une entreprise
-        </button>
-      </div>
+      {/* Bouton ajouter — VISIBLE UNIQUEMENT POUR LES ADMINS */}
+      {isAdmin && (
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={openAddModal}
+            className="px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Ajouter une entreprise
+          </button>
+        </div>
+      )}
 
       {/* Filtres */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -311,22 +317,25 @@ export default function EntreprisesContent() {
                   <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getSectorColor(e.secteurActivite)}`}>
                     {e.secteurActivite}
                   </span>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                    <button
-                      onClick={() => openEditModal(e)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                      title="Modifier"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(e.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {/* Boutons Modifier/Supprimer — VISIBLE UNIQUEMENT POUR LES ADMINS */}
+                  {isAdmin && (
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                      <button
+                        onClick={() => openEditModal(e)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Modifier"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(e.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -376,8 +385,8 @@ export default function EntreprisesContent() {
         </>
       )}
 
-      {/* Modal Ajouter/Modifier */}
-      {showModal && (
+      {/* Modal Ajouter/Modifier — VISIBLE UNIQUEMENT POUR LES ADMINS */}
+      {isAdmin && showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
@@ -393,7 +402,7 @@ export default function EntreprisesContent() {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Dénomination *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Denomination *</label>
                 <input
                   type="text"
                   value={formData.denomination}
@@ -412,7 +421,7 @@ export default function EntreprisesContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activité</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activite</label>
                 <select
                   value={formData.secteurActivite}
                   onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })}
@@ -421,18 +430,18 @@ export default function EntreprisesContent() {
                   <option value="AUTRE">Autre</option>
                   <option value="AGRICULTURE">Agriculture</option>
                   <option value="AGROALIMENTAIRE">Agroalimentaire</option>
-                  <option value="BTP">BTP / Matériaux</option>
+                  <option value="BTP">BTP / Materiaux</option>
                   <option value="CHIMIE">Chimie / Plastique</option>
                   <option value="COMMERCE">Commerce</option>
-                  <option value="ENERGIE">Énergie</option>
+                  <option value="ENERGIE">Energie</option>
                   <option value="FINANCE">Finance</option>
                   <option value="IMMOBILIER">Immobilier</option>
                   <option value="INDUSTRIE">Industrie</option>
                   <option value="LOGISTIQUE">Logistique</option>
                   <option value="MINES">Mines</option>
-                  <option value="SANTE">Santé</option>
+                  <option value="SANTE">Sante</option>
                   <option value="TECHNOLOGIE">Technologie</option>
-                  <option value="TELECOMMUNICATIONS">Télécommunications</option>
+                  <option value="TELECOMMUNICATIONS">Telecommunications</option>
                   <option value="TRANSPORT">Transport</option>
                 </select>
               </div>
@@ -447,7 +456,7 @@ export default function EntreprisesContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Région</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
                   <select
                     value={formData.region}
                     onChange={(e) => setFormData({ ...formData, region: e.target.value })}
@@ -462,7 +471,7 @@ export default function EntreprisesContent() {
                     <option value="Adamaoua">Adamaoua</option>
                     <option value="Nord-Ouest">Nord-Ouest</option>
                     <option value="Sud-Ouest">Sud-Ouest</option>
-                    <option value="Extrême-Nord">Extrême-Nord</option>
+                    <option value="Extreme-Nord">Extreme-Nord</option>
                   </select>
                 </div>
               </div>
