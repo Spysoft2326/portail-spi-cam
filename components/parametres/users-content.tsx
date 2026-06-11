@@ -32,7 +32,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
     password: "",
   });
 
-  // SYNCHRONISATION: Mettre à jour le state quand les props changent
+  // SYNCHRONISATION: Mettre a jour le state quand les props changent
   useEffect(() => {
     setUsers(initialUsers);
   }, [initialUsers]);
@@ -94,11 +94,11 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         });
-        if (!res.ok) throw new Error("Erreur de création");
+        if (!res.ok) throw new Error("Erreur de creation");
         const newUser = await res.json();
         setUsers([...users, newUser]);
-        
-        // Afficher le mot de passe généré si l'API en a retourné un
+
+        // Afficher le mot de passe genere si l'API en a retourne un
         if (newUser.generatedPassword) {
           setGeneratedPassword(newUser.generatedPassword);
         }
@@ -111,7 +111,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
   };
 
   const handleDelete = async (userId: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+    if (confirm("Etes-vous sur de vouloir supprimer cet utilisateur ?")) {
       try {
         const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
         if (!res.ok) throw new Error("Erreur de suppression");
@@ -195,10 +195,10 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inscription</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email vérifié</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email verifie</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -206,7 +206,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
             {filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  Aucun utilisateur trouvé.
+                  Aucun utilisateur trouve.
                 </td>
               </tr>
             ) : (
@@ -298,14 +298,14 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
               {!editingUser && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mot de passe {generatedPassword && "(généré automatiquement)"}
+                    Mot de passe {generatedPassword && "(genere automatiquement)"}
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder={generatedPassword ? generatedPassword : "Laisser vide pour générer auto"}
+                      placeholder={generatedPassword ? generatedPassword : "Laisser vide pour generer auto"}
                       className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                     <button
@@ -318,13 +318,13 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
                   </div>
                   {generatedPassword && (
                     <p className="text-sm text-green-600 mt-1">
-                      ✅ Mot de passe généré : <strong>{generatedPassword}</strong>
+                      [OK] Mot de passe genere : <strong>{generatedPassword}</strong>
                     </p>
                   )}
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
