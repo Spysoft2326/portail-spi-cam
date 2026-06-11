@@ -20,9 +20,9 @@ export async function GET(request: Request) {
     if (search) {
       const searchLower = search.toLowerCase();
       where.OR = [
-        { denomination: { contains: searchLower } },
-        { sigle: { contains: searchLower } },
-        { produitsPrincipaux: { contains: searchLower } },
+        { denomination: { contains: searchLower, mode: 'insensitive' } },
+        { sigle: { contains: searchLower, mode: 'insensitive' } },
+        { produitsPrincipaux: { contains: searchLower, mode: 'insensitive' } },
       ];
     }
 
@@ -70,6 +70,10 @@ export async function GET(request: Request) {
     console.error("Erreur API publique entreprises:", error);
     return NextResponse.json(
       { error: "Erreur de chargement des entreprises" },
+      { status: 500 }
+    );
+  }
+}s" },
       { status: 500 }
     );
   }
