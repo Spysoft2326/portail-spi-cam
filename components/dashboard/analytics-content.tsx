@@ -55,10 +55,10 @@ interface Stats {
 export default function AnalyticsContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"overview" | "users" | "productions" | "analytics">("overview");
+  const [activeTab, setActiveTab] = useState<<"overview" | "users" | "productions" | "analytics">("overview");
   const [users, setUsers] = useState<User[]>([]);
-  const [productions, setProductions] = useState<Production[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [productions, setProductions] = useState<<Production[]>([]);
+  const [stats, setStats] = useState<<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchUser, setSearchUser] = useState("");
@@ -77,17 +77,36 @@ export default function AnalyticsContent() {
 
   const fetchData = async () => {
     setLoading(true);
+    setError("");
     try {
       const statsRes = await fetch("/api/admin/stats");
-      if (statsRes.ok) setStats(await statsRes.json());
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setStats(statsData);
+      }
 
       const usersRes = await fetch("/api/admin/users");
-      if (usersRes.ok) setUsers(await usersRes.json());
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        // Vérification : s'assurer que c'est bien un tableau
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      } else {
+        setUsers([]);
+      }
 
       const prodRes = await fetch("/api/admin/productions");
-      if (prodRes.ok) setProductions(await prodRes.json());
+      if (prodRes.ok) {
+        const prodData = await prodRes.json();
+        // Vérification : s'assurer que c'est bien un tableau
+        setProductions(Array.isArray(prodData) ? prodData : []);
+      } else {
+        setProductions([]);
+      }
     } catch (err: any) {
       setError(err.message);
+      // En cas d'erreur, s'assurer que les tableaux sont vides
+      setUsers([]);
+      setProductions([]);
     } finally {
       setLoading(false);
     }
