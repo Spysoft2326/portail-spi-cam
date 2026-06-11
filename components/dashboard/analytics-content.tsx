@@ -55,10 +55,10 @@ interface Stats {
 export default function AnalyticsContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<<"overview" | "users" | "productions" | "analytics">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "users" | "productions" | "analytics">("overview");
   const [users, setUsers] = useState<User[]>([]);
-  const [productions, setProductions] = useState<<Production[]>([]);
-  const [stats, setStats] = useState<<Stats | null>(null);
+  const [productions, setProductions] = useState<Production[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchUser, setSearchUser] = useState("");
