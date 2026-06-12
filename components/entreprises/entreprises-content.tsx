@@ -62,8 +62,8 @@ export default function EntreprisesContent() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
 
-  const [entreprises, setEntreprises] = useState<<Entreprise[]>([]);
-  const [filters, setFilters] = useState<<Filters>({ sectors: [], regions: [], cities: [] });
+  const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
+  const [filters, setFilters] = useState<Filters>({ sectors: [], regions: [], cities: [] });
   const [search, setSearch] = useState("");
   const [selectedSector, setSelectedSector] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
@@ -75,7 +75,7 @@ export default function EntreprisesContent() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editingEntreprise, setEditingEntreprise] = useState<<Entreprise | null>(null);
+  const [editingEntreprise, setEditingEntreprise] = useState<Entreprise | null>(null);
   const [formData, setFormData] = useState({
     denomination: "",
     sigle: "",
