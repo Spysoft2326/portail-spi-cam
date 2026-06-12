@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
+// ✅ GET — Liste des entreprises (existant, conservé)
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -18,13 +19,11 @@ export async function GET(request: Request) {
     const where: any = {};
 
     if (search) {
-      // SQLite ne supporte pas mode: "insensitive"
-      // On utilise une recherche case-insensitive manuelle avec toLowerCase
       const searchLower = search.toLowerCase();
       where.OR = [
-        { denomination: { contains: searchLower } },
-        { sigle: { contains: searchLower } },
-        { produitsPrincipaux: { contains: searchLower } },
+        { denomination: { contains: searchLower, mode: 'insensitive' } },
+        { sigle: { contains: searchLower, mode: 'insensitive' } },
+        { produitsPrincipaux: { contains: searchLower, mode: 'insensitive' } },
       ];
     }
 
@@ -69,9 +68,66 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Erreur API publique entreprises:", error);
+    console.error("Erreur API entreprises GET:", error);
     return NextResponse.json(
       { error: "Erreur de chargement des entreprises" },
+      { status: 500 }
+    );
+  }
+}
+
+// ✅ POST — Créer une nouvelle entreprise (NOUVEAU)
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    }
+
+    const body = await request.json();
+
+    // Validation minimale
+    if (!body.denomination || body.denomination.trim() === "") {
+      return NextResponse.json(
+        { error: "La dénomination est obligatoire" },
+        { status: 400 }
+      );
+    }
+
+    // Génération d'une référence SPI unique
+    const referenceSPI = `SPI-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    const entreprise = await prisma.entreprise.create({
+      data: {
+        referenceSPI,
+        denomination: body.denomination.trim(),
+        sigle: body.sigle?.trim() || null,
+        secteurActivite: body.secteurActivite || "AUTRE",
+        ville: body.ville?.trim() || null,
+        region: body.region || "Centre",
+        siteWeb: body.siteWeb?.trim() || null,
+        produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
+        statut: body.statut || "ACTIF",
+        // Champs optionnels avec valeurs par défaut
+        formeJuridique: null,
+        capitalSocial: null,
+        adresse: null,
+        departement: null,
+        telephone: null,
+        email: null,
+        numContribuable: null,
+        sousSecteur: null,
+        estExportateur: false,
+        estDansZoneIndustrielle: false,
+        nomZoneIndustrielle: null,
+      },
+    });
+
+    return NextResponse.json(entreprise, { status: 201 });
+  } catch (error: any) {
+    console.error("Erreur création entreprise:", error);
+    return NextResponse.json(
+      { error: "Erreur lors de la création de l'entreprise" },
       { status: 500 }
     );
   }

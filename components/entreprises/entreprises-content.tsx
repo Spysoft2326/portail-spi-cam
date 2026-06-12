@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import {
-  Search, X, ChevronLeft, ChevronRight, Building2, Plus, Pencil, Trash2, Save,
+  Search, X, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Save,
 } from "lucide-react";
 
 interface Entreprise {
@@ -25,12 +24,46 @@ interface Filters {
   cities: string[];
 }
 
+// ✅ TOUS les secteurs d'activité disponibles (30+ secteurs)
+const ALL_SECTORS = [
+  { value: "AGRICULTURE", label: "Agriculture" },
+  { value: "AGROALIMENTAIRE", label: "Agroalimentaire" },
+  { value: "BTP", label: "BTP / Matériaux" },
+  { value: "CHIMIE", label: "Chimie / Plastique" },
+  { value: "COMMERCE", label: "Commerce" },
+  { value: "COMMUNICATION", label: "Communication / Médias" },
+  { value: "CONSTRUCTION", label: "Construction" },
+  { value: "EDUCATION", label: "Éducation" },
+  { value: "ENERGIE", label: "Énergie" },
+  { value: "ENERGIE_RENOUVELABLE", label: "Énergie renouvelable" },
+  { value: "ENVIRONNEMENT", label: "Environnement" },
+  { value: "FINANCE", label: "Finance" },
+  { value: "FINTECH", label: "Fintech" },
+  { value: "FORMATION", label: "Formation" },
+  { value: "HOTELLERIE", label: "Hôtellerie" },
+  { value: "IMMOBILIER", label: "Immobilier" },
+  { value: "INDUSTRIE", label: "Industrie" },
+  { value: "LOGISTIQUE", label: "Logistique" },
+  { value: "MEDIA", label: "Médias" },
+  { value: "MICROFINANCE", label: "Microfinance" },
+  { value: "MINES", label: "Mines" },
+  { value: "PHARMACEUTIQUE", label: "Pharmaceutique" },
+  { value: "SANTE", label: "Santé" },
+  { value: "SECURITE", label: "Sécurité" },
+  { value: "TECHNOLOGIE", label: "Technologie" },
+  { value: "TELECOMMUNICATIONS", label: "Télécommunications" },
+  { value: "TEXTILE", label: "Textile" },
+  { value: "TOURISME", label: "Tourisme" },
+  { value: "TRANSPORT", label: "Transport" },
+  { value: "AUTRE", label: "Autre" },
+];
+
 export default function EntreprisesContent() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
 
-  const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
-  const [filters, setFilters] = useState<Filters>({ sectors: [], regions: [], cities: [] });
+  const [entreprises, setEntreprises] = useState<<Entreprise[]>([]);
+  const [filters, setFilters] = useState<<Filters>({ sectors: [], regions: [], cities: [] });
   const [search, setSearch] = useState("");
   const [selectedSector, setSelectedSector] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
@@ -42,7 +75,7 @@ export default function EntreprisesContent() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editingEntreprise, setEditingEntreprise] = useState<Entreprise | null>(null);
+  const [editingEntreprise, setEditingEntreprise] = useState<<Entreprise | null>(null);
   const [formData, setFormData] = useState({
     denomination: "",
     sigle: "",
@@ -53,6 +86,7 @@ export default function EntreprisesContent() {
     produitsPrincipaux: "",
     statut: "ACTIF",
   });
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   const fetchEntreprises = useCallback(async () => {
     setLoading(true);
@@ -66,7 +100,7 @@ export default function EntreprisesContent() {
       params.append("page", page.toString());
       params.append("limit", "20");
 
-      const res = await fetch(`/api/public/entreprises?${params.toString()}`);
+      const res = await fetch(`/api/entreprises?${params.toString()}`);
       if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
 
       const data = await res.json();
@@ -130,42 +164,75 @@ export default function EntreprisesContent() {
     setShowModal(true);
   };
 
+  // ✅ CORRECTION : Appel API réel pour CREATE et UPDATE
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitLoading(true);
 
-    if (editingEntreprise) {
-      // Modifier
-      setEntreprises((prev) =>
-        prev.map((en) =>
-          en.id === editingEntreprise.id
-            ? { ...en, ...formData }
-            : en
-        )
-      );
-      // TODO: Appel API
-      // await fetch(`/api/entreprises/${editingEntreprise.id}`, { method: "PUT", body: JSON.stringify(formData) });
-    } else {
-      // Ajouter
-      const newEntreprise: Entreprise = {
-        id: Date.now().toString(),
-        ...formData,
-        sigle: formData.sigle || null,
-        ville: formData.ville || null,
-        siteWeb: formData.siteWeb || null,
-        produitsPrincipaux: formData.produitsPrincipaux || null,
-      };
-      setEntreprises((prev) => [...prev, newEntreprise]);
-      // TODO: Appel API
-      // await fetch("/api/entreprises", { method: "POST", body: JSON.stringify(formData) });
+    try {
+      if (editingEntreprise) {
+        // ✅ MODIFIER — Appel API PUT
+        const res = await fetch(`/api/entreprises/${editingEntreprise.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || `Erreur ${res.status}`);
+        }
+
+        const updated = await res.json();
+        setEntreprises((prev) =>
+          prev.map((en) => (en.id === editingEntreprise.id ? updated : en))
+        );
+      } else {
+        // ✅ AJOUTER — Appel API POST
+        const res = await fetch("/api/entreprises", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || `Erreur ${res.status}`);
+        }
+
+        const created = await res.json();
+        setEntreprises((prev) => [...prev, created]);
+        setTotal((t) => t + 1);
+      }
+
+      setShowModal(false);
+      // ✅ Recharge la liste pour s'assurer de la synchronisation
+      fetchEntreprises();
+    } catch (err: any) {
+      alert("Erreur : " + err.message);
+    } finally {
+      setSubmitLoading(false);
     }
-    setShowModal(false);
   };
 
+  // ✅ CORRECTION : Appel API réel pour DELETE
   const handleDelete = async (id: string) => {
-    if (confirm("Etes-vous sur de vouloir supprimer cette entreprise ?")) {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette entreprise ?")) return;
+
+    try {
+      const res = await fetch(`/api/entreprises/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || `Erreur ${res.status}`);
+      }
+
       setEntreprises((prev) => prev.filter((en) => en.id !== id));
-      // TODO: Appel API
-      // await fetch(`/api/entreprises/${id}`, { method: "DELETE" });
+      setTotal((t) => t - 1);
+    } catch (err: any) {
+      alert("Erreur suppression : " + err.message);
     }
   };
 
@@ -178,6 +245,7 @@ export default function EntreprisesContent() {
       E_COMMERCE: "bg-purple-100 text-purple-800",
       FINTECH: "bg-pink-100 text-pink-800",
       ENERGIE: "bg-yellow-100 text-yellow-800",
+      ENERGIE_RENOUVELABLE: "bg-lime-100 text-lime-800",
       MINES: "bg-orange-100 text-orange-800",
       BANQUE: "bg-cyan-100 text-cyan-800",
       MICROFINANCE: "bg-teal-100 text-teal-800",
@@ -186,20 +254,30 @@ export default function EntreprisesContent() {
       CONSTRUCTION: "bg-stone-100 text-stone-800",
       IMMOBILIER: "bg-amber-100 text-amber-800",
       SANTE: "bg-red-50 text-red-700",
+      PHARMACEUTIQUE: "bg-violet-100 text-violet-800",
       PHARMACIE: "bg-violet-100 text-violet-800",
       EDUCATION: "bg-sky-100 text-sky-800",
       FORMATION: "bg-lime-100 text-lime-800",
       COMMERCE: "bg-gray-100 text-gray-800",
+      COMMUNICATION: "bg-slate-100 text-slate-800",
       HOTELLERIE: "bg-fuchsia-100 text-fuchsia-800",
       TOURISME: "bg-pink-50 text-pink-700",
       MEDIA: "bg-slate-100 text-slate-800",
+      ENVIRONNEMENT: "bg-teal-50 text-teal-700",
+      SECURITE: "bg-gray-50 text-gray-700",
+      TEXTILE: "bg-orange-50 text-orange-700",
+      BTP: "bg-stone-100 text-stone-800",
+      CHIMIE: "bg-blue-50 text-blue-700",
+      INDUSTRIE: "bg-gray-100 text-gray-800",
+      FINANCE: "bg-cyan-100 text-cyan-800",
+      AUTRE: "bg-gray-100 text-gray-800",
     };
     return colors[sector] || "bg-gray-100 text-gray-800";
   };
 
   return (
     <div>
-      {/* Bouton ajouter — VISIBLE UNIQUEMENT POUR LES ADMINS */}
+      {/* Bouton ajouter */}
       {isAdmin && (
         <div className="mb-6 flex justify-end">
           <button
@@ -247,13 +325,13 @@ export default function EntreprisesContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Région</label>
               <select
                 value={selectedRegion}
                 onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Toutes les regions</option>
+                <option value="">Toutes les régions</option>
                 {(filters?.regions || []).map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
@@ -281,13 +359,13 @@ export default function EntreprisesContent() {
               className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
             >
               <X className="w-4 h-4" />
-              Reinitialiser
+              Réinitialiser
             </button>
           </div>
         </form>
       </div>
 
-      {/* Resultats */}
+      {/* Résultats */}
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -297,13 +375,13 @@ export default function EntreprisesContent() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-700">{error}</p>
           <button onClick={fetchEntreprises} className="mt-2 text-red-600 hover:text-red-800 underline">
-            Reessayer
+            Réessayer
           </button>
         </div>
       ) : (
         <>
           <div className="mb-4 text-sm text-gray-600">
-            {total} resultat{total > 1 ? "s" : ""} trouve{total > 1 ? "s" : ""}
+            {total} résultat{total > 1 ? "s" : ""} trouvé{total > 1 ? "s" : ""}
             {(searchQuery || selectedSector || selectedRegion || selectedCity) && " (filtres)"}
           </div>
 
@@ -317,7 +395,6 @@ export default function EntreprisesContent() {
                   <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getSectorColor(e.secteurActivite)}`}>
                     {e.secteurActivite}
                   </span>
-                  {/* Boutons Modifier/Supprimer — VISIBLE UNIQUEMENT POUR LES ADMINS */}
                   {isAdmin && (
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
                       <button
@@ -369,7 +446,7 @@ export default function EntreprisesContent() {
                 className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Precedent
+                Précédent
               </button>
               <span className="text-sm text-gray-600">Page {page} / {totalPages}</span>
               <button
@@ -385,7 +462,7 @@ export default function EntreprisesContent() {
         </>
       )}
 
-      {/* Modal Ajouter/Modifier — VISIBLE UNIQUEMENT POUR LES ADMINS */}
+      {/* Modal Ajouter/Modifier */}
       {isAdmin && showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
@@ -402,7 +479,7 @@ export default function EntreprisesContent() {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Denomination *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Dénomination *</label>
                 <input
                   type="text"
                   value={formData.denomination}
@@ -421,28 +498,15 @@ export default function EntreprisesContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activite</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activité</label>
                 <select
                   value={formData.secteurActivite}
                   onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                 >
-                  <option value="AUTRE">Autre</option>
-                  <option value="AGRICULTURE">Agriculture</option>
-                  <option value="AGROALIMENTAIRE">Agroalimentaire</option>
-                  <option value="BTP">BTP / Materiaux</option>
-                  <option value="CHIMIE">Chimie / Plastique</option>
-                  <option value="COMMERCE">Commerce</option>
-                  <option value="ENERGIE">Energie</option>
-                  <option value="FINANCE">Finance</option>
-                  <option value="IMMOBILIER">Immobilier</option>
-                  <option value="INDUSTRIE">Industrie</option>
-                  <option value="LOGISTIQUE">Logistique</option>
-                  <option value="MINES">Mines</option>
-                  <option value="SANTE">Sante</option>
-                  <option value="TECHNOLOGIE">Technologie</option>
-                  <option value="TELECOMMUNICATIONS">Telecommunications</option>
-                  <option value="TRANSPORT">Transport</option>
+                  {ALL_SECTORS.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -456,7 +520,7 @@ export default function EntreprisesContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Région</label>
                   <select
                     value={formData.region}
                     onChange={(e) => setFormData({ ...formData, region: e.target.value })}
@@ -471,7 +535,7 @@ export default function EntreprisesContent() {
                     <option value="Adamaoua">Adamaoua</option>
                     <option value="Nord-Ouest">Nord-Ouest</option>
                     <option value="Sud-Ouest">Sud-Ouest</option>
-                    <option value="Extreme-Nord">Extreme-Nord</option>
+                    <option value="Extreme-Nord">Extrême-Nord</option>
                   </select>
                 </div>
               </div>
@@ -498,14 +562,20 @@ export default function EntreprisesContent() {
                   type="button"
                   onClick={() => setShowModal(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  disabled={submitLoading}
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={submitLoading}
                 >
-                  <Save className="w-4 h-4" />
+                  {submitLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
                   {editingEntreprise ? "Enregistrer" : "Ajouter"}
                 </button>
               </div>
