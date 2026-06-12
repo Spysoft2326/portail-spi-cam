@@ -24,38 +24,38 @@ interface Filters {
   cities: string[];
 }
 
-// ✅ TOUS les secteurs d'activité disponibles (30+ secteurs)
+// ✅ TOUS les secteurs d'activité — format Title Case pour correspondre aux données existantes
 const ALL_SECTORS = [
-  { value: "AGRICULTURE", label: "Agriculture" },
-  { value: "AGROALIMENTAIRE", label: "Agroalimentaire" },
+  { value: "Agriculture", label: "Agriculture" },
+  { value: "Agroalimentaire", label: "Agroalimentaire" },
   { value: "BTP", label: "BTP / Matériaux" },
-  { value: "CHIMIE", label: "Chimie / Plastique" },
-  { value: "COMMERCE", label: "Commerce" },
-  { value: "COMMUNICATION", label: "Communication / Médias" },
-  { value: "CONSTRUCTION", label: "Construction" },
-  { value: "EDUCATION", label: "Éducation" },
-  { value: "ENERGIE", label: "Énergie" },
-  { value: "ENERGIE_RENOUVELABLE", label: "Énergie renouvelable" },
-  { value: "ENVIRONNEMENT", label: "Environnement" },
-  { value: "FINANCE", label: "Finance" },
-  { value: "FINTECH", label: "Fintech" },
-  { value: "FORMATION", label: "Formation" },
-  { value: "HOTELLERIE", label: "Hôtellerie" },
-  { value: "IMMOBILIER", label: "Immobilier" },
-  { value: "INDUSTRIE", label: "Industrie" },
-  { value: "LOGISTIQUE", label: "Logistique" },
-  { value: "MEDIA", label: "Médias" },
-  { value: "MICROFINANCE", label: "Microfinance" },
-  { value: "MINES", label: "Mines" },
-  { value: "PHARMACEUTIQUE", label: "Pharmaceutique" },
-  { value: "SANTE", label: "Santé" },
-  { value: "SECURITE", label: "Sécurité" },
-  { value: "TECHNOLOGIE", label: "Technologie" },
-  { value: "TELECOMMUNICATIONS", label: "Télécommunications" },
-  { value: "TEXTILE", label: "Textile" },
-  { value: "TOURISME", label: "Tourisme" },
-  { value: "TRANSPORT", label: "Transport" },
-  { value: "AUTRE", label: "Autre" },
+  { value: "Chimie", label: "Chimie / Plastique" },
+  { value: "Commerce", label: "Commerce" },
+  { value: "Communication", label: "Communication / Médias" },
+  { value: "Construction", label: "Construction" },
+  { value: "Education", label: "Éducation" },
+  { value: "Energie", label: "Énergie" },
+  { value: "Energie renouvelable", label: "Énergie renouvelable" },
+  { value: "Environnement", label: "Environnement" },
+  { value: "Finance", label: "Finance" },
+  { value: "Fintech", label: "Fintech" },
+  { value: "Formation", label: "Formation" },
+  { value: "Hotellerie", label: "Hôtellerie" },
+  { value: "Immobilier", label: "Immobilier" },
+  { value: "Industrie", label: "Industrie" },
+  { value: "Logistique", label: "Logistique" },
+  { value: "Media", label: "Médias" },
+  { value: "Microfinance", label: "Microfinance" },
+  { value: "Mines", label: "Mines" },
+  { value: "Pharmaceutique", label: "Pharmaceutique" },
+  { value: "Sante", label: "Santé" },
+  { value: "Securite", label: "Sécurité" },
+  { value: "Technologie", label: "Technologie" },
+  { value: "Telecommunications", label: "Télécommunications" },
+  { value: "Textile", label: "Textile" },
+  { value: "Tourisme", label: "Tourisme" },
+  { value: "Transport", label: "Transport" },
+  { value: "Autre", label: "Autre" },
 ];
 
 export default function EntreprisesContent() {
@@ -79,7 +79,7 @@ export default function EntreprisesContent() {
   const [formData, setFormData] = useState({
     denomination: "",
     sigle: "",
-    secteurActivite: "AUTRE",
+    secteurActivite: "Autre",
     ville: "",
     region: "Centre",
     siteWeb: "",
@@ -139,7 +139,7 @@ export default function EntreprisesContent() {
     setFormData({
       denomination: "",
       sigle: "",
-      secteurActivite: "AUTRE",
+      secteurActivite: "Autre",
       ville: "",
       region: "Centre",
       siteWeb: "",
@@ -164,14 +164,12 @@ export default function EntreprisesContent() {
     setShowModal(true);
   };
 
-  // ✅ CORRECTION : Appel API réel pour CREATE et UPDATE
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitLoading(true);
 
     try {
       if (editingEntreprise) {
-        // ✅ MODIFIER — Appel API PUT
         const res = await fetch(`/api/entreprises/${editingEntreprise.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -188,7 +186,6 @@ export default function EntreprisesContent() {
           prev.map((en) => (en.id === editingEntreprise.id ? updated : en))
         );
       } else {
-        // ✅ AJOUTER — Appel API POST
         const res = await fetch("/api/entreprises", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -206,7 +203,6 @@ export default function EntreprisesContent() {
       }
 
       setShowModal(false);
-      // ✅ Recharge la liste pour s'assurer de la synchronisation
       fetchEntreprises();
     } catch (err: any) {
       alert("Erreur : " + err.message);
@@ -215,7 +211,6 @@ export default function EntreprisesContent() {
     }
   };
 
-  // ✅ CORRECTION : Appel API réel pour DELETE
   const handleDelete = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cette entreprise ?")) return;
 
@@ -238,46 +233,45 @@ export default function EntreprisesContent() {
 
   const getSectorColor = (sector: string) => {
     const colors: Record<string, string> = {
-      AGRICULTURE: "bg-green-100 text-green-800",
-      AGROALIMENTAIRE: "bg-emerald-100 text-emerald-800",
-      TECHNOLOGIE: "bg-blue-100 text-blue-800",
-      TELECOMMUNICATIONS: "bg-indigo-100 text-indigo-800",
-      E_COMMERCE: "bg-purple-100 text-purple-800",
-      FINTECH: "bg-pink-100 text-pink-800",
-      ENERGIE: "bg-yellow-100 text-yellow-800",
-      ENERGIE_RENOUVELABLE: "bg-lime-100 text-lime-800",
-      MINES: "bg-orange-100 text-orange-800",
-      BANQUE: "bg-cyan-100 text-cyan-800",
-      MICROFINANCE: "bg-teal-100 text-teal-800",
-      TRANSPORT: "bg-red-100 text-red-800",
-      LOGISTIQUE: "bg-rose-100 text-rose-800",
-      CONSTRUCTION: "bg-stone-100 text-stone-800",
-      IMMOBILIER: "bg-amber-100 text-amber-800",
-      SANTE: "bg-red-50 text-red-700",
-      PHARMACEUTIQUE: "bg-violet-100 text-violet-800",
-      PHARMACIE: "bg-violet-100 text-violet-800",
-      EDUCATION: "bg-sky-100 text-sky-800",
-      FORMATION: "bg-lime-100 text-lime-800",
-      COMMERCE: "bg-gray-100 text-gray-800",
-      COMMUNICATION: "bg-slate-100 text-slate-800",
-      HOTELLERIE: "bg-fuchsia-100 text-fuchsia-800",
-      TOURISME: "bg-pink-50 text-pink-700",
-      MEDIA: "bg-slate-100 text-slate-800",
-      ENVIRONNEMENT: "bg-teal-50 text-teal-700",
-      SECURITE: "bg-gray-50 text-gray-700",
-      TEXTILE: "bg-orange-50 text-orange-700",
+      Agriculture: "bg-green-100 text-green-800",
+      Agroalimentaire: "bg-emerald-100 text-emerald-800",
+      Technologie: "bg-blue-100 text-blue-800",
+      Telecommunications: "bg-indigo-100 text-indigo-800",
+      "E-commerce": "bg-purple-100 text-purple-800",
+      Fintech: "bg-pink-100 text-pink-800",
+      Energie: "bg-yellow-100 text-yellow-800",
+      "Energie renouvelable": "bg-lime-100 text-lime-800",
+      Mines: "bg-orange-100 text-orange-800",
+      Banque: "bg-cyan-100 text-cyan-800",
+      Microfinance: "bg-teal-100 text-teal-800",
+      Transport: "bg-red-100 text-red-800",
+      Logistique: "bg-rose-100 text-rose-800",
+      Construction: "bg-stone-100 text-stone-800",
+      Immobilier: "bg-amber-100 text-amber-800",
+      Sante: "bg-red-50 text-red-700",
+      Pharmaceutique: "bg-violet-100 text-violet-800",
+      Pharmacie: "bg-violet-100 text-violet-800",
+      Education: "bg-sky-100 text-sky-800",
+      Formation: "bg-lime-100 text-lime-800",
+      Commerce: "bg-gray-100 text-gray-800",
+      Communication: "bg-slate-100 text-slate-800",
+      Hotellerie: "bg-fuchsia-100 text-fuchsia-800",
+      Tourisme: "bg-pink-50 text-pink-700",
+      Media: "bg-slate-100 text-slate-800",
+      Environnement: "bg-teal-50 text-teal-700",
+      Securite: "bg-gray-50 text-gray-700",
+      Textile: "bg-orange-50 text-orange-700",
       BTP: "bg-stone-100 text-stone-800",
-      CHIMIE: "bg-blue-50 text-blue-700",
-      INDUSTRIE: "bg-gray-100 text-gray-800",
-      FINANCE: "bg-cyan-100 text-cyan-800",
-      AUTRE: "bg-gray-100 text-gray-800",
+      Chimie: "bg-blue-50 text-blue-700",
+      Industrie: "bg-gray-100 text-gray-800",
+      Finance: "bg-cyan-100 text-cyan-800",
+      Autre: "bg-gray-100 text-gray-800",
     };
     return colors[sector] || "bg-gray-100 text-gray-800";
   };
 
   return (
     <div>
-      {/* Bouton ajouter */}
       {isAdmin && (
         <div className="mb-6 flex justify-end">
           <button
@@ -290,7 +284,6 @@ export default function EntreprisesContent() {
         </div>
       )}
 
-      {/* Filtres */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -365,7 +358,6 @@ export default function EntreprisesContent() {
         </form>
       </div>
 
-      {/* Résultats */}
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -437,7 +429,6 @@ export default function EntreprisesContent() {
             ))}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-8">
               <button
@@ -462,7 +453,6 @@ export default function EntreprisesContent() {
         </>
       )}
 
-      {/* Modal Ajouter/Modifier */}
       {isAdmin && showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">

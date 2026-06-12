@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       ];
     }
 
-    if (sector) where.secteurActivite = sector;
+    if (sector) where.secteurActivite = { equals: sector, mode: 'insensitive' };
     if (region) where.region = region;
     if (city) where.ville = city;
 
