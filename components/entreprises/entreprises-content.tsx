@@ -4,6 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
   Search, X, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Save,
+  Download, Filter, LayoutGrid, List,
+  // Icônes secteurs
+  Sprout, UtensilsCrossed, HardHat, FlaskConical, ShoppingCart, 
+  Radio, Building, GraduationCap, Zap, Sun,
+  TreePine, Landmark, Smartphone, BookOpen, Hotel,
+  Home, Factory, Truck, Newspaper, PiggyBank,
+  Mountain, Pill, HeartPulse, Shield, Cpu,
+  Wifi, Shirt, Plane, Bus, MoreHorizontal,
+  Leaf, Beaker, Briefcase, BarChart3, TrendingUp,
+  Users, DollarSign, MapPin, Calendar, FileSpreadsheet
 } from "lucide-react";
 
 interface Entreprise {
@@ -24,7 +34,74 @@ interface Filters {
   cities: string[];
 }
 
-// ✅ TOUS les secteurs d'activité — format Title Case pour correspondre aux données existantes
+// ✅ Icônes par secteur
+const SECTOR_ICONS: Record<string, React.ElementType> = {
+  Agriculture: Sprout,
+  Agroalimentaire: UtensilsCrossed,
+  BTP: HardHat,
+  Chimie: FlaskConical,
+  Commerce: ShoppingCart,
+  Communication: Radio,
+  Construction: Building,
+  Education: GraduationCap,
+  Energie: Zap,
+  "Energie renouvelable": Sun,
+  Environnement: TreePine,
+  Finance: Landmark,
+  Fintech: Smartphone,
+  Formation: BookOpen,
+  Hotellerie: Hotel,
+  Immobilier: Home,
+  Industrie: Factory,
+  Logistique: Truck,
+  Media: Newspaper,
+  Microfinance: PiggyBank,
+  Mines: Mountain,
+  Pharmaceutique: Pill,
+  Sante: HeartPulse,
+  Securite: Shield,
+  Technologie: Cpu,
+  Telecommunications: Wifi,
+  Textile: Shirt,
+  Tourisme: Plane,
+  Transport: Bus,
+  Autre: MoreHorizontal,
+};
+
+// ✅ Couleurs par secteur
+const SECTOR_COLORS: Record<string, { bg: string; text: string; border: string; icon: string }> = {
+  Agriculture: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200", icon: "text-green-600" },
+  Agroalimentaire: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: "text-emerald-600" },
+  BTP: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", icon: "text-orange-600" },
+  Chimie: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", icon: "text-blue-600" },
+  Commerce: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: "text-gray-600" },
+  Communication: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", icon: "text-indigo-600" },
+  Construction: { bg: "bg-stone-50", text: "text-stone-700", border: "border-stone-200", icon: "text-stone-600" },
+  Education: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200", icon: "text-sky-600" },
+  Energie: { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200", icon: "text-yellow-600" },
+  "Energie renouvelable": { bg: "bg-lime-50", text: "text-lime-700", border: "border-lime-200", icon: "text-lime-600" },
+  Environnement: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200", icon: "text-teal-600" },
+  Finance: { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200", icon: "text-cyan-600" },
+  Fintech: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", icon: "text-pink-600" },
+  Formation: { bg: "bg-lime-50", text: "text-lime-700", border: "border-lime-200", icon: "text-lime-600" },
+  Hotellerie: { bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-200", icon: "text-fuchsia-600" },
+  Immobilier: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", icon: "text-amber-600" },
+  Industrie: { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200", icon: "text-slate-600" },
+  Logistique: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", icon: "text-rose-600" },
+  Media: { bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200", icon: "text-violet-600" },
+  Microfinance: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200", icon: "text-teal-600" },
+  Mines: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", icon: "text-orange-600" },
+  Pharmaceutique: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", icon: "text-purple-600" },
+  Sante: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: "text-red-600" },
+  Securite: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: "text-gray-600" },
+  Technologie: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", icon: "text-blue-600" },
+  Telecommunications: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", icon: "text-indigo-600" },
+  Textile: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", icon: "text-orange-600" },
+  Tourisme: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", icon: "text-pink-600" },
+  Transport: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: "text-red-600" },
+  Autre: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: "text-gray-600" },
+};
+
 const ALL_SECTORS = [
   { value: "Agriculture", label: "Agriculture" },
   { value: "Agroalimentaire", label: "Agroalimentaire" },
@@ -76,6 +153,7 @@ export default function EntreprisesContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingEntreprise, setEditingEntreprise] = useState<Entreprise | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [formData, setFormData] = useState({
     denomination: "",
     sigle: "",
@@ -231,60 +309,94 @@ export default function EntreprisesContent() {
     }
   };
 
-  const getSectorColor = (sector: string) => {
-    const colors: Record<string, string> = {
-      Agriculture: "bg-green-100 text-green-800",
-      Agroalimentaire: "bg-emerald-100 text-emerald-800",
-      Technologie: "bg-blue-100 text-blue-800",
-      Telecommunications: "bg-indigo-100 text-indigo-800",
-      "E-commerce": "bg-purple-100 text-purple-800",
-      Fintech: "bg-pink-100 text-pink-800",
-      Energie: "bg-yellow-100 text-yellow-800",
-      "Energie renouvelable": "bg-lime-100 text-lime-800",
-      Mines: "bg-orange-100 text-orange-800",
-      Banque: "bg-cyan-100 text-cyan-800",
-      Microfinance: "bg-teal-100 text-teal-800",
-      Transport: "bg-red-100 text-red-800",
-      Logistique: "bg-rose-100 text-rose-800",
-      Construction: "bg-stone-100 text-stone-800",
-      Immobilier: "bg-amber-100 text-amber-800",
-      Sante: "bg-red-50 text-red-700",
-      Pharmaceutique: "bg-violet-100 text-violet-800",
-      Pharmacie: "bg-violet-100 text-violet-800",
-      Education: "bg-sky-100 text-sky-800",
-      Formation: "bg-lime-100 text-lime-800",
-      Commerce: "bg-gray-100 text-gray-800",
-      Communication: "bg-slate-100 text-slate-800",
-      Hotellerie: "bg-fuchsia-100 text-fuchsia-800",
-      Tourisme: "bg-pink-50 text-pink-700",
-      Media: "bg-slate-100 text-slate-800",
-      Environnement: "bg-teal-50 text-teal-700",
-      Securite: "bg-gray-50 text-gray-700",
-      Textile: "bg-orange-50 text-orange-700",
-      BTP: "bg-stone-100 text-stone-800",
-      Chimie: "bg-blue-50 text-blue-700",
-      Industrie: "bg-gray-100 text-gray-800",
-      Finance: "bg-cyan-100 text-cyan-800",
-      Autre: "bg-gray-100 text-gray-800",
-    };
-    return colors[sector] || "bg-gray-100 text-gray-800";
+  // ✅ Export CSV
+  const exportCSV = () => {
+    const headers = ["Dénomination", "Sigle", "Secteur", "Ville", "Région", "Site Web", "Produits", "Statut"];
+    const rows = entreprises.map((e) => [
+      e.denomination,
+      e.sigle || "",
+      e.secteurActivite,
+      e.ville || "",
+      e.region,
+      e.siteWeb || "",
+      e.produitsPrincipaux || "",
+      e.statut,
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(";"))
+      .join("
+");
+
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `entreprises-spi-cam-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+  };
+
+  const getSectorStyle = (sector: string) => {
+    return SECTOR_COLORS[sector] || SECTOR_COLORS["Autre"];
+  };
+
+  const getSectorIcon = (sector: string) => {
+    return SECTOR_ICONS[sector] || MoreHorizontal;
   };
 
   return (
     <div>
-      {isAdmin && (
-        <div className="mb-6 flex justify-end">
-          <button
-            onClick={openAddModal}
-            className="px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Ajouter une entreprise
-          </button>
+      {/* Header avec boutons d'action */}
+      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Annuaire des Entreprises</h1>
+          <p className="text-sm text-gray-500 mt-1">{total} entreprises répertoriées</p>
         </div>
-      )}
+        <div className="flex gap-2">
+          {isAdmin && (
+            <button
+              onClick={openAddModal}
+              className="px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center gap-2 shadow-sm"
+            >
+              <Plus className="w-5 h-5" />
+              Ajouter
+            </button>
+          )}
+          <button
+            onClick={exportCSV}
+            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition flex items-center gap-2 shadow-sm"
+          >
+            <Download className="w-4 h-4" />
+            Exporter CSV
+          </button>
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`p-2 rounded-md transition ${viewMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`p-2 rounded-md transition ${viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
 
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+      {/* Filtres améliorés */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5 text-gray-500" />
+          <h2 className="font-semibold text-gray-700">Filtres</h2>
+          {(selectedSector || selectedRegion || selectedCity || searchQuery) && (
+            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+              Actifs
+            </span>
+          )}
+        </div>
+
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
@@ -308,7 +420,7 @@ export default function EntreprisesContent() {
               <select
                 value={selectedSector}
                 onChange={(e) => { setSelectedSector(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
               >
                 <option value="">Tous les secteurs</option>
                 {(filters?.sectors || []).map((s) => (
@@ -322,7 +434,7 @@ export default function EntreprisesContent() {
               <select
                 value={selectedRegion}
                 onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
               >
                 <option value="">Toutes les régions</option>
                 {(filters?.regions || []).map((r) => (
@@ -338,7 +450,7 @@ export default function EntreprisesContent() {
               <select
                 value={selectedCity}
                 onChange={(e) => { setSelectedCity(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
               >
                 <option value="">Toutes les villes</option>
                 {(filters?.cities || []).map((c) => (
@@ -358,6 +470,7 @@ export default function EntreprisesContent() {
         </form>
       </div>
 
+      {/* Résultats */}
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -372,63 +485,158 @@ export default function EntreprisesContent() {
         </div>
       ) : (
         <>
-          <div className="mb-4 text-sm text-gray-600">
-            {total} résultat{total > 1 ? "s" : ""} trouvé{total > 1 ? "s" : ""}
-            {(searchQuery || selectedSector || selectedRegion || selectedCity) && " (filtres)"}
+          <div className="mb-4 flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              {total} résultat{total > 1 ? "s" : ""} trouvé{total > 1 ? "s" : ""}
+              {(searchQuery || selectedSector || selectedRegion || selectedCity) && " (filtres)"}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {entreprises.map((e) => (
-              <div
-                key={e.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition p-6 group"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getSectorColor(e.secteurActivite)}`}>
-                    {e.secteurActivite}
-                  </span>
-                  {isAdmin && (
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                      <button
-                        onClick={() => openEditModal(e)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                        title="Modifier"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(e.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+          {/* Vue GRILLE */}
+          {viewMode === "grid" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {entreprises.map((e) => {
+                const SectorIcon = getSectorIcon(e.secteurActivite);
+                const style = getSectorStyle(e.secteurActivite);
+
+                return (
+                  <div
+                    key={e.id}
+                    className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6 group border border-gray-100 hover:border-gray-200"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}>
+                        <SectorIcon className={`w-3.5 h-3.5 ${style.icon}`} />
+                        {e.secteurActivite}
+                      </div>
+                      {isAdmin && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openEditModal(e)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            title="Modifier"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(e.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  {e.denomination}
-                </h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      {e.denomination}
+                    </h3>
 
-                {e.sigle && <p className="text-sm text-gray-500 mb-2">{e.sigle}</p>}
+                    {e.sigle && <p className="text-sm text-gray-500 mb-3 font-medium">{e.sigle}</p>}
 
-                <div className="flex items-center gap-4 text-sm text-gray-600 mt-3">
-                  <span>{e.ville || "N/A"}</span>
-                  <span>{e.region}</span>
-                </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-600 mt-4">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                        {e.ville || "N/A"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        {e.region}
+                      </span>
+                    </div>
 
-                {e.produitsPrincipaux && (
-                  <p className="text-sm text-gray-500 mt-2 line-clamp-2">{e.produitsPrincipaux}</p>
-                )}
+                    {e.produitsPrincipaux && (
+                      <p className="text-sm text-gray-500 mt-3 line-clamp-2 bg-gray-50 p-2 rounded-lg">
+                        {e.produitsPrincipaux}
+                      </p>
+                    )}
 
-                {e.siteWeb && (
-                  <p className="text-sm text-blue-600 mt-2 truncate">{e.siteWeb}</p>
-                )}
-              </div>
-            ))}
-          </div>
+                    {e.siteWeb && (
+                      <a 
+                        href={e.siteWeb} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 mt-3 truncate flex items-center gap-1 hover:underline"
+                      >
+                        <span className="w-3.5 h-3.5">🌐</span>
+                        {e.siteWeb}
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
+          {/* Vue LISTE */}
+          {viewMode === "list" && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entreprise</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Secteur</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Localisation</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produits</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {entreprises.map((e) => {
+                    const SectorIcon = getSectorIcon(e.secteurActivite);
+                    const style = getSectorStyle(e.secteurActivite);
+
+                    return (
+                      <tr key={e.id} className="hover:bg-gray-50 transition">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-gray-900">{e.denomination}</div>
+                          {e.sigle && <div className="text-sm text-gray-500">{e.sigle}</div>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}>
+                            <SectorIcon className={`w-3 h-3 ${style.icon}`} />
+                            {e.secteurActivite}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                            {e.ville || "N/A"}, {e.region}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                          {e.produitsPrincipaux || "-"}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {isAdmin && (
+                            <div className="flex justify-end gap-1">
+                              <button
+                                onClick={() => openEditModal(e)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                title="Modifier"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(e.id)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-8">
               <button
@@ -453,6 +661,7 @@ export default function EntreprisesContent() {
         </>
       )}
 
+      {/* Modal Ajouter/Modifier */}
       {isAdmin && showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
@@ -492,7 +701,7 @@ export default function EntreprisesContent() {
                 <select
                   value={formData.secteurActivite}
                   onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                 >
                   {ALL_SECTORS.map((s) => (
                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -514,7 +723,7 @@ export default function EntreprisesContent() {
                   <select
                     value={formData.region}
                     onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                   >
                     <option value="Centre">Centre</option>
                     <option value="Littoral">Littoral</option>
