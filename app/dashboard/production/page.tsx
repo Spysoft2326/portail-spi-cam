@@ -4,42 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
-  Plus,
-  Factory,
-  CalendarDays,
-  TrendingUp,
-  Package,
-  DollarSign,
-  Building2,
-  Save,
-  Loader2,
-  ChevronLeft,
-  BarChart3,
-  Search,
-  Filter,
-  Download,
-  Edit3,
-  Trash2,
+  Plus, Factory, CalendarDays, TrendingUp, Package, DollarSign, Building2,
+  Save, Loader2, ChevronLeft, BarChart3, Search, Filter, Download,
+  Edit3, Trash2, X
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
 interface Enterprise {
@@ -73,7 +41,7 @@ const TRIMESTRES = [
 const ANNEES = [2024, 2025, 2026, 2027];
 
 export default function ProductionPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [productions, setProductions] = useState<Production[]>([]);
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
@@ -81,8 +49,8 @@ export default function ProductionPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterAnnee, setFilterAnnee] = useState<string>("");
-  const [filterTrimestre, setFilterTrimestre] = useState<string>("");
+  const [filterAnnee, setFilterAnnee] = useState("");
+  const [filterTrimestre, setFilterTrimestre] = useState("");
 
   const [formData, setFormData] = useState({
     entrepriseId: "",
@@ -94,13 +62,8 @@ export default function ProductionPage() {
   });
 
   const [editFormData, setEditFormData] = useState({
-    id: "",
-    entrepriseId: "",
-    annee: "",
-    trimestre: "",
-    productionPhysique: "",
-    chiffreAffaires: "",
-    nombreEmployes: "",
+    id: "", entrepriseId: "", annee: "", trimestre: "",
+    productionPhysique: "", chiffreAffaires: "", nombreEmployes: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -127,7 +90,6 @@ export default function ProductionPage() {
         toast.error("Erreur lors du chargement des productions");
       }
     } catch (error) {
-      console.error("Erreur fetch productions:", error);
       toast.error("Erreur de connexion");
     } finally {
       setLoading(false);
@@ -145,23 +107,15 @@ export default function ProductionPage() {
 
   const resetForm = () => {
     setFormData({
-      entrepriseId: "",
-      annee: new Date().getFullYear().toString(),
-      trimestre: "T1",
-      productionPhysique: "",
-      chiffreAffaires: "",
-      nombreEmployes: "",
+      entrepriseId: "", annee: new Date().getFullYear().toString(),
+      trimestre: "T1", productionPhysique: "", chiffreAffaires: "", nombreEmployes: "",
     });
     setEditingId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.entrepriseId) {
-      toast.error("Veuillez sélectionner une entreprise");
-      return;
-    }
-
+    if (!formData.entrepriseId) { toast.error("Veuillez sélectionner une entreprise"); return; }
     setSubmitting(true);
     try {
       const res = await fetch("/api/productions", {
@@ -176,36 +130,27 @@ export default function ProductionPage() {
           nombreEmployes: parseInt(formData.nombreEmployes) || 0,
         }),
       });
-
       if (res.ok) {
-        toast.success("Production enregistrée avec succès !");
-        resetForm();
-        setShowForm(false);
-        fetchProductions();
+        toast.success("Production enregistrée !");
+        resetForm(); setShowForm(false); fetchProductions();
       } else {
         const error = await res.json();
-        toast.error(error.message || "Erreur lors de l'enregistrement");
+        toast.error(error.message || "Erreur");
       }
-    } catch (error) {
-      toast.error("Erreur de connexion");
-    } finally {
-      setSubmitting(false);
-    }
+    } catch { toast.error("Erreur de connexion"); }
+    finally { setSubmitting(false); }
   };
 
   const handleEdit = (production: Production) => {
     setEditingId(production.id);
     setEditFormData({
-      id: production.id,
-      entrepriseId: production.entrepriseId,
-      annee: production.annee.toString(),
-      trimestre: production.trimestre,
+      id: production.id, entrepriseId: production.entrepriseId,
+      annee: production.annee.toString(), trimestre: production.trimestre,
       productionPhysique: production.productionPhysique.toString(),
       chiffreAffaires: production.chiffreAffaires.toString(),
       nombreEmployes: production.nombreEmployes.toString(),
     });
     setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -223,40 +168,21 @@ export default function ProductionPage() {
           nombreEmployes: parseInt(editFormData.nombreEmployes) || 0,
         }),
       });
-
       if (res.ok) {
         toast.success("Production mise à jour !");
-        setEditingId(null);
-        setShowForm(false);
-        resetForm();
-        fetchProductions();
-      } else {
-        toast.error("Erreur lors de la mise à jour");
-      }
-    } catch (error) {
-      toast.error("Erreur de connexion");
-    } finally {
-      setSubmitting(false);
-    }
+        setEditingId(null); setShowForm(false); resetForm(); fetchProductions();
+      } else { toast.error("Erreur lors de la mise à jour"); }
+    } catch { toast.error("Erreur de connexion"); }
+    finally { setSubmitting(false); }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette production ?")) return;
-
+    if (!confirm("Supprimer cette production ?")) return;
     try {
-      const res = await fetch(`/api/productions/${id}`, {
-        method: "DELETE",
-      });
-
-      if (res.ok) {
-        toast.success("Production supprimée");
-        fetchProductions();
-      } else {
-        toast.error("Erreur lors de la suppression");
-      }
-    } catch (error) {
-      toast.error("Erreur de connexion");
-    }
+      const res = await fetch(`/api/productions/${id}`, { method: "DELETE" });
+      if (res.ok) { toast.success("Production supprimée"); fetchProductions(); }
+      else { toast.error("Erreur"); }
+    } catch { toast.error("Erreur de connexion"); }
   };
 
   const getEnterpriseName = (id: string) => {
@@ -271,10 +197,8 @@ export default function ProductionPage() {
 
   const filteredProductions = productions.filter((p) => {
     const searchLower = searchTerm.toLowerCase();
-    const matchSearch =
-      getEnterpriseName(p.entrepriseId).toLowerCase().includes(searchLower) ||
-      p.trimestre.toLowerCase().includes(searchLower) ||
-      p.annee.toString().includes(searchLower);
+    const matchSearch = getEnterpriseName(p.entrepriseId).toLowerCase().includes(searchLower) ||
+      p.trimestre.toLowerCase().includes(searchLower) || p.annee.toString().includes(searchLower);
     const matchAnnee = !filterAnnee || p.annee.toString() === filterAnnee;
     const matchTrimestre = !filterTrimestre || p.trimestre === filterTrimestre;
     return matchSearch && matchAnnee && matchTrimestre;
@@ -287,524 +211,262 @@ export default function ProductionPage() {
   if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
-          <p className="text-muted-foreground">Chargement des données...</p>
-        </div>
+        <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
       </div>
     );
   }
 
-  // ==================== FORMULAIRE DE SAISIE ====================
+  // ==================== FORMULAIRE ====================
   if (showForm) {
+    const currentForm = editingId ? editFormData : formData;
+    const setCurrent = (field: string, value: string) => {
+      if (editingId) setEditFormData(prev => ({ ...prev, [field]: value }));
+      else setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
     return (
-      <div className="space-y-6 p-6 max-w-4xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setShowForm(false);
-              resetForm();
-            }}
-            className="gap-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Retour aux productions
-          </Button>
-        </div>
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <button onClick={() => { setShowForm(false); resetForm(); }}
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
+          <ChevronLeft className="h-4 w-4" /> Retour aux productions
+        </button>
 
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-emerald-100 rounded-lg">
-            <Factory className="h-6 w-6 text-emerald-700" />
-          </div>
+          <div className="p-2 bg-emerald-100 rounded-lg"><Factory className="h-6 w-6 text-emerald-700" /></div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {editingId ? "Modifier la production" : "Nouvelle saisie"}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Production trimestrielle
-            </p>
+            <h1 className="text-2xl font-bold">{editingId ? "Modifier la production" : "Nouvelle saisie"}</h1>
+            <p className="text-sm text-gray-500">Production trimestrielle</p>
           </div>
         </div>
 
         <form onSubmit={editingId ? handleUpdate : handleSubmit} className="space-y-8">
+          {/* Section Entreprise */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-base font-semibold text-gray-800">
-              <Building2 className="h-5 w-5 text-blue-600" />
-              Entreprise
+              <Building2 className="h-5 w-5 text-blue-600" /> Entreprise
             </div>
             <div className="space-y-2">
-              <Label htmlFor="entreprise">
-                Sélectionner une entreprise <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={editingId ? editFormData.entrepriseId : formData.entrepriseId}
-                onValueChange={(value) => {
-                  if (editingId) {
-                    setEditFormData({ ...editFormData, entrepriseId: value });
-                  } else {
-                    setFormData({ ...formData, entrepriseId: value });
-                  }
-                }}
+              <label className="text-sm font-medium">Sélectionner une entreprise <span className="text-red-500">*</span></label>
+              <select
+                value={currentForm.entrepriseId}
+                onChange={(e) => setCurrent("entrepriseId", e.target.value)}
+                disabled={!!editingId}
+                className="w-full h-11 px-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Choisir une entreprise..." />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {enterprises.length === 0 ? (
-                    <SelectItem value="" disabled>
-                      Aucune entreprise disponible
-                    </SelectItem>
-                  ) : (
-                    enterprises.map((ent) => (
-                      <SelectItem key={ent.id} value={ent.id}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{ent.nom}</span>
-                          {ent.sigle && (
-                            <span className="text-xs text-muted-foreground">{ent.sigle}</span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              {(editingId ? editFormData.entrepriseId : formData.entrepriseId) && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-50 p-2 rounded-md">
-                  <Badge variant="secondary" className="text-xs">
-                    {getEnterpriseSector(editingId ? editFormData.entrepriseId : formData.entrepriseId)}
-                  </Badge>
-                  <span>
-                    {getEnterpriseName(editingId ? editFormData.entrepriseId : formData.entrepriseId)}
-                  </span>
+                <option value="">Choisir une entreprise...</option>
+                {enterprises.map((ent) => (
+                  <option key={ent.id} value={ent.id}>{ent.nom}{ent.sigle ? ` (${ent.sigle})` : ""}</option>
+                ))}
+              </select>
+              {currentForm.entrepriseId && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 p-2 rounded-md">
+                  <span className="px-2 py-0.5 bg-gray-200 rounded text-xs">{getEnterpriseSector(currentForm.entrepriseId)}</span>
+                  <span>{getEnterpriseName(currentForm.entrepriseId)}</span>
                 </div>
               )}
             </div>
           </div>
 
-          <Separator />
+          <hr className="border-gray-200" />
 
+          {/* Section Période */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-base font-semibold text-gray-800">
-              <CalendarDays className="h-5 w-5 text-orange-600" />
-              Période
+              <CalendarDays className="h-5 w-5 text-orange-600" /> Période
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="annee">
-                  Année <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={editingId ? editFormData.annee : formData.annee}
-                  onValueChange={(value) => {
-                    if (editingId) {
-                      setEditFormData({ ...editFormData, annee: value });
-                    } else {
-                      setFormData({ ...formData, annee: value });
-                    }
-                  }}
+                <label className="text-sm font-medium">Année <span className="text-red-500">*</span></label>
+                <select
+                  value={currentForm.annee}
+                  onChange={(e) => setCurrent("annee", e.target.value)}
+                  className="w-full h-11 px-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  <SelectTrigger className="h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ANNEES.map((a) => (
-                      <SelectItem key={a} value={a.toString()}>
-                        {a}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {ANNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+                </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="trimestre">
-                  Trimestre <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={editingId ? editFormData.trimestre : formData.trimestre}
-                  onValueChange={(value) => {
-                    if (editingId) {
-                      setEditFormData({ ...editFormData, trimestre: value });
-                    } else {
-                      setFormData({ ...formData, trimestre: value });
-                    }
-                  }}
+                <label className="text-sm font-medium">Trimestre <span className="text-red-500">*</span></label>
+                <select
+                  value={currentForm.trimestre}
+                  onChange={(e) => setCurrent("trimestre", e.target.value)}
+                  className="w-full h-11 px-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  <SelectTrigger className="h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TRIMESTRES.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>
-                        {t.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {TRIMESTRES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
               </div>
             </div>
           </div>
 
-          <Separator />
+          <hr className="border-gray-200" />
 
+          {/* Section Données */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-base font-semibold text-gray-800">
-              <TrendingUp className="h-5 w-5 text-purple-600" />
-              Données de production
+              <TrendingUp className="h-5 w-5 text-purple-600" /> Données de production
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="productionPhysique">
-                  <Package className="h-3.5 w-3.5 inline mr-1" />
-                  Production physique
-                </Label>
-                <Input
-                  id="productionPhysique"
-                  type="number"
-                  step="0.01"
-                  placeholder="0"
-                  value={editingId ? editFormData.productionPhysique : formData.productionPhysique}
-                  onChange={(e) => {
-                    if (editingId) {
-                      setEditFormData({ ...editFormData, productionPhysique: e.target.value });
-                    } else {
-                      setFormData({ ...formData, productionPhysique: e.target.value });
-                    }
-                  }}
-                  className="h-11"
-                />
-                <p className="text-xs text-muted-foreground">tonnes, unités, etc.</p>
+                <label className="text-sm font-medium"><Package className="h-3.5 w-3.5 inline mr-1" /> Production physique</label>
+                <input type="number" step="0.01" placeholder="0"
+                  value={currentForm.productionPhysique}
+                  onChange={(e) => setCurrent("productionPhysique", e.target.value)}
+                  className="w-full h-11 px-3 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <p className="text-xs text-gray-400">tonnes, unités, etc.</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="chiffreAffaires">
-                  <DollarSign className="h-3.5 w-3.5 inline mr-1" />
-                  Chiffre d'affaires
-                </Label>
-                <Input
-                  id="chiffreAffaires"
-                  type="number"
-                  step="0.01"
-                  placeholder="0"
-                  value={editingId ? editFormData.chiffreAffaires : formData.chiffreAffaires}
-                  onChange={(e) => {
-                    if (editingId) {
-                      setEditFormData({ ...editFormData, chiffreAffaires: e.target.value });
-                    } else {
-                      setFormData({ ...formData, chiffreAffaires: e.target.value });
-                    }
-                  }}
-                  className="h-11"
-                />
-                <p className="text-xs text-muted-foreground">en FCFA</p>
+                <label className="text-sm font-medium"><DollarSign className="h-3.5 w-3.5 inline mr-1" /> Chiffre d'affaires</label>
+                <input type="number" step="0.01" placeholder="0"
+                  value={currentForm.chiffreAffaires}
+                  onChange={(e) => setCurrent("chiffreAffaires", e.target.value)}
+                  className="w-full h-11 px-3 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <p className="text-xs text-gray-400">en FCFA</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nombreEmployes">
-                  <Building2 className="h-3.5 w-3.5 inline mr-1" />
-                  Nombre d'employés
-                </Label>
-                <Input
-                  id="nombreEmployes"
-                  type="number"
-                  placeholder="0"
-                  value={editingId ? editFormData.nombreEmployes : formData.nombreEmployes}
-                  onChange={(e) => {
-                    if (editingId) {
-                      setEditFormData({ ...editFormData, nombreEmployes: e.target.value });
-                    } else {
-                      setFormData({ ...formData, nombreEmployes: e.target.value });
-                    }
-                  }}
-                  className="h-11"
-                />
-                <p className="text-xs text-muted-foreground">effectif total</p>
+                <label className="text-sm font-medium"><Building2 className="h-3.5 w-3.5 inline mr-1" /> Nombre d'employés</label>
+                <input type="number" placeholder="0"
+                  value={currentForm.nombreEmployes}
+                  onChange={(e) => setCurrent("nombreEmployes", e.target.value)}
+                  className="w-full h-11 px-3 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <p className="text-xs text-gray-400">effectif total</p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setShowForm(false);
-                resetForm();
-              }}
-            >
-              Annuler
-            </Button>
-            <Button
-              type="submit"
-              disabled={submitting || (!editingId && !formData.entrepriseId)}
-              className="bg-emerald-600 hover:bg-emerald-700"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  {editingId ? "Mettre à jour" : "Enregistrer"}
-                </>
-              )}
-            </Button>
+            <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Annuler</button>
+            <button type="submit" disabled={submitting || (!editingId && !formData.entrepriseId)}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2">
+              {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Enregistrement...</> : <><Save className="h-4 w-4" /> {editingId ? "Mettre à jour" : "Enregistrer"}</>}
+            </button>
           </div>
         </form>
       </div>
     );
   }
 
-  // ==================== LISTE DES PRODUCTIONS ====================
+  // ==================== LISTE ====================
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-emerald-100 rounded-lg">
-            <Factory className="h-6 w-6 text-emerald-700" />
-          </div>
+          <div className="p-2 bg-emerald-100 rounded-lg"><Factory className="h-6 w-6 text-emerald-700" /></div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Production</h1>
-            <p className="text-sm text-muted-foreground">
-              Gestion des saisies trimestrielles de production
-            </p>
+            <h1 className="text-2xl font-bold">Production</h1>
+            <p className="text-sm text-gray-500">Gestion des saisies trimestrielles</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const csv = [
-                ["Entreprise", "Année", "Trimestre", "Production", "CA (FCFA)", "Employés"].join(","),
-                ...filteredProductions.map((p) =>
-                  [
-                    getEnterpriseName(p.entrepriseId),
-                    p.annee,
-                    p.trimestre,
-                    p.productionPhysique,
-                    p.chiffreAffaires,
-                    p.nombreEmployes,
-                  ].join(",")
-                ),
-              ].join("\n");
-              const blob = new Blob([csv], { type: "text/csv" });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `productions_${new Date().toISOString().split("T")[0]}.csv`;
-              a.click();
-            }}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Exporter CSV
-          </Button>
-          <Button
-            className="bg-emerald-600 hover:bg-emerald-700"
-            onClick={() => {
-              resetForm();
-              setShowForm(true);
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouvelle saisie
-          </Button>
+          <button onClick={() => {
+            const csv = [["Entreprise", "Année", "Trimestre", "Production", "CA (FCFA)", "Employés"].join(","),
+              ...filteredProductions.map((p) => [getEnterpriseName(p.entrepriseId), p.annee, p.trimestre, p.productionPhysique, p.chiffreAffaires, p.nombreEmployes].join(","))].join("\n");
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a"); a.href = url; a.download = `productions_${new Date().toISOString().split("T")[0]}.csv`; a.click();
+          }} className="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 flex items-center gap-2">
+            <Download className="h-4 w-4" /> Exporter CSV
+          </button>
+          <button onClick={() => { resetForm(); setShowForm(true); }}
+            className="px-3 py-2 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 flex items-center gap-2">
+            <Plus className="h-4 w-4" /> Nouvelle saisie
+          </button>
         </div>
       </div>
 
+      {/* Compteurs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-emerald-700 font-medium">
-              Total productions
-            </CardDescription>
-            <CardTitle className="text-3xl text-emerald-900">
-              {filteredProductions.length}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-emerald-600">saisies enregistrées</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-blue-700 font-medium">
-              Production physique
-            </CardDescription>
-            <CardTitle className="text-3xl text-blue-900">
-              {totalProduction.toLocaleString()}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-blue-600">tonnes / unités</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-amber-700 font-medium">
-              Chiffre d'affaires
-            </CardDescription>
-            <CardTitle className="text-3xl text-amber-900">
-              {totalCA.toLocaleString()} FCFA
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-amber-600">cumulé</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-purple-700 font-medium">
-              Emplois créés
-            </CardDescription>
-            <CardTitle className="text-3xl text-purple-900">
-              {totalEmployes.toLocaleString()}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-purple-600">employés au total</p>
-          </CardContent>
-        </Card>
+        {[
+          { label: "Total productions", value: filteredProductions.length, sub: "saisies", color: "emerald" },
+          { label: "Production physique", value: totalProduction.toLocaleString(), sub: "tonnes/unités", color: "blue" },
+          { label: "Chiffre d'affaires", value: `${totalCA.toLocaleString()} FCFA`, sub: "cumulé", color: "amber" },
+          { label: "Emplois créés", value: totalEmployes.toLocaleString(), sub: "employés", color: "purple" },
+        ].map((item) => (
+          <div key={item.label} className={`p-4 rounded-lg border bg-gradient-to-br from-${item.color}-50 to-${item.color}-100 border-${item.color}-200`}>
+            <p className={`text-sm font-medium text-${item.color}-700`}>{item.label}</p>
+            <p className="text-3xl font-bold text-gray-900 mt-1">{item.value}</p>
+            <p className={`text-xs text-${item.color}-600 mt-1`}>{item.sub}</p>
+          </div>
+        ))}
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Filtres
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher entreprise, année..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={filterAnnee} onValueChange={setFilterAnnee}>
-              <SelectTrigger>
-                <SelectValue placeholder="Toutes les années" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Toutes les années</SelectItem>
-                {ANNEES.map((a) => (
-                  <SelectItem key={a} value={a.toString()}>
-                    {a}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterTrimestre} onValueChange={setFilterTrimestre}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tous les trimestres" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Tous les trimestres</SelectItem>
-                {TRIMESTRES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* Filtres */}
+      <div className="p-4 rounded-lg border bg-white">
+        <div className="flex items-center gap-2 mb-3 text-sm font-semibold">
+          <Filter className="h-4 w-4" /> Filtres
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-10 pl-9 pr-3 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
-        </CardContent>
-      </Card>
+          <select value={filterAnnee} onChange={(e) => setFilterAnnee(e.target.value)}
+            className="h-10 px-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="">Toutes les années</option>
+            {ANNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <select value={filterTrimestre} onChange={(e) => setFilterTrimestre(e.target.value)}
+            className="h-10 px-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="">Tous les trimestres</option>
+            {TRIMESTRES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Historique des saisies
-          </CardTitle>
-          <CardDescription>
-            {filteredProductions.length} résultat{filteredProductions.length > 1 ? "s" : ""} trouvé
-            {filteredProductions.length > 1 ? "s" : ""}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Liste */}
+      <div className="rounded-lg border bg-white">
+        <div className="p-4 border-b">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <BarChart3 className="h-5 w-5" /> Historique des saisies
+          </div>
+          <p className="text-sm text-gray-500 mt-1">{filteredProductions.length} résultat{filteredProductions.length > 1 ? "s" : ""}</p>
+        </div>
+        <div className="p-4">
           {filteredProductions.length === 0 ? (
             <div className="text-center py-12">
-              <Factory className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <Factory className="h-12 w-12 mx-auto text-gray-300 mb-4" />
               <h3 className="text-lg font-medium">Aucune production enregistrée</h3>
-              <p className="text-muted-foreground mt-1">
-                Commencez par ajouter votre première saisie trimestrielle.
-              </p>
-              <Button
-                className="mt-4 bg-emerald-600 hover:bg-emerald-700"
-                onClick={() => {
-                  resetForm();
-                  setShowForm(true);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle saisie
-              </Button>
+              <button onClick={() => { resetForm(); setShowForm(true); }}
+                className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 flex items-center gap-2 mx-auto">
+                <Plus className="h-4 w-4" /> Nouvelle saisie
+              </button>
             </div>
           ) : (
             <div className="space-y-3">
               {filteredProductions.map((production) => (
-                <div
-                  key={production.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                >
+                <div key={production.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-center gap-4">
-                    <div className="p-2 bg-emerald-100 rounded-lg">
-                      <Factory className="h-5 w-5 text-emerald-700" />
-                    </div>
+                    <div className="p-2 bg-emerald-100 rounded-lg"><Factory className="h-5 w-5 text-emerald-700" /></div>
                     <div>
-                      <p className="font-medium">
-                        {getEnterpriseName(production.entrepriseId)}
-                      </p>
+                      <p className="font-medium">{getEnterpriseName(production.entrepriseId)}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          <CalendarDays className="h-3 w-3 mr-1" />
-                          {production.annee} - {production.trimestre}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          {getEnterpriseSector(production.entrepriseId)}
-                        </Badge>
+                        <span className="px-2 py-0.5 border rounded text-xs">{production.annee} - {production.trimestre}</span>
+                        <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">{getEnterpriseSector(production.entrepriseId)}</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="text-right hidden md:block">
-                      <p className="text-sm font-medium">
-                        {production.productionPhysique.toLocaleString()} unités
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {production.chiffreAffaires.toLocaleString()} FCFA
-                      </p>
+                      <p className="text-sm font-medium">{production.productionPhysique.toLocaleString()} unités</p>
+                      <p className="text-xs text-gray-500">{production.chiffreAffaires.toLocaleString()} FCFA</p>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(production)}
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDelete(production.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <button onClick={() => handleEdit(production)} className="p-2 hover:bg-gray-100 rounded">
+                        <Edit3 className="h-4 w-4 text-gray-600" />
+                      </button>
+                      <button onClick={() => handleDelete(production.id)} className="p-2 hover:bg-red-50 rounded">
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
