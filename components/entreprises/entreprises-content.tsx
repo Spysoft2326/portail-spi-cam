@@ -585,115 +585,45 @@ export default function EntreprisesContent() {
 
       {canEdit && showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-blue-600" />
-                </div>
-                <h2 className="text-lg font-semibold">{editingEntreprise ? "Modifier l'entreprise" : "Ajouter une entreprise"}</h2>
-              </div>
+              <h2 className="text-lg font-semibold">{editingEntreprise ? "Modifier l'entreprise" : "Ajouter une entreprise"}</h2>
               <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition"><X className="w-5 h-5" /></button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Dénomination *</label><input type="text" value={formData.denomination} onChange={(e) => setFormData({ ...formData, denomination: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" required /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Sigle</label><input type="text" value={formData.sigle} onChange={(e) => setFormData({ ...formData, sigle: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activité</label>
+                <select value={formData.secteurActivite} onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  {REAL_SECTORS.map((s) => (<option key={s} value={s}>{s}</option>))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Ville</label><input type="text" value={formData.ville} onChange={(e) => setFormData({ ...formData, ville: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Région</label>
+                  <select value={formData.region} onChange={(e) => setFormData({ ...formData, region: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="Centre">Centre</option><option value="Littoral">Littoral</option><option value="Ouest">Ouest</option><option value="Nord">Nord</option><option value="Sud">Sud</option><option value="Est">Est</option><option value="Adamaoua">Adamaoua</option><option value="Nord-Ouest">Nord-Ouest</option><option value="Sud-Ouest">Sud-Ouest</option><option value="Extreme-Nord">Extrême-Nord</option>
+                  </select>
+                </div>
+              </div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Adresse postale / BP</label><input type="text" value={formData.adresse} onChange={(e) => setFormData({ ...formData, adresse: e.target.value })} placeholder="Ex: BP 1234 Yaoundé, Rue des Palmiers" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
 
-              {/* Section Informations générales */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-blue-600" />
-                  Informations générales
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Dénomination *</label>
-                    <input type="text" value={formData.denomination} onChange={(e) => setFormData({ ...formData, denomination: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sigle</label>
-                    <input type="text" value={formData.sigle} onChange={(e) => setFormData({ ...formData, sigle: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activité</label>
-                    <select value={formData.secteurActivite} onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                      {REAL_SECTORS.map((s) => (<option key={s} value={s}>{s}</option>))}
-                    </select>
+              {/* === CHAMPS CONTACT === */}
+              <div className="border-t border-gray-200 pt-4 mt-2">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"><User className="w-4 h-4" />Contact de l'entreprise</h3>
+                <div className="space-y-3">
+                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Nom du contact / Responsable</label><input type="text" value={formData.nomContact} onChange={(e) => setFormData({ ...formData, nomContact: e.target.value })} placeholder="Ex: Jean Dupont, Directeur Commercial" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label><input type="tel" value={formData.telephone} onChange={(e) => setFormData({ ...formData, telephone: e.target.value })} placeholder="+237 6XX XXX XXX" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="contact@entreprise.com" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
                   </div>
                 </div>
               </div>
 
-              {/* Section Localisation */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-green-600" />
-                  Localisation
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
-                    <input type="text" value={formData.ville} onChange={(e) => setFormData({ ...formData, ville: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Région</label>
-                    <select value={formData.region} onChange={(e) => setFormData({ ...formData, region: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                      <option value="Centre">Centre</option>
-                      <option value="Littoral">Littoral</option>
-                      <option value="Ouest">Ouest</option>
-                      <option value="Nord">Nord</option>
-                      <option value="Sud">Sud</option>
-                      <option value="Est">Est</option>
-                      <option value="Adamaoua">Adamaoua</option>
-                      <option value="Nord-Ouest">Nord-Ouest</option>
-                      <option value="Sud-Ouest">Sud-Ouest</option>
-                      <option value="Extreme-Nord">Extrême-Nord</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Adresse postale / BP</label>
-                    <input type="text" value={formData.adresse} onChange={(e) => setFormData({ ...formData, adresse: e.target.value })} placeholder="Ex: BP 1234 Yaoundé, Rue des Palmiers" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section Contact */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-                  <User className="w-4 h-4 text-purple-600" />
-                  Contact de l'entreprise
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom du contact / Responsable</label>
-                    <input type="text" value={formData.nomContact} onChange={(e) => setFormData({ ...formData, nomContact: e.target.value })} placeholder="Ex: Jean Dupont, Directeur Commercial" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-                    <input type="tel" value={formData.telephone} onChange={(e) => setFormData({ ...formData, telephone: e.target.value })} placeholder="+237 6XX XXX XXX" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="contact@entreprise.com" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section Complémentaire */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-orange-600" />
-                  Informations complémentaires
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Site Web</label>
-                    <input type="url" value={formData.siteWeb} onChange={(e) => setFormData({ ...formData, siteWeb: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Produits principaux</label>
-                    <textarea value={formData.produitsPrincipaux} onChange={(e) => setFormData({ ...formData, produitsPrincipaux: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" rows={3} />
-                  </div>
-                </div>
-              </div>
-
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Site Web</label><input type="url" value={formData.siteWeb} onChange={(e) => setFormData({ ...formData, siteWeb: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Produits principaux</label><textarea value={formData.produitsPrincipaux} onChange={(e) => setFormData({ ...formData, produitsPrincipaux: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" rows={3} /></div>
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition" disabled={submitLoading}>Annuler</button>
                 <button type="submit" className="flex-1 px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center justify-center gap-2 disabled:opacity-50" disabled={submitLoading}>
