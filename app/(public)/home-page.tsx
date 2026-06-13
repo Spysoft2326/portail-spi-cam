@@ -4,88 +4,173 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Search, Building2, TrendingUp, FileText, MapPin, Users, ArrowRight, Globe, Mail } from "lucide-react";
 
-interface Stats {
-  totalEntreprises: number;
-  totalSecteurs: number;
-  totalRegions: number;
-  totalEmplois: number;
-}
-
 interface Entreprise {
   id: string;
   secteurActivite: string;
 }
 
 // ============================================================
-// VRAIS SECTEURS DE LA BASE (151 entreprises)
+// SECTEURS UNIQUES (sans doublons majuscule/minuscule)
 // ============================================================
 const HOME_SECTORS = [
-  { name: "BTP / Matériaux", codes: ["BTP / Matériaux"], icon: "\ud83c\udfd7\ufe0f" },
-  { name: "Télécoms / IT", codes: ["Télécommunications / IT"], icon: "\ud83d\udce1" },
-  { name: "Transport / Logistique", codes: ["Transport / Logistique"], icon: "\ud83d\ude9b" },
-  { name: "Énergie", codes: ["Énergie"], icon: "\u26a1" },
-  { name: "Métallurgie", codes: ["Métallurgie"], icon: "\u2692\ufe0f" },
-  { name: "Finance", codes: ["Finance"], icon: "\ud83c\udfe6" },
-  { name: "Pharmaceutique", codes: ["Pharmaceutique"], icon: "\ud83d\udc8a" },
-  { name: "Sécurité / Défense", codes: ["Sécurité / Défense"], icon: "\ud83d\udee1\ufe0f" },
-  { name: "Tourisme / Hôtellerie", codes: ["Tourisme / Hôtellerie"], icon: "\ud83c\udfd6\ufe0f" },
-  { name: "Forêt / Bois", codes: ["Forêt / Bois"], icon: "\ud83c\udf33" },
-  { name: "Chimie / Plastique", codes: ["Chimie / Plastique"], icon: "\u2697\ufe0f" },
-  { name: "Environnement / Déchets", codes: ["Environnement / Déchets"], icon: "\u267b\ufe0f" },
-  { name: "Textile / Habillement", codes: ["Textile / Habillement"], icon: "\ud83d\udc55" },
-  { name: "Agriculture / Agro", codes: ["Agriculture / Agro-industrie"], icon: "\ud83c\udf3e" },
-  { name: "Commerce", codes: ["Commerce"], icon: "\ud83d\uded2" },
-  { name: "Industrie légère", codes: ["Industrie légère"], icon: "\ud83c\udfed" },
+  { 
+    name: "BTP / Matériaux", 
+    code: "BTP / Matériaux",
+    icon: "🏗️",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    hover: "hover:border-orange-400 hover:bg-orange-50"
+  },
+  { 
+    name: "Télécoms / IT", 
+    code: "Télécommunications / IT",
+    icon: "📡",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    hover: "hover:border-indigo-400 hover:bg-indigo-50"
+  },
+  { 
+    name: "Transport / Logistique", 
+    code: "Transport / Logistique",
+    icon: "🚛",
+    bg: "bg-red-50",
+    border: "border-red-200",
+    hover: "hover:border-red-400 hover:bg-red-50"
+  },
+  { 
+    name: "Énergie", 
+    code: "Énergie",
+    icon: "⚡",
+    bg: "bg-yellow-50",
+    border: "border-yellow-200",
+    hover: "hover:border-yellow-400 hover:bg-yellow-50"
+  },
+  { 
+    name: "Métallurgie", 
+    code: "Métallurgie",
+    icon: "⚙️",
+    bg: "bg-slate-50",
+    border: "border-slate-200",
+    hover: "hover:border-slate-400 hover:bg-slate-50"
+  },
+  { 
+    name: "Finance", 
+    code: "Finance",
+    icon: "🏦",
+    bg: "bg-cyan-50",
+    border: "border-cyan-200",
+    hover: "hover:border-cyan-400 hover:bg-cyan-50"
+  },
+  { 
+    name: "Pharmaceutique", 
+    code: "Pharmaceutique",
+    icon: "💊",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    hover: "hover:border-purple-400 hover:bg-purple-50"
+  },
+  { 
+    name: "Sécurité / Défense", 
+    code: "Sécurité / Défense",
+    icon: "🛡️",
+    bg: "bg-gray-50",
+    border: "border-gray-200",
+    hover: "hover:border-gray-400 hover:bg-gray-50"
+  },
+  { 
+    name: "Tourisme / Hôtellerie", 
+    code: "Tourisme / Hôtellerie",
+    icon: "🏖️",
+    bg: "bg-pink-50",
+    border: "border-pink-200",
+    hover: "hover:border-pink-400 hover:bg-pink-50"
+  },
+  { 
+    name: "Forêt / Bois", 
+    code: "Forêt / Bois",
+    icon: "🌲",
+    bg: "bg-green-50",
+    border: "border-green-200",
+    hover: "hover:border-green-400 hover:bg-green-50"
+  },
+  { 
+    name: "Chimie / Plastique", 
+    code: "Chimie / Plastique",
+    icon: "🧪",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    hover: "hover:border-blue-400 hover:bg-blue-50"
+  },
+  { 
+    name: "Environnement / Déchets", 
+    code: "Environnement / Déchets",
+    icon: "♻️",
+    bg: "bg-teal-50",
+    border: "border-teal-200",
+    hover: "hover:border-teal-400 hover:bg-teal-50"
+  },
+  { 
+    name: "Textile / Habillement", 
+    code: "Textile / Habillement",
+    icon: "👕",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    hover: "hover:border-rose-400 hover:bg-rose-50"
+  },
+  { 
+    name: "Agriculture / Agro", 
+    code: "Agriculture / Agro-industrie",
+    icon: "🌾",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    hover: "hover:border-emerald-400 hover:bg-emerald-50"
+  },
+  { 
+    name: "Commerce", 
+    code: "Commerce",
+    icon: "🛒",
+    bg: "bg-gray-50",
+    border: "border-gray-200",
+    hover: "hover:border-gray-400 hover:bg-gray-50"
+  },
+  { 
+    name: "Industrie légère", 
+    code: "Industrie légère",
+    icon: "🏭",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    hover: "hover:border-amber-400 hover:bg-amber-50"
+  },
 ];
 
 export default function HomePage() {
-  const [stats, setStats] = useState<Stats>({
-    totalEntreprises: 0,
+  const [stats, setStats] = useState({
+    totalEntreprises: 151,
     totalSecteurs: 16,
     totalRegions: 10,
     totalEmplois: 45000,
   });
-  const [sectorCounts, setSectorCounts] = useState<Record<string, number>>({});
   const [mounted, setMounted] = useState(false);
 
-  // IMPORTANT: eviter le flickering SSG vs client
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Fetch vrais compteurs depuis l API
-  const fetchRealCounts = useCallback(async () => {
+  // Fetch le vrai nombre d entreprises
+  const fetchTotal = useCallback(async () => {
     try {
-      const res = await fetch("/api/entreprises?limit=10000");
+      const res = await fetch("/api/entreprises?limit=1");
       if (!res.ok) return;
       const data = await res.json();
-      const allEntreprises: Entreprise[] = data.entreprises || [];
-
-      setStats((prev) => ({ ...prev, totalEntreprises: allEntreprises.length }));
-
-      // Compter par secteur d accueil
-      const counts: Record<string, number> = {};
-      HOME_SECTORS.forEach((cat) => (counts[cat.name] = 0));
-
-      allEntreprises.forEach((e) => {
-        HOME_SECTORS.forEach((cat) => {
-          if (cat.codes.includes(e.secteurActivite)) {
-            counts[cat.name] = (counts[cat.name] || 0) + 1;
-          }
-        });
-      });
-
-      setSectorCounts(counts);
+      setStats((prev) => ({ ...prev, totalEntreprises: data.total || 151 }));
     } catch {
-      // Silencieux
+      // Garder la valeur par defaut
     }
   }, []);
 
   useEffect(() => {
-    if (mounted) {
-      fetchRealCounts();
-    }
-  }, [mounted, fetchRealCounts]);
+    if (mounted) fetchTotal();
+  }, [mounted, fetchTotal]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white" suppressHydrationWarning>
@@ -141,30 +226,34 @@ export default function HomePage() {
       {/* Stats Cards */}
       <section className="max-w-7xl mx-auto px-4 -mt-10 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon={<Building2 className="w-6 h-6" />} value={mounted ? stats.totalEntreprises.toString() : "..."} label="Toutes les entreprises du secteur industriel repertoriees" color="bg-[#007A3D]" />
+          <StatCard icon={<Building2 className="w-6 h-6" />} value={mounted ? stats.totalEntreprises.toString() : "151"} label="Entreprises repertoriees" color="bg-[#007A3D]" />
           <StatCard icon={<TrendingUp className="w-6 h-6" />} value={stats.totalSecteurs.toString()} label="Secteurs d'activite" color="bg-[#CE1126]" />
           <StatCard icon={<MapPin className="w-6 h-6" />} value={stats.totalRegions.toString()} label="Regions couvertes" color="bg-[#FCD116] text-black" />
           <StatCard icon={<Users className="w-6 h-6" />} value={stats.totalEmplois.toLocaleString() + "+"} label="Emplois industriels" color="bg-slate-700" />
         </div>
       </section>
 
-      {/* Secteurs avec VRAIS compteurs */}
+      {/* Secteurs industriels - SANS COMPTEURS, AVEC BELLES ICONES */}
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <h3 className="text-2xl font-bold text-center mb-12">Secteurs industriels couverts</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {HOME_SECTORS.map((secteur) => {
-            const count = mounted ? (sectorCounts[secteur.name] || 0) : 0;
-            const firstCode = secteur.codes[0] || "";
-            return (
-              <Link key={secteur.name} href={firstCode ? `/entreprises?sector=${encodeURIComponent(firstCode)}` : "/entreprises"} className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-[#007A3D] hover:shadow-lg transition-all">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-[#007A3D]/10 transition-colors text-2xl">
-                  {secteur.icon}
-                </div>
-                <h4 className="font-semibold text-sm">{secteur.name}</h4>
-                <p className="text-xs text-gray-500 mt-1">{mounted ? `${count} entreprises` : "Chargement..."}</p>
-              </Link>
-            );
-          })}
+        <h3 className="text-2xl font-bold text-center mb-4">Secteurs industriels couverts</h3>
+        <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">
+          Decouvrez les entreprises camerounaises par secteur d activite. Cliquez sur un secteur pour explorer les entreprises associees.
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {HOME_SECTORS.map((secteur) => (
+            <Link 
+              key={secteur.name} 
+              href={`/entreprises?sector=${encodeURIComponent(secteur.code)}`} 
+              className={`group p-5 bg-white rounded-2xl border ${secteur.border} ${secteur.hover} hover:shadow-xl transition-all duration-300 text-center`}
+            >
+              <div className={`w-14 h-14 ${secteur.bg} rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                <span className="text-3xl">{secteur.icon}</span>
+              </div>
+              <h4 className="font-semibold text-sm text-gray-800 group-hover:text-[#007A3D] transition-colors leading-tight">
+                {secteur.name}
+              </h4>
+            </Link>
+          ))}
         </div>
       </section>
 
