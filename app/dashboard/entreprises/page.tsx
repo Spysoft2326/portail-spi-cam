@@ -291,7 +291,7 @@ export default function EntreprisesPage() {
     return matchSearch && matchSecteur && matchRegion && matchVille;
   });
 
-  const villesUniques = Array.from(new Set(enterprises.map((e) => e.ville).filter(Boolean))).sort();
+  const villesUniques = Array.from(new Set(enterprises.map((e) => e.ville).filter((v): v is string => typeof v === "string"))).sort();
 
   if (status === "loading" || loading) {
     return (
