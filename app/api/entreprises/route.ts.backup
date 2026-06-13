@@ -76,7 +76,7 @@ export async function GET(request: Request) {
   }
 }
 
-// ✅ POST — Créer une nouvelle entreprise (AVEC CONTACTS)
+// ✅ POST — Créer une nouvelle entreprise (NOUVEAU)
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -108,15 +108,13 @@ export async function POST(request: Request) {
         siteWeb: body.siteWeb?.trim() || null,
         produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
         statut: body.statut || "ACTIF",
-        // === CHAMPS CONTACT ===
-        telephone: body.telephone?.trim() || null,
-        email: body.email?.trim() || null,
-        nomContact: body.nomContact?.trim() || null,
         // Champs optionnels avec valeurs par défaut
         formeJuridique: null,
         capitalSocial: null,
         adresse: null,
         departement: null,
+        telephone: null,
+        email: null,
         numContribuable: null,
         sousSecteur: null,
         estExportateur: false,

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-// ✅ PUT — Modifier une entreprise
+// ✅ PUT — Modifier une entreprise (AVEC CONTACTS + ADRESSE)
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
@@ -36,9 +36,14 @@ export async function PUT(
         secteurActivite: body.secteurActivite || existing.secteurActivite,
         ville: body.ville?.trim() || null,
         region: body.region || existing.region,
+        adresse: body.adresse?.trim() || null,  // ← AJOUTÉ : Adresse
         siteWeb: body.siteWeb?.trim() || null,
         produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
         statut: body.statut || existing.statut,
+        // === CHAMPS CONTACT ===
+        telephone: body.telephone !== undefined ? (body.telephone?.trim() || null) : existing.telephone,
+        email: body.email !== undefined ? (body.email?.trim() || null) : existing.email,
+        nomContact: body.nomContact !== undefined ? (body.nomContact?.trim() || null) : existing.nomContact,
       },
     });
 
@@ -63,7 +68,6 @@ export async function DELETE(
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
-    // Vérifier que l'entreprise existe
     const existing = await prisma.entreprise.findUnique({
       where: { id: params.id },
     });

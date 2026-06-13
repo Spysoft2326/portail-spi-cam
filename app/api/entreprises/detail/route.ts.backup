@@ -45,7 +45,6 @@ export async function GET(request: NextRequest) {
         region: entreprise.region,
         telephone: entreprise.telephone,
         email: entreprise.email,
-        nomContact: entreprise.nomContact,  // ← AJOUTÉ : Nom du contact
         siteWeb: entreprise.siteWeb,
         numContribuable: entreprise.numContribuable,
         secteurActivite: entreprise.secteurActivite,
@@ -77,3 +76,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

@@ -26,7 +26,6 @@ interface Entreprise {
   telephone: string | null;
   email: string | null;
   nomContact: string | null;
-  adresse: string | null;  // ← AJOUTÉ : Adresse postale
 }
 
 interface Filters {
@@ -162,7 +161,6 @@ export default function EntreprisesContent() {
     telephone: "",
     email: "",
     nomContact: "",
-    adresse: "",  // ← AJOUTÉ
   });
   const [submitLoading, setSubmitLoading] = useState(false);
 
@@ -286,7 +284,6 @@ export default function EntreprisesContent() {
       telephone: entreprise.telephone || "",
       email: entreprise.email || "",
       nomContact: entreprise.nomContact || "",
-      adresse: entreprise.adresse || "",  // ← AJOUTÉ
     });
     setShowModal(true);
   };
@@ -361,7 +358,7 @@ export default function EntreprisesContent() {
   };
 
   const exportCSV = () => {
-    const headers = ["Denomination", "Sigle", "Secteur", "Ville", "Region", "Adresse", "Site Web", "Produits", "Telephone", "Email", "Contact", "Statut"];
+    const headers = ["Denomination", "Sigle", "Secteur", "Ville", "Region", "Site Web", "Produits", "Telephone", "Email", "Contact", "Statut"];
     const rows = entreprises.map((e) => [
       e.denomination,
       e.sigle || "",
@@ -370,14 +367,13 @@ export default function EntreprisesContent() {
       e.region,
       e.siteWeb || "",
       e.produitsPrincipaux || "",
-      e.adresse || "",
       e.telephone || "",
-      e.email || "",
+      e.email || "",   
       e.nomContact || "",
       e.statut,
     ]);
 
-    const csv = [headers, ...rows]
+        const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${cell}"`).join(";"))
       .join("\n");
 
@@ -606,7 +602,6 @@ export default function EntreprisesContent() {
                   </select>
                 </div>
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Adresse postale / BP</label><input type="text" value={formData.adresse} onChange={(e) => setFormData({ ...formData, adresse: e.target.value })} placeholder="Ex: BP 1234 Yaoundé, Rue des Palmiers" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
 
               {/* === CHAMPS CONTACT === */}
               <div className="border-t border-gray-200 pt-4 mt-2">

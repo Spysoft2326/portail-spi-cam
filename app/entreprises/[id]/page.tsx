@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, Building2, MapPin, Globe, Phone, Mail, 
+  ArrowLeft, Building2, MapPin, Globe, Phone, Mail, User,
   Factory, Shield, TrendingUp
 } from "lucide-react";
 
@@ -21,6 +21,7 @@ interface Entreprise {
   region: string;
   telephone: string | null;
   email: string | null;
+  nomContact: string | null;  // ← AJOUTÉ
   siteWeb: string | null;
   numContribuable: string | null;
   secteurActivite: string;
@@ -211,6 +212,17 @@ export default function EntrepriseDetailPage() {
                     </p>
                   </div>
                 </div>
+
+                {/* ← AJOUTÉ : Nom du contact */}
+                {entreprise.nomContact && (
+                  <div className="flex items-start gap-3">
+                    <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-gray-500">Contact / Responsable</p>
+                      <p className="text-gray-900 font-medium">{entreprise.nomContact}</p>
+                    </div>
+                  </div>
+                )}
 
                 {entreprise.telephone && (
                   <div className="flex items-start gap-3">
