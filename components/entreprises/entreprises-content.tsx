@@ -6,24 +6,10 @@ import Link from "next/link";
 import {
   Search, X, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Save,
   Download, Filter, LayoutGrid, List,
-  // Icones secteurs
-  Sprout, UtensilsCrossed, HardHat, FlaskConical, ShoppingCart,
-  Radio, Building, GraduationCap, Zap, Sun,
-  TreePine, Landmark, Smartphone, BookOpen, Hotel,
-  Home, Factory, Truck, Newspaper, PiggyBank,
-  Mountain, Pill, HeartPulse, Shield, Cpu,
-  Wifi, Shirt, Plane, Bus, MoreHorizontal,
-  Leaf, Beaker, Briefcase, BarChart3, TrendingUp,
-  Users, DollarSign, MapPin, Calendar, FileSpreadsheet,
-  ArrowRight, Globe, Hammer, Wrench, Factory as FactoryIcon,
-  Pickaxe, ShieldCheck, TreeDeciduous, Shirt as ShirtIcon,
-  Pill as PillIcon, Tractor, ShoppingBag, Zap as ZapIcon,
-  Wifi as WifiIcon, Plane as PlaneIcon, Bus as BusIcon,
-  Landmark as LandmarkIcon, GraduationCap as GraduationCapIcon,
-  Hotel as HotelIcon, Home as HomeIcon, TreePine as TreePineIcon,
-  Mountain as MountainIcon, Newspaper as NewspaperIcon,
-  PiggyBank as PiggyBankIcon, HeartPulse as HeartPulseIcon,
-  Shield as ShieldIcon, Cpu as CpuIcon
+  Sprout, HardHat, FlaskConical, ShoppingCart,
+  Building, Zap, TreePine, Landmark, Hotel,
+  Factory, Truck, Pill, Shield, Wifi, Shirt,
+  BarChart3, MapPin, ArrowRight, Globe, MoreHorizontal
 } from "lucide-react";
 
 interface Entreprise {
@@ -79,11 +65,11 @@ const SECTOR_ICONS: Record<string, React.ElementType> = {
   "Tourisme / Hôtellerie": Hotel,
   "Forêt / Bois": TreePine,
   "Chimie / Plastique": FlaskConical,
-  "Environnement / Déchets": TreeDeciduous,
+  "Environnement / Déchets": TreePine,
   "Textile / Habillement": Shirt,
   "Agriculture / Agro-industrie": Sprout,
   "Commerce": ShoppingCart,
-  "Industrie légère": FactoryIcon,
+  "Industrie légère": Factory,
 };
 
 // Couleurs par secteur
@@ -171,7 +157,6 @@ export default function EntreprisesContent() {
   });
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  // Compteurs par categorie
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
   const fetchEntreprises = useCallback(async () => {
@@ -201,7 +186,6 @@ export default function EntreprisesContent() {
     }
   }, [searchQuery, selectedSector, selectedRegion, selectedCity, page]);
 
-  // Fetch tous les compteurs par categorie
   const fetchCategoryCounts = useCallback(async () => {
     try {
       const res = await fetch("/api/entreprises?limit=10000");
@@ -394,7 +378,6 @@ export default function EntreprisesContent() {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Annuaire des Entreprises</h1>
@@ -402,39 +385,20 @@ export default function EntreprisesContent() {
         </div>
         <div className="flex gap-2">
           {isAdmin && (
-            <button
-              onClick={openAddModal}
-              className="px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center gap-2 shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-              Ajouter
+            <button onClick={openAddModal} className="px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center gap-2 shadow-sm">
+              <Plus className="w-5 h-5" />Ajouter
             </button>
           )}
-          <button
-            onClick={exportCSV}
-            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition flex items-center gap-2 shadow-sm"
-          >
-            <Download className="w-4 h-4" />
-            Exporter CSV
+          <button onClick={exportCSV} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition flex items-center gap-2 shadow-sm">
+            <Download className="w-4 h-4" />Exporter CSV
           </button>
           <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-md transition ${viewMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-2 rounded-md transition ${viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              <List className="w-4 h-4" />
-            </button>
+            <button onClick={() => setViewMode("grid")} className={`p-2 rounded-md transition ${viewMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"}`}><LayoutGrid className="w-4 h-4" /></button>
+            <button onClick={() => setViewMode("list")} className={`p-2 rounded-md transition ${viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"}`}><List className="w-4 h-4" /></button>
           </div>
         </div>
       </div>
 
-      {/* Compteurs par categorie */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
           <BarChart3 className="w-5 h-5 text-gray-500" />
@@ -443,137 +407,69 @@ export default function EntreprisesContent() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
           {CATEGORIES.map((cat) => {
             const count = categoryCounts[cat.key] || 0;
-            // Trouver le premier secteur de cette categorie pour le filtre
-            const firstSector = Object.entries(SECTOR_TO_CATEGORY).find(
-              ([, c]) => c === cat.key
-            )?.[0] || "";
+            const firstSector = Object.entries(SECTOR_TO_CATEGORY).find(([, c]) => c === cat.key)?.[0] || "";
             return (
-              <button
-                key={cat.key}
-                onClick={() => {
-                  if (firstSector) {
-                    setSelectedSector(firstSector);
-                    setPage(1);
-                  }
-                }}
-                className={`relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all hover:shadow-md ${cat.color} ${
-                  selectedSector && SECTOR_TO_CATEGORY[selectedSector] === cat.key
-                    ? "ring-2 ring-offset-1 ring-blue-500 shadow-md"
-                    : ""
-                }`}
-              >
+              <button key={cat.key} onClick={() => { if (firstSector) { setSelectedSector(firstSector); setPage(1); } }} className={`relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all hover:shadow-md ${cat.color} ${selectedSector && SECTOR_TO_CATEGORY[selectedSector] === cat.key ? "ring-2 ring-offset-1 ring-blue-500 shadow-md" : ""}`}>
                 <span className="text-lg font-bold">{count}</span>
                 <span className="text-xs font-medium text-center leading-tight mt-1">{cat.label}</span>
-                {count > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
-                )}
+                {count > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Filtres */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-gray-500" />
           <h2 className="font-semibold text-gray-700">Filtres</h2>
-          {(selectedSector || selectedRegion || selectedCity || searchQuery) && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Actifs</span>
-          )}
+          {(selectedSector || selectedRegion || selectedCity || searchQuery) && <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Actifs</span>}
         </div>
-
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>
               <div className="flex">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Nom, sigle, description..."
-                  className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-r-lg hover:bg-blue-700 transition">
-                  <Search className="w-5 h-5" />
-                </button>
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, sigle, description..." className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-r-lg hover:bg-blue-700 transition"><Search className="w-5 h-5" /></button>
               </div>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Secteur</label>
-              <select
-                value={selectedSector}
-                onChange={(e) => { setSelectedSector(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-              >
+              <select value={selectedSector} onChange={(e) => { setSelectedSector(e.target.value); setPage(1); }} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">Tous les secteurs</option>
-                {(filters?.sectors || []).map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
+                {(filters?.sectors || []).map((s) => (<option key={s} value={s}>{s}</option>))}
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-              <select
-                value={selectedRegion}
-                onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-              >
+              <select value={selectedRegion} onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">Toutes les regions</option>
-                {(filters?.regions || []).map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
+                {(filters?.regions || []).map((r) => (<option key={r} value={r}>{r}</option>))}
               </select>
             </div>
           </div>
-
           <div className="flex items-end gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
-              <select
-                value={selectedCity}
-                onChange={(e) => { setSelectedCity(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-              >
+              <select value={selectedCity} onChange={(e) => { setSelectedCity(e.target.value); setPage(1); }} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">Toutes les villes</option>
-                {(filters?.cities || []).map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
+                {(filters?.cities || []).map((c) => (<option key={c} value={c}>{c}</option>))}
               </select>
             </div>
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
-            >
-              <X className="w-4 h-4" />
-              Reinitialiser
-            </button>
+            <button type="button" onClick={clearFilters} className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"><X className="w-4 h-4" />Reinitialiser</button>
           </div>
         </form>
       </div>
 
-      {/* Resultats */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement des entreprises...</p>
-        </div>
+        <div className="text-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p className="mt-4 text-gray-600">Chargement des entreprises...</p></div>
       ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-700">{error}</p>
-          <button onClick={fetchEntreprises} className="mt-2 text-red-600 hover:text-red-800 underline">Reessayer</button>
-        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center"><p className="text-red-700">{error}</p><button onClick={fetchEntreprises} className="mt-2 text-red-600 hover:text-red-800 underline">Reessayer</button></div>
       ) : (
         <>
           <div className="mb-4 flex items-center justify-between">
-            <span className="text-sm text-gray-600">
-              {total} resultat{total > 1 ? "s" : ""} trouve{total > 1 ? "s" : ""}
-              {(searchQuery || selectedSector || selectedRegion || selectedCity) && " (filtres)"}
-            </span>
+            <span className="text-sm text-gray-600">{total} resultat{total > 1 ? "s" : ""} trouve{total > 1 ? "s" : ""}{(searchQuery || selectedSector || selectedRegion || selectedCity) && " (filtres)"}</span>
           </div>
 
           {viewMode === "grid" && (
@@ -585,10 +481,7 @@ export default function EntreprisesContent() {
                   <Link href={`/entreprises/${e.id}`} key={e.id} className="block group">
                     <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 cursor-pointer h-full">
                       <div className="flex items-start justify-between mb-4">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}>
-                          <SectorIcon className={`w-3.5 h-3.5 ${style.icon}`} />
-                          {e.secteurActivite}
-                        </div>
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}><SectorIcon className={`w-3.5 h-3.5 ${style.icon}`} />{e.secteurActivite}</div>
                         <div className="flex items-center gap-1">
                           <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
                           {isAdmin && (
@@ -618,13 +511,7 @@ export default function EntreprisesContent() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entreprise</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Secteur</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Localisation</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produits</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
+                  <tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entreprise</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Secteur</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Localisation</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produits</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th></tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {entreprises.map((e) => {
