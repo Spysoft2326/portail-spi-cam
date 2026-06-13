@@ -27,27 +27,26 @@ interface Enterprise {
 const mapSecteurToCategorie = (secteur: string | null): string => {
   if (!secteur) return "Autre";
   const s = secteur.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  
+
   if (s.includes("metallurgie") || s.includes("industrie") || s.includes("manufacture") || s.includes("textile") || s.includes("bois") || s.includes("chimie") || s.includes("plastique") || s.includes("ceramique") || s.includes("mecanique") || s.includes("electronique") || s.includes("aluminium") || s.includes("acier") || s.includes("ciment")) return "Industrie";
   if (s.includes("agro") || s.includes("agriculture") || s.includes("elevage") || s.includes("peche") || s.includes("forest") || s.includes("palmier") || s.includes("cacao") || s.includes("cafe") || s.includes("coton") || s.includes("banane") || s.includes("ananas") || s.includes("huile")) return "Agriculture";
   if (s.includes("finance") || s.includes("banque") || s.includes("assurance") || s.includes("service") || s.includes("consulting") || s.includes("informatique") || s.includes("education") || s.includes("sante") || s.includes("immobilier") || s.includes("juridique") || s.includes("comptable") || s.includes("audit") || s.includes("bureautique") || s.includes("logistique") || s.includes("fret")) return "Services";
   if (s.includes("commerce") || s.includes("distribution") || s.includes("import") || s.includes("export") || s.includes("vente") || s.includes("supermarche") || s.includes("boutique") || s.includes("negoce")) return "Commerce";
   if (s.includes("transport") || s.includes("logistique") || s.includes("maritime") || s.includes("aerien") || s.includes("routier") || s.includes("ferroviaire") || s.includes("port") || s.includes("douane")) return "Transport";
-  if (s.includes("energie") || s.includes("electricite") || s.includes("eau") || s.includes("petrole") || s.includes("gaz") || s.includes("solaire") || s.includes("hydro") || s.includes("charbon") || s.includes("nucleaire")) return "Énergie";
-  if (s.includes("telecom") || s.includes("telecommunication") || s.includes("telephonie") || s.includes("internet") || s.includes("mobile") || s.includes("reseau") || s.includes("communication") || s.includes("media")) return "Télécommunications";
+  if (s.includes("energie") || s.includes("electricite") || s.includes("eau") || s.includes("petrole") || s.includes("gaz") || s.includes("solaire") || s.includes("hydro") || s.includes("charbon") || s.includes("nucleaire")) return "Ã‰nergie";
+  if (s.includes("telecom") || s.includes("telecommunication") || s.includes("telephonie") || s.includes("internet") || s.includes("mobile") || s.includes("reseau") || s.includes("communication") || s.includes("media")) return "TÃ©lÃ©communications";
   if (s.includes("construction") || s.includes("batiment") || s.includes("travaux") || s.includes("public") || s.includes("genie civil") || s.includes("route") || s.includes("pont") || s.includes("promotion")) return "Construction";
   if (s.includes("mine") || s.includes("minier") || s.includes("extraction") || s.includes("or") || s.includes("diamant") || s.includes("bauxite") || s.includes("fer") || s.includes("manganese") || s.includes("uranium") || s.includes("carriere")) return "Mines";
   if (s.includes("tourisme") || s.includes("hotel") || s.includes("restaurant") || s.includes("hebergement") || s.includes("voyage") || s.includes("loisir") || s.includes("culture") || s.includes("evenement")) return "Tourisme";
-  
+
   return "Autre";
 };
 
 const CATEGORIES = [
   "Industrie", "Agriculture", "Services", "Commerce", "Transport",
-  "Énergie", "Télécommunications", "Construction", "Mines", "Tourisme"
+  "Ã‰nergie", "TÃ©lÃ©communications", "Construction", "Mines", "Tourisme"
 ];
 
-// Composants UI inline
 const Button = ({ children, onClick, className = "", variant = "default", size = "default" }: any) => {
   const baseClass = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50";
   const variants: any = { default: "bg-primary text-primary-foreground hover:bg-primary/90", ghost: "hover:bg-accent hover:text-accent-foreground", outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground", secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80" };
@@ -82,8 +81,8 @@ const TableCell = ({ children, className = "" }: any) => <td className={`p-4 ali
 const useToast = () => ({ toast: ({ title, description, variant }: any) => { console.log(`[Toast ${variant}] ${title}: ${description}`); } });
 
 export default function EntreprisesContent() {
-  const [enterprises, setEnterprises] = useState<<Enterprise[]>([]);
-  const [filteredEnterprises, setFilteredEnterprises] = useState<<Enterprise[]>([]);
+  const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
+  const [filteredEnterprises, setFilteredEnterprises] = useState<Enterprise[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,16 +97,16 @@ export default function EntreprisesContent() {
       const data = await response.json();
       setEnterprises(data.enterprises || []);
       setFilteredEnterprises(data.enterprises || []);
-      
+
       const all = data.enterprises || [];
       const categories: Record<string, number> = {};
       CATEGORIES.forEach(c => categories[c] = 0);
-      
+
       all.forEach((e: Enterprise) => {
         const cat = mapSecteurToCategorie(e.secteurActivite);
         if (categories[cat] !== undefined) categories[cat]++; else categories["Autre"] = (categories["Autre"] || 0) + 1;
       });
-      
+
       setStats({ total: all.length, categories });
     } catch (error) {
       toast({ title: "Erreur", description: "Impossible de charger les entreprises", variant: "destructive" });
@@ -127,11 +126,11 @@ export default function EntreprisesContent() {
   }, [searchQuery, selectedCategory, enterprises]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette entreprise ?")) return;
+    if (!confirm("ÃŠtes-vous sÃ»r de vouloir supprimer cette entreprise ?")) return;
     try {
       const response = await fetch(`/api/entreprises/${id}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Erreur lors de la suppression");
-      toast({ title: "Succès", description: "Entreprise supprimée avec succès" });
+      toast({ title: "SuccÃ¨s", description: "Entreprise supprimÃ©e avec succÃ¨s" });
       fetchEnterprises();
     } catch (error) { toast({ title: "Erreur", description: "Impossible de supprimer l'entreprise", variant: "destructive" }); }
   };
@@ -150,7 +149,7 @@ export default function EntreprisesContent() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div><h1 className="text-3xl font-bold tracking-tight">Annuaire des Entreprises</h1><p className="text-muted-foreground">{stats.total} entreprises répertoriées dans la base SPI-CAM</p></div>
+        <div><h1 className="text-3xl font-bold tracking-tight">Annuaire des Entreprises</h1><p className="text-muted-foreground">{stats.total} entreprises rÃ©pertoriÃ©es dans la base SPI-CAM</p></div>
         <Button onClick={() => router.push("/dashboard/entreprises/nouvelle")}><Plus className="mr-2 h-4 w-4" />Nouvelle Entreprise</Button>
       </div>
 
@@ -165,13 +164,13 @@ export default function EntreprisesContent() {
 
       <div className="flex items-center gap-4">
         <div className="relative flex-1"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Rechercher par nom, sigle, ville, secteur..." className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
-        {selectedCategory && <Badge variant="secondary" className="cursor-pointer" onClick={() => setSelectedCategory(null)}>{selectedCategory} ×</Badge>}
+        {selectedCategory && <Badge variant="secondary" className="cursor-pointer" onClick={() => setSelectedCategory(null)}>{selectedCategory} Ã—</Badge>}
       </div>
 
       <Card><CardContent className="p-0">
-        <Table><TableHeader><TableRow><TableHead>Réf. SPI</TableHead><TableHead>Dénomination</TableHead><TableHead>Secteur</TableHead><TableHead>Ville</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+        <Table><TableHeader><TableRow><TableHead>RÃ©f. SPI</TableHead><TableHead>DÃ©nomination</TableHead><TableHead>Secteur</TableHead><TableHead>Ville</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
           <TableBody>
-            {filteredEnterprises.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Aucune entreprise trouvée</TableCell></TableRow> : filteredEnterprises.map((enterprise) => (
+            {filteredEnterprises.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Aucune entreprise trouvÃ©e</TableCell></TableRow> : filteredEnterprises.map((enterprise) => (
               <TableRow key={enterprise.id}>
                 <TableCell className="font-medium">{enterprise.referenceSPI}</TableCell>
                 <TableCell><div className="font-medium">{enterprise.denomination}</div>{enterprise.sigle && <div className="text-sm text-muted-foreground">{enterprise.sigle}</div>}</TableCell>
