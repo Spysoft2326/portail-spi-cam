@@ -80,7 +80,10 @@ export default function NewProductionPage() {
             region: formData.newRegion,
           }),
         });
-        if (!entRes.ok) throw new Error("Erreur création entreprise");
+        if (!entRes.ok) {
+          const errText = await entRes.text();
+          throw new Error("Erreur création entreprise: " + errText);
+        }
         const newEnt = await entRes.json();
         finalEntrepriseId = newEnt.id;
       }
@@ -102,8 +105,16 @@ export default function NewProductionPage() {
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Erreur lors de la sauvegarde");
+        const contentType = res.headers.get("content-type");
+        let errMsg = "Erreur lors de la sauvegarde";
+        if (contentType && contentType.includes("application/json")) {
+          const err = await res.json();
+          errMsg = err.error || errMsg;
+        } else {
+          const errText = await res.text();
+          errMsg = errText || errMsg;
+        }
+        throw new Error(errMsg);
       }
 
       router.push("/dashboard/production");
