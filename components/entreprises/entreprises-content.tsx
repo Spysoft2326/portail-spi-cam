@@ -7,7 +7,7 @@ import {
   Search, X, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Save,
   Download, Filter, LayoutGrid, List,
   // Icones secteurs
-  Sprout, UtensilsCrossed, HardHat, FlaskConical, ShoppingCart, 
+  Sprout, UtensilsCrossed, HardHat, FlaskConical, ShoppingCart,
   Radio, Building, GraduationCap, Zap, Sun,
   TreePine, Landmark, Smartphone, BookOpen, Hotel,
   Home, Factory, Truck, Newspaper, PiggyBank,
@@ -137,6 +137,54 @@ const ALL_SECTORS = [
   { value: "Autre", label: "Autre" },
 ];
 
+// ============================================================
+// MAPPING SECTEUR -> CATEGORIE (meme que sur le dashboard)
+// ============================================================
+const SECTOR_TO_CATEGORY: Record<string, string> = {
+  Agriculture: "Agriculture",
+  Agroalimentaire: "Agriculture",
+  BTP: "Construction",
+  Chimie: "Industrie",
+  Commerce: "Commerce",
+  Communication: "Services",
+  Construction: "Construction",
+  Education: "Services",
+  Energie: "Industrie",
+  "Energie renouvelable": "Industrie",
+  Environnement: "Services",
+  Finance: "Services",
+  Fintech: "Technologie",
+  Formation: "Services",
+  Hotellerie: "Tourisme",
+  Immobilier: "Construction",
+  Industrie: "Industrie",
+  Logistique: "Transport",
+  Media: "Services",
+  Microfinance: "Services",
+  Mines: "Industrie",
+  Pharmaceutique: "Industrie",
+  Sante: "Services",
+  Securite: "Services",
+  Technologie: "Technologie",
+  Telecommunications: "Technologie",
+  Textile: "Industrie",
+  Tourisme: "Tourisme",
+  Transport: "Transport",
+  Autre: "Autre",
+};
+
+const CATEGORIES = [
+  { key: "Agriculture", label: "Agriculture", color: "bg-green-100 text-green-800 border-green-200" },
+  { key: "Industrie", label: "Industrie", color: "bg-blue-100 text-blue-800 border-blue-200" },
+  { key: "Services", label: "Services", color: "bg-purple-100 text-purple-800 border-purple-200" },
+  { key: "Commerce", label: "Commerce", color: "bg-amber-100 text-amber-800 border-amber-200" },
+  { key: "Construction", label: "Construction", color: "bg-orange-100 text-orange-800 border-orange-200" },
+  { key: "Technologie", label: "Technologie", color: "bg-cyan-100 text-cyan-800 border-cyan-200" },
+  { key: "Transport", label: "Transport", color: "bg-red-100 text-red-800 border-red-200" },
+  { key: "Tourisme", label: "Tourisme", color: "bg-pink-100 text-pink-800 border-pink-200" },
+  { key: "Autre", label: "Autre", color: "bg-gray-100 text-gray-800 border-gray-200" },
+];
+
 export default function EntreprisesContent() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
@@ -168,6 +216,9 @@ export default function EntreprisesContent() {
   });
   const [submitLoading, setSubmitLoading] = useState(false);
 
+  // --- NOUVEAU : Compteurs par categorie ---
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+
   const fetchEntreprises = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -195,6 +246,28 @@ export default function EntreprisesContent() {
     }
   }, [searchQuery, selectedSector, selectedRegion, selectedCity, page]);
 
+  // --- NOUVEAU : Fetch tous les compteurs par categorie ---
+  const fetchCategoryCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/entreprises?limit=10000");
+      if (!res.ok) return;
+      const data = await res.json();
+      const allEntreprises: Entreprise[] = data.entreprises || [];
+
+      const counts: Record<string, number> = {};
+      CATEGORIES.forEach((cat) => (counts[cat.key] = 0));
+
+      allEntreprises.forEach((e) => {
+        const category = SECTOR_TO_CATEGORY[e.secteurActivite] || "Autre";
+        counts[category] = (counts[category] || 0) + 1;
+      });
+
+      setCategoryCounts(counts);
+    } catch {
+      // Silencieux
+    }
+  }, []);
+
   // Lire les parametres URL au chargement initial (client-side only)
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -214,6 +287,11 @@ export default function EntreprisesContent() {
   useEffect(() => {
     fetchEntreprises();
   }, [fetchEntreprises]);
+
+  // --- NOUVEAU : Charger les compteurs au montage ---
+  useEffect(() => {
+    fetchCategoryCounts();
+  }, [fetchCategoryCounts]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -300,6 +378,7 @@ export default function EntreprisesContent() {
 
       setShowModal(false);
       fetchEntreprises();
+      fetchCategoryCounts(); // --- Rafraichir les compteurs ---
     } catch (err: any) {
       alert("Erreur : " + err.message);
     } finally {
@@ -322,6 +401,7 @@ export default function EntreprisesContent() {
 
       setEntreprises((prev) => prev.filter((en) => en.id !== id));
       setTotal((t) => t - 1);
+      fetchCategoryCounts(); // --- Rafraichir les compteurs ---
     } catch (err: any) {
       alert("Erreur suppression : " + err.message);
     }
@@ -343,7 +423,8 @@ export default function EntreprisesContent() {
 
     const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${cell}"`).join(";"))
-      .join("\n");
+      .join("
+");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -402,6 +483,45 @@ export default function EntreprisesContent() {
         </div>
       </div>
 
+      {/* ============================================================
+          NOUVEAU : Compteurs par categorie de secteur
+          ============================================================ */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <BarChart3 className="w-5 h-5 text-gray-500" />
+          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Repartition par secteur</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
+          {CATEGORIES.map((cat) => {
+            const count = categoryCounts[cat.key] || 0;
+            return (
+              <button
+                key={cat.key}
+                onClick={() => {
+                  // Filtrer par le premier secteur de cette categorie
+                  const firstSector = Object.entries(SECTOR_TO_CATEGORY).find(
+                    ([, c]) => c === cat.key
+                  )?.[0] || "";
+                  setSelectedSector(firstSector);
+                  setPage(1);
+                }}
+                className={`relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all hover:shadow-md ${cat.color} ${
+                  selectedSector && SECTOR_TO_CATEGORY[selectedSector] === cat.key
+                    ? "ring-2 ring-offset-1 ring-blue-500 shadow-md"
+                    : ""
+                }`}
+              >
+                <span className="text-lg font-bold">{count}</span>
+                <span className="text-xs font-medium text-center leading-tight mt-1">{cat.label}</span>
+                {count > 0 && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Filtres ameliores */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
@@ -414,77 +534,77 @@ export default function EntreprisesContent() {
           )}
         </div>
 
-        <form onSubmit={handleSearch} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>
-              <div className="flex">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Nom, sigle, description..."
-                  className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-r-lg hover:bg-blue-700 transition">
-                  <Search className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Secteur</label>
-              <select
-                value={selectedSector}
-                onChange={(e) => { setSelectedSector(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-              >
-                <option value="">Tous les secteurs</option>
-                {(filters?.sectors || []).map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-              <select
-                value={selectedRegion}
-                onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-              >
-                <option value="">Toutes les regions</option>
-                {(filters?.regions || []).map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
+      <form onSubmit={handleSearch} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>
+            <div className="flex">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Nom, sigle, description..."
+                className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-r-lg hover:bg-blue-700 transition">
+                <Search className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
-          <div className="flex items-end gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
-              <select
-                value={selectedCity}
-                onChange={(e) => { setSelectedCity(e.target.value); setPage(1); }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-              >
-                <option value="">Toutes les villes</option>
-                {(filters?.cities || []).map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Secteur</label>
+            <select
+              value={selectedSector}
+              onChange={(e) => { setSelectedSector(e.target.value); setPage(1); }}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
             >
-              <X className="w-4 h-4" />
-              Reinitialiser
-            </button>
+              <option value="">Tous les secteurs</option>
+              {(filters?.sectors || []).map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </div>
-        </form>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+            <select
+              value={selectedRegion}
+              onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">Toutes les regions</option>
+              {(filters?.regions || []).map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-end gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
+            <select
+              value={selectedCity}
+              onChange={(e) => { setSelectedCity(e.target.value); setPage(1); }}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">Toutes les villes</option>
+              {(filters?.cities || []).map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
+          >
+            <X className="w-4 h-4" />
+            Reinitialiser
+          </button>
+        </div>
+      </form>
       </div>
 
       {/* Resultats */}
