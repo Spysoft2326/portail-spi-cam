@@ -47,27 +47,25 @@ export default function AgentSaisieDashboard() {
       const entRes = await fetch("/api/entreprises?limit=1");
       const entData = await entRes.json();
 
-      // Récupérer les productions (toutes, pas seulement celles de l'agent)
+      // Récupérer les productions (toutes)
       const prodRes = await fetch("/api/productions?limit=1000");
       const prodData = await prodRes.json();
 
       const productions = prodData.productions || [];
-      // Filtrer par agent si l'ID est disponible
-      const agentId = session?.user?.id;
-      const mesProds = agentId ? productions.filter((p: any) => p.saisiePar === agentId) : productions;
 
+      // Pour l'Agent, on affiche toutes les productions (pas de filtre par ID)
+      // car session?.user?.id peut être undefined dans NextAuth
       setStats({
         totalEntreprises: entData.total || 0,
-        mesProductions: mesProds.length,
-        enAttente: mesProds.filter((p: any) => p.statut === "EN_ATTENTE").length,
-        validees: mesProds.filter((p: any) => p.statut === "VALIDEE").length,
-        rejetees: mesProds.filter((p: any) => p.statut === "REJETEE").length,
+        mesProductions: productions.length,
+        enAttente: productions.filter((p: any) => p.statut === "EN_ATTENTE").length,
+        validees: productions.filter((p: any) => p.statut === "VALIDEE").length,
+        rejetees: productions.filter((p: any) => p.statut === "REJETEE").length,
       });
 
-      setRecentProductions(mesProds.slice(0, 5));
+      setRecentProductions(productions.slice(0, 5));
     } catch (error) {
       console.error("Erreur chargement stats:", error);
-      // En cas d'erreur, on garde les valeurs par défaut (0)
     } finally {
       setLoading(false);
     }

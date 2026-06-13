@@ -5,17 +5,9 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft,
-  Building2,
-  Plus,
-  Loader2,
-  Save,
-  Calendar,
-  Package,
-  Users,
-  DollarSign,
-  TrendingUp,
-  AlertCircle,
+  ArrowLeft, Building2, Plus, Loader2, Save, Calendar,
+  Package, Users, DollarSign, TrendingUp, AlertCircle,
+  ClipboardList
 } from "lucide-react";
 
 interface Enterprise {
@@ -28,18 +20,21 @@ interface Enterprise {
 export default function NewProductionPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingEntreprises, setLoadingEntreprises] = useState(true);
-  const [entreprises, setEntreprises] = useState<Enterprise[]>([]);
-  const [showNewEnterprise, setShowNewEnterprise] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  // Formulaire production
   const [formData, setFormData] = useState({
     entrepriseId: "",
-    annee: new Date().getFullYear().toString(),
-    trimestre: "",
+    isNewEnterprise: false,
+    newDenomination: "",
+    newSigle: "",
+    newSecteur: "Commerce",
+    newVille: "",
+    newRegion: "Centre",
+    annee: new Date().getFullYear(),
+    trimestre: 1,
     productionPhysique: "",
     chiffreAffaires: "",
     effectifs: "",
@@ -47,42 +42,20 @@ export default function NewProductionPage() {
     commentaire: "",
   });
 
-  // Formulaire nouvelle entreprise
-  const [newEnterprise, setNewEnterprise] = useState({
-    referenceSPI: "",
-    denomination: "",
-    sigle: "",
-    formeJuridique: "",
-    capitalSocial: "",
-    adresse: "",
-    ville: "",
-    departement: "",
-    region: "",
-    telephone: "",
-    email: "",
-    siteWeb: "",
-    numContribuable: "",
-    secteurActivite: "AUTRE",
-    sousSecteur: "",
-    produitsPrincipaux: "",
-    estExportateur: false,
-    estDansZoneIndustrielle: false,
-    nomZoneIndustrielle: "",
-  });
-
   useEffect(() => {
-    fetchEntreprises();
+    fetchEnterprises();
   }, []);
 
-  const fetchEntreprises = async () => {
+  const fetchEnterprises = async () => {
     try {
-      const res = await fetch("/api/entreprises");
+      const res = await fetch("/api/entreprises?limit=1000");
+      if (!res.ok) throw new Error("Erreur chargement entreprises");
       const data = await res.json();
-      setEntreprises(data.entreprises || []);
-    } catch (error) {
-      console.error(error);
+      setEnterprises(data.entreprises || []);
+    } catch (err: any) {
+      console.error("Erreur:", err);
     } finally {
-      setLoadingEntreprises(false);
+      setFetching(false);
     }
   };
 
@@ -90,414 +63,216 @@ export default function NewProductionPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setSuccess("");
 
     try {
-      let entrepriseId = formData.entrepriseId;
+      let finalEntrepriseId = formData.entrepriseId;
 
-      // Si nouvelle entreprise
-      if (showNewEnterprise) {
-        const resEnterprise = await fetch("/api/entreprises", {
+      // Créer nouvelle entreprise si nécessaire
+      if (formData.isNewEnterprise) {
+        const entRes = await fetch("/api/entreprises", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newEnterprise),
+          body: JSON.stringify({
+            denomination: formData.newDenomination,
+            sigle: formData.newSigle,
+            secteurActivite: formData.newSecteur,
+            ville: formData.newVille,
+            region: formData.newRegion,
+          }),
         });
-
-        const dataEnterprise = await resEnterprise.json();
-
-        if (!resEnterprise.ok) {
-          setError(dataEnterprise.error || "Erreur création entreprise");
-          setLoading(false);
-          return;
-        }
-
-        entrepriseId = dataEnterprise.entreprise.id;
+        if (!entRes.ok) throw new Error("Erreur création entreprise");
+        const newEnt = await entRes.json();
+        finalEntrepriseId = newEnt.id;
       }
 
       // Créer la production
-      const res = await fetch("/api/production", {
+      const res = await fetch("/api/productions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          entrepriseId,
+          entrepriseId: finalEntrepriseId,
+          annee: formData.annee,
+          trimestre: formData.trimestre,
+          productionPhysique: formData.productionPhysique ? parseFloat(formData.productionPhysique) : null,
+          chiffreAffaires: formData.chiffreAffaires ? parseFloat(formData.chiffreAffaires) : null,
+          effectifs: formData.effectifs ? parseInt(formData.effectifs) : null,
+          investissements: formData.investissements ? parseFloat(formData.investissements) : null,
+          commentaire: formData.commentaire,
         }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error || "Erreur lors de la sauvegarde");
-      } else {
-        setSuccess("Production enregistrée avec succès !");
-        setTimeout(() => router.push("/production"), 1500);
+        const err = await res.json();
+        throw new Error(err.error || "Erreur lors de la sauvegarde");
       }
-    } catch (err) {
-      setError("Erreur réseau");
+
+      router.push("/dashboard/production");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      setFormData((prev) => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleNewEnterpriseChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      setNewEnterprise((prev) => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
-    } else {
-      setNewEnterprise((prev) => ({ ...prev, [name]: value }));
-    }
-  };
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Link
-          href="/production"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+    <div>
+      {/* Header harmonisé */}
+      <div className="mb-6">
+        <Link href="/dashboard/production" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition">
+          <ArrowLeft className="w-4 h-4" />
+          Retour aux productions
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Nouvelle saisie</h1>
-          <p className="text-sm text-gray-500">Production trimestrielle</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <ClipboardList className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Nouvelle saisie</h1>
+            <p className="text-sm text-gray-500">Production trimestrielle</p>
+          </div>
         </div>
       </div>
 
-      {/* Messages */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-red-700 flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
           {error}
         </div>
       )}
-      {success && (
-        <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700">
-          {success}
-        </div>
-      )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Section Entreprise */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
+        {/* Entreprise */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#007A3D]" />
+            <Building2 className="w-5 h-5 text-blue-600" />
             Entreprise
           </h2>
 
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <input
-                type="radio"
-                id="existing"
-                name="enterpriseType"
-                checked={!showNewEnterprise}
-                onChange={() => setShowNewEnterprise(false)}
-                className="w-4 h-4 text-[#007A3D]"
-              />
-              <label htmlFor="existing" className="text-sm text-gray-700">
-                Entreprise existante
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" checked={!formData.isNewEnterprise} onChange={() => setFormData({ ...formData, isNewEnterprise: false })} className="w-4 h-4 text-blue-600" />
+                <span className="text-sm">Entreprise existante</span>
               </label>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="radio"
-                id="new"
-                name="enterpriseType"
-                checked={showNewEnterprise}
-                onChange={() => setShowNewEnterprise(true)}
-                className="w-4 h-4 text-[#007A3D]"
-              />
-              <label htmlFor="new" className="text-sm text-gray-700">
-                Nouvelle entreprise
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" checked={formData.isNewEnterprise} onChange={() => setFormData({ ...formData, isNewEnterprise: true })} className="w-4 h-4 text-blue-600" />
+                <span className="text-sm">Nouvelle entreprise</span>
               </label>
             </div>
 
-            {!showNewEnterprise ? (
+            {!formData.isNewEnterprise ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sélectionner une entreprise *
-                </label>
-                <select
-                  name="entrepriseId"
-                  value={formData.entrepriseId}
-                  onChange={handleChange}
-                  required={!showNewEnterprise}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                >
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sélectionner une entreprise *</label>
+                <select value={formData.entrepriseId} onChange={(e) => setFormData({ ...formData, entrepriseId: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white" required={!formData.isNewEnterprise}>
                   <option value="">Choisir...</option>
-                  {entreprises.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.denomination} ({e.referenceSPI})
-                    </option>
+                  {enterprises.map((e) => (
+                    <option key={e.id} value={e.id}>{e.denomination} ({e.referenceSPI})</option>
                   ))}
                 </select>
               </div>
             ) : (
-              <div className="space-y-4 border-t pt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Référence SPI *
-                    </label>
-                    <input
-                      type="text"
-                      name="referenceSPI"
-                      value={newEnterprise.referenceSPI}
-                      onChange={handleNewEnterpriseChange}
-                      required
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                      placeholder="SPI-XXXX"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Dénomination *
-                    </label>
-                    <input
-                      type="text"
-                      name="denomination"
-                      value={newEnterprise.denomination}
-                      onChange={handleNewEnterpriseChange}
-                      required
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Sigle
-                    </label>
-                    <input
-                      type="text"
-                      name="sigle"
-                      value={newEnterprise.sigle}
-                      onChange={handleNewEnterpriseChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Forme juridique
-                    </label>
-                    <input
-                      type="text"
-                      name="formeJuridique"
-                      value={newEnterprise.formeJuridique}
-                      onChange={handleNewEnterpriseChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Région *
-                    </label>
-                    <input
-                      type="text"
-                      name="region"
-                      value={newEnterprise.region}
-                      onChange={handleNewEnterpriseChange}
-                      required
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Ville
-                    </label>
-                    <input
-                      type="text"
-                      name="ville"
-                      value={newEnterprise.ville}
-                      onChange={handleNewEnterpriseChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Dénomination *</label>
+                  <input type="text" value={formData.newDenomination} onChange={(e) => setFormData({ ...formData, newDenomination: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" required={formData.isNewEnterprise} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Secteur d'activité
-                  </label>
-                  <select
-                    name="secteurActivite"
-                    value={newEnterprise.secteurActivite}
-                    onChange={handleNewEnterpriseChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                  >
-                    <option value="AUTRE">Autre</option>
-                    <option value="AGROALIMENTAIRE">Agroalimentaire</option>
-                    <option value="TEXTILE">Textile</option>
-                    <option value="CHIMIE">Chimie</option>
-                    <option value="MINES">Mines</option>
-                    <option value="BOIS">Bois</option>
-                    <option value="ENERGIE">Énergie</option>
-                    <option value="CONSTRUCTION">Construction</option>
-                    <option value="TRANSPORT">Transport</option>
-                    <option value="SERVICES">Services</option>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Sigle</label>
+                  <input type="text" value={formData.newSigle} onChange={(e) => setFormData({ ...formData, newSigle: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Secteur</label>
+                  <select value={formData.newSecteur} onChange={(e) => setFormData({ ...formData, newSecteur: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="Commerce">Commerce</option>
+                    <option value="Agriculture / Agro-industrie">Agriculture</option>
+                    <option value="BTP / Matériaux">BTP / Matériaux</option>
+                    <option value="Télécommunications / IT">Télécommunications</option>
+                    <option value="Transport / Logistique">Transport</option>
+                    <option value="Énergie">Énergie</option>
+                    <option value="Métallurgie">Métallurgie</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Pharmaceutique">Pharmaceutique</option>
+                    <option value="Industrie légère">Industrie légère</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
+                  <input type="text" value={formData.newVille} onChange={(e) => setFormData({ ...formData, newVille: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Section Période */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        {/* Période */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#007A3D]" />
+            <Calendar className="w-5 h-5 text-green-600" />
             Période
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Année *
-              </label>
-              <input
-                type="number"
-                name="annee"
-                value={formData.annee}
-                onChange={handleChange}
-                required
-                min="2020"
-                max="2030"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Année *</label>
+              <input type="number" value={formData.annee} onChange={(e) => setFormData({ ...formData, annee: parseInt(e.target.value) })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trimestre *
-              </label>
-              <select
-                name="trimestre"
-                value={formData.trimestre}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-              >
-                <option value="">Choisir...</option>
-                <option value="1">T1 (Jan-Mar)</option>
-                <option value="2">T2 (Avr-Juin)</option>
-                <option value="3">T3 (Juil-Sep)</option>
-                <option value="4">T4 (Oct-Déc)</option>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Trimestre *</label>
+              <select value={formData.trimestre} onChange={(e) => setFormData({ ...formData, trimestre: parseInt(e.target.value) })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white" required>
+                <option value={1}>T1 (Janvier - Mars)</option>
+                <option value={2}>T2 (Avril - Juin)</option>
+                <option value={3}>T3 (Juillet - Septembre)</option>
+                <option value={4}>T4 (Octobre - Décembre)</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Section Données */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        {/* Données de production */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Package className="w-5 h-5 text-[#007A3D]" />
+            <Package className="w-5 h-5 text-orange-600" />
             Données de production
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Production physique (tonnes/unités)
-              </label>
-              <input
-                type="number"
-                name="productionPhysique"
-                value={formData.productionPhysique}
-                onChange={handleChange}
-                step="0.01"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Production physique (tonnes/unités)</label>
+              <input type="number" step="0.01" value={formData.productionPhysique} onChange={(e) => setFormData({ ...formData, productionPhysique: e.target.value })} placeholder="0" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Chiffre d'affaires (FCFA)
-              </label>
-              <input
-                type="number"
-                name="chiffreAffaires"
-                value={formData.chiffreAffaires}
-                onChange={handleChange}
-                step="0.01"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Chiffre d'affaires (FCFA)</label>
+              <input type="number" step="0.01" value={formData.chiffreAffaires} onChange={(e) => setFormData({ ...formData, chiffreAffaires: e.target.value })} placeholder="0" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Effectifs
-              </label>
-              <input
-                type="number"
-                name="effectifs"
-                value={formData.effectifs}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Effectifs</label>
+              <input type="number" value={formData.effectifs} onChange={(e) => setFormData({ ...formData, effectifs: e.target.value })} placeholder="0" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Investissements (FCFA)
-              </label>
-              <input
-                type="number"
-                name="investissements"
-                value={formData.investissements}
-                onChange={handleChange}
-                step="0.01"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-                placeholder="0"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Investissements (FCFA)</label>
+              <input type="number" step="0.01" value={formData.investissements} onChange={(e) => setFormData({ ...formData, investissements: e.target.value })} placeholder="0" className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
           </div>
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Commentaire
-            </label>
-            <textarea
-              name="commentaire"
-              value={formData.commentaire}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A3D] outline-none"
-              placeholder="Informations complémentaires..."
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Commentaire</label>
+            <textarea value={formData.commentaire} onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })} placeholder="Observations, notes..." className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" rows={3} />
           </div>
         </div>
 
-        {/* Boutons */}
-        <div className="flex items-center justify-end gap-4">
-          <Link
-            href="/production"
-            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-          >
+        {/* Actions */}
+        <div className="flex gap-4">
+          <button type="button" onClick={() => router.push("/dashboard/production")} className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition" disabled={loading}>
             Annuler
-          </Link>
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition-colors font-medium disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Enregistrement...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5" />
-                Enregistrer
-              </>
-            )}
+          </button>
+          <button type="submit" className="px-6 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center gap-2 disabled:opacity-50" disabled={loading}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Enregistrer la saisie
           </button>
         </div>
       </form>

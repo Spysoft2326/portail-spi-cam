@@ -43,16 +43,18 @@ export default function AgentSaisieDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Récupérer les entreprises
+      // Récupérer les entreprises (toutes)
       const entRes = await fetch("/api/entreprises?limit=1");
       const entData = await entRes.json();
 
-      // Récupérer les productions de l'agent
-      const prodRes = await fetch("/api/productions");
+      // Récupérer les productions (toutes, pas seulement celles de l'agent)
+      const prodRes = await fetch("/api/productions?limit=1000");
       const prodData = await prodRes.json();
 
       const productions = prodData.productions || [];
-      const mesProds = productions.filter((p: any) => p.saisiePar === session?.user?.id);
+      // Filtrer par agent si l'ID est disponible
+      const agentId = session?.user?.id;
+      const mesProds = agentId ? productions.filter((p: any) => p.saisiePar === agentId) : productions;
 
       setStats({
         totalEntreprises: entData.total || 0,
@@ -65,6 +67,7 @@ export default function AgentSaisieDashboard() {
       setRecentProductions(mesProds.slice(0, 5));
     } catch (error) {
       console.error("Erreur chargement stats:", error);
+      // En cas d'erreur, on garde les valeurs par défaut (0)
     } finally {
       setLoading(false);
     }
@@ -205,10 +208,7 @@ export default function AgentSaisieDashboard() {
           <div className="text-center py-8 text-gray-500">
             <ClipboardList className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p>Aucune production saisie pour le moment</p>
-            <Link href="/dashboard/production" className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-              <Plus className="w-4 h-4" />
-              Nouvelle saisie
-            </Link>
+            <p className="text-sm text-gray-400 mt-1">Rendez-vous sur la page Production pour saisir</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
