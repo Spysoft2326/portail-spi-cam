@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Search, X, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Save,
@@ -140,15 +139,14 @@ const ALL_SECTORS = [
 
 export default function EntreprisesContent() {
   const { data: session } = useSession();
-  const searchParams = useSearchParams();
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
 
   const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
   const [filters, setFilters] = useState<Filters>({ sectors: [], regions: [], cities: [] });
-  const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [selectedSector, setSelectedSector] = useState(searchParams.get("sector") || "");
-  const [selectedRegion, setSelectedRegion] = useState(searchParams.get("region") || "");
-  const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "");
+  const [search, setSearch] = useState("");
+  const [selectedSector, setSelectedSector] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -197,20 +195,25 @@ export default function EntreprisesContent() {
     }
   }, [searchQuery, selectedSector, selectedRegion, selectedCity, page]);
 
+  // Lire les parametres URL au chargement initial (client-side only)
   useEffect(() => {
-    // Lire les parametres URL au chargement initial
-    const urlSearch = searchParams.get("search") || "";
-    const urlSector = searchParams.get("sector") || "";
-    const urlRegion = searchParams.get("region") || "";
-    const urlCity = searchParams.get("city") || "";
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      const urlSearch = url.searchParams.get("search") || "";
+      const urlSector = url.searchParams.get("sector") || "";
+      const urlRegion = url.searchParams.get("region") || "";
+      const urlCity = url.searchParams.get("city") || "";
 
-    if (urlSearch !== search) setSearch(urlSearch);
-    if (urlSector !== selectedSector) setSelectedSector(urlSector);
-    if (urlRegion !== selectedRegion) setSelectedRegion(urlRegion);
-    if (urlCity !== selectedCity) setSelectedCity(urlCity);
+      if (urlSearch) setSearch(urlSearch);
+      if (urlSector) setSelectedSector(urlSector);
+      if (urlRegion) setSelectedRegion(urlRegion);
+      if (urlCity) setSelectedCity(urlCity);
+    }
+  }, []);
 
+  useEffect(() => {
     fetchEntreprises();
-  }, [fetchEntreprises, searchParams]);
+  }, [fetchEntreprises]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
