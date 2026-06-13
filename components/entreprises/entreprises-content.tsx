@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import {
   Search, X, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Save,
   Download, Filter, LayoutGrid, List,
@@ -13,7 +14,8 @@ import {
   Mountain, Pill, HeartPulse, Shield, Cpu,
   Wifi, Shirt, Plane, Bus, MoreHorizontal,
   Leaf, Beaker, Briefcase, BarChart3, TrendingUp,
-  Users, DollarSign, MapPin, Calendar, FileSpreadsheet
+  Users, DollarSign, MapPin, Calendar, FileSpreadsheet,
+  ArrowRight
 } from "lucide-react";
 
 interface Entreprise {
@@ -290,7 +292,7 @@ export default function EntreprisesContent() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette entreprise ?")) return;
+    if (!confirm("Etes-vous sur de vouloir supprimer cette entreprise ?")) return;
 
     try {
       const res = await fetch(`/api/entreprises/${id}`, {
@@ -311,7 +313,7 @@ export default function EntreprisesContent() {
 
   // ✅ Export CSV
   const exportCSV = () => {
-    const headers = ["Dénomination", "Sigle", "Secteur", "Ville", "Région", "Site Web", "Produits", "Statut"];
+    const headers = ["Denomination", "Sigle", "Secteur", "Ville", "Region", "Site Web", "Produits", "Statut"];
     const rows = entreprises.map((e) => [
       e.denomination,
       e.sigle || "",
@@ -348,7 +350,7 @@ export default function EntreprisesContent() {
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Annuaire des Entreprises</h1>
-          <p className="text-sm text-gray-500 mt-1">{total} entreprises répertoriées</p>
+          <p className="text-sm text-gray-500 mt-1">{total} entreprises repertoriees</p>
         </div>
         <div className="flex gap-2">
           {isAdmin && (
@@ -384,7 +386,7 @@ export default function EntreprisesContent() {
         </div>
       </div>
 
-      {/* Filtres améliorés */}
+      {/* Filtres ameliores */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-gray-500" />
@@ -429,13 +431,13 @@ export default function EntreprisesContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Région</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
               <select
                 value={selectedRegion}
                 onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
               >
-                <option value="">Toutes les régions</option>
+                <option value="">Toutes les regions</option>
                 {(filters?.regions || []).map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
@@ -463,13 +465,13 @@ export default function EntreprisesContent() {
               className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
             >
               <X className="w-4 h-4" />
-              Réinitialiser
+              Reinitialiser
             </button>
           </div>
         </form>
       </div>
 
-      {/* Résultats */}
+      {/* Resultats */}
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -479,14 +481,14 @@ export default function EntreprisesContent() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-700">{error}</p>
           <button onClick={fetchEntreprises} className="mt-2 text-red-600 hover:text-red-800 underline">
-            Réessayer
+            Reessayer
           </button>
         </div>
       ) : (
         <>
           <div className="mb-4 flex items-center justify-between">
             <span className="text-sm text-gray-600">
-              {total} résultat{total > 1 ? "s" : ""} trouvé{total > 1 ? "s" : ""}
+              {total} resultat{total > 1 ? "s" : ""} trouve{total > 1 ? "s" : ""}
               {(searchQuery || selectedSector || selectedRegion || selectedCity) && " (filtres)"}
             </span>
           </div>
@@ -499,70 +501,67 @@ export default function EntreprisesContent() {
                 const style = getSectorStyle(e.secteurActivite);
 
                 return (
-                  <div
-                    key={e.id}
-                    className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6 group border border-gray-100 hover:border-gray-200"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}>
-                        <SectorIcon className={`w-3.5 h-3.5 ${style.icon}`} />
-                        {e.secteurActivite}
-                      </div>
-                      {isAdmin && (
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => openEditModal(e)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                            title="Modifier"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(e.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                            title="Supprimer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                  <Link href={`/entreprises/${e.id}`} key={e.id} className="block group">
+                    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 cursor-pointer h-full">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}>
+                          <SectorIcon className={`w-3.5 h-3.5 ${style.icon}`} />
+                          {e.secteurActivite}
                         </div>
+                        <div className="flex items-center gap-1">
+                          <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                          {isAdmin && (
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(ev) => ev.preventDefault()}>
+                              <button
+                                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); openEditModal(e); }}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                title="Modifier"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); handleDelete(e.id); }}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
+                        {e.denomination}
+                      </h3>
+
+                      {e.sigle && <p className="text-sm text-gray-500 mb-3 font-medium">{e.sigle}</p>}
+
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-4">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                          {e.ville || "N/A"}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                          {e.region}
+                        </span>
+                      </div>
+
+                      {e.produitsPrincipaux && (
+                        <p className="text-sm text-gray-500 mt-3 line-clamp-2 bg-gray-50 p-2 rounded-lg">
+                          {e.produitsPrincipaux}
+                        </p>
+                      )}
+
+                      {e.siteWeb && (
+                        <p className="text-sm text-blue-600 mt-3 truncate flex items-center gap-1">
+                          <Globe className="w-3.5 h-3.5" />
+                          {e.siteWeb}
+                        </p>
                       )}
                     </div>
-
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">
-                      {e.denomination}
-                    </h3>
-
-                    {e.sigle && <p className="text-sm text-gray-500 mb-3 font-medium">{e.sigle}</p>}
-
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mt-4">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                        {e.ville || "N/A"}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                        {e.region}
-                      </span>
-                    </div>
-
-                    {e.produitsPrincipaux && (
-                      <p className="text-sm text-gray-500 mt-3 line-clamp-2 bg-gray-50 p-2 rounded-lg">
-                        {e.produitsPrincipaux}
-                      </p>
-                    )}
-
-                    {e.siteWeb && (
-                      <a 
-                        href={e.siteWeb} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 mt-3 truncate flex items-center gap-1 hover:underline"
-                      >
-                        <span className="w-3.5 h-3.5">🌐</span>
-                        {e.siteWeb}
-                      </a>
-                    )}
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -587,7 +586,7 @@ export default function EntreprisesContent() {
                     const style = getSectorStyle(e.secteurActivite);
 
                     return (
-                      <tr key={e.id} className="hover:bg-gray-50 transition">
+                      <tr key={e.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => window.location.href = `/entreprises/${e.id}`}>
                         <td className="px-6 py-4">
                           <div className="font-semibold text-gray-900">{e.denomination}</div>
                           {e.sigle && <div className="text-sm text-gray-500">{e.sigle}</div>}
@@ -608,24 +607,33 @@ export default function EntreprisesContent() {
                           {e.produitsPrincipaux || "-"}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {isAdmin && (
-                            <div className="flex justify-end gap-1">
-                              <button
-                                onClick={() => openEditModal(e)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                title="Modifier"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(e.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                title="Supprimer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
+                          <div className="flex justify-end gap-1">
+                            <Link
+                              href={`/entreprises/${e.id}`}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                              title="Voir le detail"
+                            >
+                              <ArrowRight className="w-4 h-4" />
+                            </Link>
+                            {isAdmin && (
+                              <>
+                                <button
+                                  onClick={(ev) => { ev.stopPropagation(); openEditModal(e); }}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                  title="Modifier"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id); }}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -644,7 +652,7 @@ export default function EntreprisesContent() {
                 className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Précédent
+                Precedent
               </button>
               <span className="text-sm text-gray-600">Page {page} / {totalPages}</span>
               <button
@@ -677,7 +685,7 @@ export default function EntreprisesContent() {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Dénomination *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Denomination *</label>
                 <input
                   type="text"
                   value={formData.denomination}
@@ -696,7 +704,7 @@ export default function EntreprisesContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activité</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activite</label>
                 <select
                   value={formData.secteurActivite}
                   onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })}
@@ -718,7 +726,7 @@ export default function EntreprisesContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Région</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
                   <select
                     value={formData.region}
                     onChange={(e) => setFormData({ ...formData, region: e.target.value })}
@@ -733,7 +741,7 @@ export default function EntreprisesContent() {
                     <option value="Adamaoua">Adamaoua</option>
                     <option value="Nord-Ouest">Nord-Ouest</option>
                     <option value="Sud-Ouest">Sud-Ouest</option>
-                    <option value="Extreme-Nord">Extrême-Nord</option>
+                    <option value="Extreme-Nord">Extreme-Nord</option>
                   </select>
                 </div>
               </div>
