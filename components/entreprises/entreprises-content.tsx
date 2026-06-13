@@ -15,7 +15,7 @@ import {
   Wifi, Shirt, Plane, Bus, MoreHorizontal,
   Leaf, Beaker, Briefcase, BarChart3, TrendingUp,
   Users, DollarSign, MapPin, Calendar, FileSpreadsheet,
-  ArrowRight
+  ArrowRight, Globe
 } from "lucide-react";
 
 interface Entreprise {
@@ -509,7 +509,7 @@ export default function EntreprisesContent() {
                           {e.secteurActivite}
                         </div>
                         <div className="flex items-center gap-1">
-                          <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                          <ArrowRight, Globe className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
                           {isAdmin && (
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(ev) => ev.preventDefault()}>
                               <button
@@ -613,7 +613,7 @@ export default function EntreprisesContent() {
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="Voir le detail"
                             >
-                              <ArrowRight className="w-4 h-4" />
+                              <ArrowRight, Globe className="w-4 h-4" />
                             </Link>
                             {isAdmin && (
                               <>
@@ -792,3 +792,6 @@ export default function EntreprisesContent() {
     </div>
   );
 }
+
+
+
