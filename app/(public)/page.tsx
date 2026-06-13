@@ -4,143 +4,26 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Search, Building2, TrendingUp, FileText, MapPin, Users, ArrowRight, Globe, Mail } from "lucide-react";
 
-interface Entreprise {
-  id: string;
-  secteurActivite: string;
-}
-
 // ============================================================
-// SECTEURS UNIQUES (sans doublons majuscule/minuscule)
+// SECTEURS UNIQUES - SANS COMPTEURS - AVEC EMOJIS
 // ============================================================
 const HOME_SECTORS = [
-  { 
-    name: "BTP / Matériaux", 
-    code: "BTP / Matériaux",
-    icon: "🏗️",
-    bg: "bg-orange-50",
-    border: "border-orange-200",
-    hover: "hover:border-orange-400 hover:bg-orange-50"
-  },
-  { 
-    name: "Télécoms / IT", 
-    code: "Télécommunications / IT",
-    icon: "📡",
-    bg: "bg-indigo-50",
-    border: "border-indigo-200",
-    hover: "hover:border-indigo-400 hover:bg-indigo-50"
-  },
-  { 
-    name: "Transport / Logistique", 
-    code: "Transport / Logistique",
-    icon: "🚛",
-    bg: "bg-red-50",
-    border: "border-red-200",
-    hover: "hover:border-red-400 hover:bg-red-50"
-  },
-  { 
-    name: "Énergie", 
-    code: "Énergie",
-    icon: "⚡",
-    bg: "bg-yellow-50",
-    border: "border-yellow-200",
-    hover: "hover:border-yellow-400 hover:bg-yellow-50"
-  },
-  { 
-    name: "Métallurgie", 
-    code: "Métallurgie",
-    icon: "⚙️",
-    bg: "bg-slate-50",
-    border: "border-slate-200",
-    hover: "hover:border-slate-400 hover:bg-slate-50"
-  },
-  { 
-    name: "Finance", 
-    code: "Finance",
-    icon: "🏦",
-    bg: "bg-cyan-50",
-    border: "border-cyan-200",
-    hover: "hover:border-cyan-400 hover:bg-cyan-50"
-  },
-  { 
-    name: "Pharmaceutique", 
-    code: "Pharmaceutique",
-    icon: "💊",
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-    hover: "hover:border-purple-400 hover:bg-purple-50"
-  },
-  { 
-    name: "Sécurité / Défense", 
-    code: "Sécurité / Défense",
-    icon: "🛡️",
-    bg: "bg-gray-50",
-    border: "border-gray-200",
-    hover: "hover:border-gray-400 hover:bg-gray-50"
-  },
-  { 
-    name: "Tourisme / Hôtellerie", 
-    code: "Tourisme / Hôtellerie",
-    icon: "🏖️",
-    bg: "bg-pink-50",
-    border: "border-pink-200",
-    hover: "hover:border-pink-400 hover:bg-pink-50"
-  },
-  { 
-    name: "Forêt / Bois", 
-    code: "Forêt / Bois",
-    icon: "🌲",
-    bg: "bg-green-50",
-    border: "border-green-200",
-    hover: "hover:border-green-400 hover:bg-green-50"
-  },
-  { 
-    name: "Chimie / Plastique", 
-    code: "Chimie / Plastique",
-    icon: "🧪",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    hover: "hover:border-blue-400 hover:bg-blue-50"
-  },
-  { 
-    name: "Environnement / Déchets", 
-    code: "Environnement / Déchets",
-    icon: "♻️",
-    bg: "bg-teal-50",
-    border: "border-teal-200",
-    hover: "hover:border-teal-400 hover:bg-teal-50"
-  },
-  { 
-    name: "Textile / Habillement", 
-    code: "Textile / Habillement",
-    icon: "👕",
-    bg: "bg-rose-50",
-    border: "border-rose-200",
-    hover: "hover:border-rose-400 hover:bg-rose-50"
-  },
-  { 
-    name: "Agriculture / Agro", 
-    code: "Agriculture / Agro-industrie",
-    icon: "🌾",
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    hover: "hover:border-emerald-400 hover:bg-emerald-50"
-  },
-  { 
-    name: "Commerce", 
-    code: "Commerce",
-    icon: "🛒",
-    bg: "bg-gray-50",
-    border: "border-gray-200",
-    hover: "hover:border-gray-400 hover:bg-gray-50"
-  },
-  { 
-    name: "Industrie légère", 
-    code: "Industrie légère",
-    icon: "🏭",
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    hover: "hover:border-amber-400 hover:bg-amber-50"
-  },
+  { name: "BTP / Matériaux", code: "BTP / Matériaux", emoji: "🏗️", color: "bg-orange-100", border: "border-orange-300", text: "text-orange-700" },
+  { name: "Télécoms / IT", code: "Télécommunications / IT", emoji: "📡", color: "bg-indigo-100", border: "border-indigo-300", text: "text-indigo-700" },
+  { name: "Transport / Logistique", code: "Transport / Logistique", emoji: "🚛", color: "bg-red-100", border: "border-red-300", text: "text-red-700" },
+  { name: "Énergie", code: "Énergie", emoji: "⚡", color: "bg-yellow-100", border: "border-yellow-300", text: "text-yellow-700" },
+  { name: "Métallurgie", code: "Métallurgie", emoji: "⚙️", color: "bg-slate-100", border: "border-slate-300", text: "text-slate-700" },
+  { name: "Finance", code: "Finance", emoji: "🏦", color: "bg-cyan-100", border: "border-cyan-300", text: "text-cyan-700" },
+  { name: "Pharmaceutique", code: "Pharmaceutique", emoji: "💊", color: "bg-purple-100", border: "border-purple-300", text: "text-purple-700" },
+  { name: "Sécurité / Défense", code: "Sécurité / Défense", emoji: "🛡️", color: "bg-gray-100", border: "border-gray-300", text: "text-gray-700" },
+  { name: "Tourisme / Hôtellerie", code: "Tourisme / Hôtellerie", emoji: "🏖️", color: "bg-pink-100", border: "border-pink-300", text: "text-pink-700" },
+  { name: "Forêt / Bois", code: "Forêt / Bois", emoji: "🌲", color: "bg-green-100", border: "border-green-300", text: "text-green-700" },
+  { name: "Chimie / Plastique", code: "Chimie / Plastique", emoji: "🧪", color: "bg-blue-100", border: "border-blue-300", text: "text-blue-700" },
+  { name: "Environnement / Déchets", code: "Environnement / Déchets", emoji: "♻️", color: "bg-teal-100", border: "border-teal-300", text: "text-teal-700" },
+  { name: "Textile / Habillement", code: "Textile / Habillement", emoji: "👕", color: "bg-rose-100", border: "border-rose-300", text: "text-rose-700" },
+  { name: "Agriculture / Agro", code: "Agriculture / Agro-industrie", emoji: "🌾", color: "bg-emerald-100", border: "border-emerald-300", text: "text-emerald-700" },
+  { name: "Commerce", code: "Commerce", emoji: "🛒", color: "bg-gray-100", border: "border-gray-300", text: "text-gray-700" },
+  { name: "Industrie légère", code: "Industrie légère", emoji: "🏭", color: "bg-amber-100", border: "border-amber-300", text: "text-amber-700" },
 ];
 
 export default function HomePage() {
@@ -156,7 +39,6 @@ export default function HomePage() {
     setMounted(true);
   }, []);
 
-  // Fetch le vrai nombre d entreprises
   const fetchTotal = useCallback(async () => {
     try {
       const res = await fetch("/api/entreprises?limit=1");
@@ -164,7 +46,7 @@ export default function HomePage() {
       const data = await res.json();
       setStats((prev) => ({ ...prev, totalEntreprises: data.total || 151 }));
     } catch {
-      // Garder la valeur par defaut
+      // Silencieux
     }
   }, []);
 
@@ -233,23 +115,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Secteurs industriels - SANS COMPTEURS, AVEC BELLES ICONES */}
+      {/* Secteurs industriels - SANS COMPTEURS */}
       <section className="max-w-7xl mx-auto px-4 py-16">
         <h3 className="text-2xl font-bold text-center mb-4">Secteurs industriels couverts</h3>
         <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">
-          Decouvrez les entreprises camerounaises par secteur d activite. Cliquez sur un secteur pour explorer les entreprises associees.
+          Decouvrez les entreprises camerounaises par secteur d activite. Cliquez sur un secteur pour explorer.
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {HOME_SECTORS.map((secteur) => (
             <Link 
               key={secteur.name} 
               href={`/entreprises?sector=${encodeURIComponent(secteur.code)}`} 
-              className={`group p-5 bg-white rounded-2xl border ${secteur.border} ${secteur.hover} hover:shadow-xl transition-all duration-300 text-center`}
+              className={`group p-5 bg-white rounded-2xl border ${secteur.border} hover:shadow-xl transition-all duration-300 text-center hover:border-[#007A3D]`}
             >
-              <div className={`w-14 h-14 ${secteur.bg} rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                <span className="text-3xl">{secteur.icon}</span>
+              <div className={`w-14 h-14 ${secteur.color} rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300`}>
+                <span className="text-3xl">{secteur.emoji}</span>
               </div>
-              <h4 className="font-semibold text-sm text-gray-800 group-hover:text-[#007A3D] transition-colors leading-tight">
+              <h4 className={`font-semibold text-sm ${secteur.text} group-hover:text-[#007A3D] transition-colors leading-tight`}>
                 {secteur.name}
               </h4>
             </Link>
