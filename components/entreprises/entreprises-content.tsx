@@ -134,6 +134,7 @@ const CATEGORIES = [
 export default function EntreprisesContent() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
+  const canEdit = isAdmin || session?.user?.role === "AGENT_SAISIE"; // Agent peut aussi CRUD
 
   const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
   const [filters, setFilters] = useState<Filters>({ sectors: [], regions: [], cities: [] });
@@ -405,7 +406,7 @@ export default function EntreprisesContent() {
           <p className="text-sm text-gray-500 mt-1">{total} entreprises répertoriées</p>
         </div>
         <div className="flex gap-2">
-          {isAdmin && (
+          {canEdit && (
             <button onClick={openAddModal} className="px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center gap-2 shadow-sm">
               <Plus className="w-5 h-5" />Ajouter
             </button>
@@ -505,7 +506,7 @@ export default function EntreprisesContent() {
                         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}><SectorIcon className={`w-3.5 h-3.5 ${style.icon}`} />{e.secteurActivite}</div>
                         <div className="flex items-center gap-1">
                           <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
-                          {isAdmin && (
+                          {canEdit && (
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(ev) => ev.preventDefault()}>
                               <button onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); openEditModal(e); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Modifier"><Pencil className="w-4 h-4" /></button>
                               <button onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); handleDelete(e.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer"><Trash2 className="w-4 h-4" /></button>
@@ -561,7 +562,7 @@ export default function EntreprisesContent() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-1">
                             <Link href={`/entreprises/${e.id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Voir le détail"><ArrowRight className="w-4 h-4" /></Link>
-                            {isAdmin && (<><button onClick={(ev) => { ev.stopPropagation(); openEditModal(e); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Modifier"><Pencil className="w-4 h-4" /></button><button onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer"><Trash2 className="w-4 h-4" /></button></>)}
+                            {canEdit && (<><button onClick={(ev) => { ev.stopPropagation(); openEditModal(e); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Modifier"><Pencil className="w-4 h-4" /></button><button onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer"><Trash2 className="w-4 h-4" /></button></>)}
                           </div>
                         </td>
                       </tr>
