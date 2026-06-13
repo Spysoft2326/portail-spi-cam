@@ -10,20 +10,18 @@ import {
   TrendingUp,
   Package,
   DollarSign,
-  Search,
-  X,
-  ChevronDown,
   Building2,
   Save,
   Loader2,
+  ArrowLeft,
   BarChart3,
+  Search,
   Filter,
   Download,
   Eye,
   Edit3,
   Trash2,
-  CheckCircle2,
-  AlertCircle
+  ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,15 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -92,13 +81,10 @@ export default function ProductionPage() {
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedProduction, setSelectedProduction] = useState<Production | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAnnee, setFilterAnnee] = useState<string>("");
   const [filterTrimestre, setFilterTrimestre] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
   // Form states
   const [formData, setFormData] = useState({
@@ -119,6 +105,7 @@ export default function ProductionPage() {
     chiffreAffaires: "",
     nombreEmployes: "",
   });
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchEnterprises = useCallback(async () => {
     try {
@@ -168,6 +155,7 @@ export default function ProductionPage() {
       chiffreAffaires: "",
       nombreEmployes: "",
     });
+    setEditingId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -194,8 +182,8 @@ export default function ProductionPage() {
 
       if (res.ok) {
         toast.success("Production enregistrée avec succès !");
-        setIsModalOpen(false);
         resetForm();
+        setShowForm(false);
         fetchProductions();
       } else {
         const error = await res.json();
@@ -209,7 +197,7 @@ export default function ProductionPage() {
   };
 
   const handleEdit = (production: Production) => {
-    setSelectedProduction(production);
+    setEditingId(production.id);
     setEditFormData({
       id: production.id,
       entrepriseId: production.entrepriseId,
@@ -219,7 +207,8 @@ export default function ProductionPage() {
       chiffreAffaires: production.chiffreAffaires.toString(),
       nombreEmployes: production.nombreEmployes.toString(),
     });
-    setIsEditModalOpen(true);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -240,7 +229,9 @@ export default function ProductionPage() {
 
       if (res.ok) {
         toast.success("Production mise à jour !");
-        setIsEditModalOpen(false);
+        setEditingId(null);
+        setShowForm(false);
+        resetForm();
         fetchProductions();
       } else {
         toast.error("Erreur lors de la mise à jour");
@@ -307,6 +298,273 @@ export default function ProductionPage() {
     );
   }
 
+  // ==================== FORMULAIRE DE SAISIE ====================
+  if (showForm) {
+    return (
+      <div className="space-y-6 p-6 max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowForm(false);
+              resetForm();
+            }}
+            className="gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Retour aux productions
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-emerald-100 rounded-lg">
+            <Factory className="h-6 w-6 text-emerald-700" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {editingId ? "Modifier la production" : "Nouvelle saisie"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {editingId ? "Production trimestrielle" : "Production trimestrielle"}
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={editingId ? handleUpdate : handleSubmit} className="space-y-8">
+          {/* Section Entreprise */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-800">
+              <Building2 className="h-5 w-5 text-blue-600" />
+              Entreprise
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="entreprise">
+                Sélectionner une entreprise <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={editingId ? editFormData.entrepriseId : formData.entrepriseId}
+                onValueChange={(value) => {
+                  if (editingId) {
+                    setEditFormData({ ...editFormData, entrepriseId: value });
+                  } else {
+                    setFormData({ ...formData, entrepriseId: value });
+                  }
+                }}
+                disabled={!!editingId}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Choisir une entreprise..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {enterprises.length === 0 ? (
+                    <SelectItem value="" disabled>
+                      Aucune entreprise disponible
+                    </SelectItem>
+                  ) : (
+                    enterprises.map((ent) => (
+                      <SelectItem key={ent.id} value={ent.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{ent.nom}</span>
+                          {ent.sigle && (
+                            <span className="text-xs text-muted-foreground">{ent.sigle}</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {(editingId ? editFormData.entrepriseId : formData.entrepriseId) && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-50 p-2 rounded-md">
+                  <Badge variant="secondary" className="text-xs">
+                    {getEnterpriseSector(editingId ? editFormData.entrepriseId : formData.entrepriseId)}
+                  </Badge>
+                  <span>
+                    {getEnterpriseName(editingId ? editFormData.entrepriseId : formData.entrepriseId)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Section Période */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-800">
+              <CalendarDays className="h-5 w-5 text-orange-600" />
+              Période
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="annee">
+                  Année <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={editingId ? editFormData.annee : formData.annee}
+                  onValueChange={(value) => {
+                    if (editingId) {
+                      setEditFormData({ ...editFormData, annee: value });
+                    } else {
+                      setFormData({ ...formData, annee: value });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ANNEES.map((a) => (
+                      <SelectItem key={a} value={a.toString()}>
+                        {a}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="trimestre">
+                  Trimestre <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={editingId ? editFormData.trimestre : formData.trimestre}
+                  onValueChange={(value) => {
+                    if (editingId) {
+                      setEditFormData({ ...editFormData, trimestre: value });
+                    } else {
+                      setFormData({ ...formData, trimestre: value });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRIMESTRES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Section Données de production */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-800">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+              Données de production
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="productionPhysique">
+                  <Package className="h-3.5 w-3.5 inline mr-1" />
+                  Production physique
+                </Label>
+                <Input
+                  id="productionPhysique"
+                  type="number"
+                  step="0.01"
+                  placeholder="0"
+                  value={editingId ? editFormData.productionPhysique : formData.productionPhysique}
+                  onChange={(e) => {
+                    if (editingId) {
+                      setEditFormData({ ...editFormData, productionPhysique: e.target.value });
+                    } else {
+                      setFormData({ ...formData, productionPhysique: e.target.value });
+                    }
+                  }}
+                  className="h-11"
+                />
+                <p className="text-xs text-muted-foreground">tonnes, unités, etc.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="chiffreAffaires">
+                  <DollarSign className="h-3.5 w-3.5 inline mr-1" />
+                  Chiffre d'affaires
+                </Label>
+                <Input
+                  id="chiffreAffaires"
+                  type="number"
+                  step="0.01"
+                  placeholder="0"
+                  value={editingId ? editFormData.chiffreAffaires : formData.chiffreAffaires}
+                  onChange={(e) => {
+                    if (editingId) {
+                      setEditFormData({ ...editFormData, chiffreAffaires: e.target.value });
+                    } else {
+                      setFormData({ ...formData, chiffreAffaires: e.target.value });
+                    }
+                  }}
+                  className="h-11"
+                />
+                <p className="text-xs text-muted-foreground">en FCFA</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nombreEmployes">
+                  <Building2 className="h-3.5 w-3.5 inline mr-1" />
+                  Nombre d'employés
+                </Label>
+                <Input
+                  id="nombreEmployes"
+                  type="number"
+                  placeholder="0"
+                  value={editingId ? editFormData.nombreEmployes : formData.nombreEmployes}
+                  onChange={(e) => {
+                    if (editingId) {
+                      setEditFormData({ ...editFormData, nombreEmployes: e.target.value });
+                    } else {
+                      setFormData({ ...formData, nombreEmployes: e.target.value });
+                    }
+                  }}
+                  className="h-11"
+                />
+                <p className="text-xs text-muted-foreground">effectif total</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowForm(false);
+                resetForm();
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              disabled={submitting || (!editingId && !formData.entrepriseId)}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enregistrement...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  {editingId ? "Mettre à jour" : "Enregistrer"}
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  // ==================== LISTE DES PRODUCTIONS ====================
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -323,13 +581,6 @@ export default function ProductionPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
-          >
-            {viewMode === "list" ? <BarChart3 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -358,221 +609,16 @@ export default function ProductionPage() {
             <Download className="h-4 w-4 mr-2" />
             Exporter CSV
           </Button>
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle saisie
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-1.5 bg-emerald-100 rounded-md">
-                    <Factory className="h-5 w-5 text-emerald-700" />
-                  </div>
-                  Nouvelle saisie de production
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Section Entreprise */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    <Building2 className="h-4 w-4 text-blue-600" />
-                    Entreprise
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="entreprise">
-                      Sélectionner une entreprise <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      value={formData.entrepriseId}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, entrepriseId: value })
-                      }
-                    >
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Choisir une entreprise..." />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {enterprises.length === 0 ? (
-                          <SelectItem value="" disabled>
-                            Aucune entreprise disponible
-                          </SelectItem>
-                        ) : (
-                          enterprises.map((ent) => (
-                            <SelectItem key={ent.id} value={ent.id}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{ent.nom}</span>
-                                {ent.sigle && (
-                                  <span className="text-xs text-muted-foreground">{ent.sigle}</span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                    {formData.entrepriseId && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-50 p-2 rounded-md">
-                        <Badge variant="secondary" className="text-xs">
-                          {getEnterpriseSector(formData.entrepriseId)}
-                        </Badge>
-                        <span>{getEnterpriseName(formData.entrepriseId)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Section Période */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    <CalendarDays className="h-4 w-4 text-orange-600" />
-                    Période
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="annee">
-                        Année <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={formData.annee}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, annee: value })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ANNEES.map((a) => (
-                            <SelectItem key={a} value={a.toString()}>
-                              {a}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="trimestre">
-                        Trimestre <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={formData.trimestre}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, trimestre: value })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TRIMESTRES.map((t) => (
-                            <SelectItem key={t.value} value={t.value}>
-                              {t.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Section Données de production */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    <TrendingUp className="h-4 w-4 text-purple-600" />
-                    Données de production
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="productionPhysique">
-                        <Package className="h-3.5 w-3.5 inline mr-1" />
-                        Production physique
-                      </Label>
-                      <Input
-                        id="productionPhysique"
-                        type="number"
-                        step="0.01"
-                        placeholder="0"
-                        value={formData.productionPhysique}
-                        onChange={(e) =>
-                          setFormData({ ...formData, productionPhysique: e.target.value })
-                        }
-                        className="h-11"
-                      />
-                      <p className="text-xs text-muted-foreground">tonnes, unités, etc.</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="chiffreAffaires">
-                        <DollarSign className="h-3.5 w-3.5 inline mr-1" />
-                        Chiffre d'affaires
-                      </Label>
-                      <Input
-                        id="chiffreAffaires"
-                        type="number"
-                        step="0.01"
-                        placeholder="0"
-                        value={formData.chiffreAffaires}
-                        onChange={(e) =>
-                          setFormData({ ...formData, chiffreAffaires: e.target.value })
-                        }
-                        className="h-11"
-                      />
-                      <p className="text-xs text-muted-foreground">en FCFA</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="nombreEmployes">
-                        <Building2 className="h-3.5 w-3.5 inline mr-1" />
-                        Nombre d'employés
-                      </Label>
-                      <Input
-                        id="nombreEmployes"
-                        type="number"
-                        placeholder="0"
-                        value={formData.nombreEmployes}
-                        onChange={(e) =>
-                          setFormData({ ...formData, nombreEmployes: e.target.value })
-                        }
-                        className="h-11"
-                      />
-                      <p className="text-xs text-muted-foreground">effectif total</p>
-                    </div>
-                  </div>
-                </div>
-
-                <DialogFooter className="gap-2">
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline">
-                      <X className="h-4 w-4 mr-2" />
-                      Annuler
-                    </Button>
-                  </DialogClose>
-                  <Button
-                    type="submit"
-                    disabled={submitting || !formData.entrepriseId}
-                    className="bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Enregistrement...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Enregistrer
-                      </>
-                    )}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button
+            className="bg-emerald-600 hover:bg-emerald-700"
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle saisie
+          </Button>
         </div>
       </div>
 
@@ -703,7 +749,10 @@ export default function ProductionPage() {
               </p>
               <Button
                 className="mt-4 bg-emerald-600 hover:bg-emerald-700"
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => {
+                  resetForm();
+                  setShowForm(true);
+                }}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Nouvelle saisie
@@ -768,175 +817,6 @@ export default function ProductionPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Modal Edit */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <div className="p-1.5 bg-blue-100 rounded-md">
-                <Edit3 className="h-5 w-5 text-blue-700" />
-              </div>
-              Modifier la production
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleUpdate} className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <Building2 className="h-4 w-4 text-blue-600" />
-                Entreprise
-              </div>
-              <div className="p-3 bg-gray-50 rounded-md">
-                <p className="font-medium">{getEnterpriseName(editFormData.entrepriseId)}</p>
-                <p className="text-sm text-muted-foreground">
-                  {getEnterpriseSector(editFormData.entrepriseId)}
-                </p>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <CalendarDays className="h-4 w-4 text-orange-600" />
-                Période
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Année</Label>
-                  <Select
-                    value={editFormData.annee}
-                    onValueChange={(value) =>
-                      setEditFormData({ ...editFormData, annee: value })
-                    }
-                  >
-                    <SelectTrigger className="h-11">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ANNEES.map((a) => (
-                        <SelectItem key={a} value={a.toString()}>
-                          {a}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Trimestre</Label>
-                  <Select
-                    value={editFormData.trimestre}
-                    onValueChange={(value) =>
-                      setEditFormData({ ...editFormData, trimestre: value })
-                    }
-                  >
-                    <SelectTrigger className="h-11">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TRIMESTRES.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          {t.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <TrendingUp className="h-4 w-4 text-purple-600" />
-                Données de production
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>
-                    <Package className="h-3.5 w-3.5 inline mr-1" />
-                    Production physique
-                  </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editFormData.productionPhysique}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        productionPhysique: e.target.value,
-                      })
-                    }
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>
-                    <DollarSign className="h-3.5 w-3.5 inline mr-1" />
-                    Chiffre d'affaires
-                  </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editFormData.chiffreAffaires}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        chiffreAffaires: e.target.value,
-                      })
-                    }
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>
-                    <Building2 className="h-3.5 w-3.5 inline mr-1" />
-                    Nombre d'employés
-                  </Label>
-                  <Input
-                    type="number"
-                    value={editFormData.nombreEmployes}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        nombreEmployes: e.target.value,
-                      })
-                    }
-                    className="h-11"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter className="gap-2">
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
-                  <X className="h-4 w-4 mr-2" />
-                  Annuler
-                </Button>
-              </DialogClose>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Mise à jour...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Mettre à jour
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
