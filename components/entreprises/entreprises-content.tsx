@@ -7,7 +7,7 @@ import {
   Search, X, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Save,
   Download, Filter, LayoutGrid, List,
   Sprout, HardHat, FlaskConical, ShoppingCart,
-  Building, Zap, TreePine, Landmark, Hotel,
+  Building2, Zap, TreePine, Landmark, Hotel,
   Factory, Truck, Pill, Shield, Wifi, Shirt,
   BarChart3, MapPin, ArrowRight, Globe, MoreHorizontal,
   Phone, Mail, User
