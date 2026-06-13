@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Search, Building2, TrendingUp, FileText, MapPin, Users, ArrowRight, Globe, Mail } from "lucide-react";
 
@@ -11,6 +11,65 @@ interface Stats {
   totalEmplois: number;
 }
 
+interface Entreprise {
+  id: string;
+  secteurActivite: string;
+}
+
+// Mapping secteur -> categorie d affichage accueil
+const SECTOR_TO_HOME_CATEGORY: Record<string, string> = {
+  Agriculture: "Agriculture",
+  Agroalimentaire: "Agroalimentaire",
+  Technologie: "Technologie",
+  Telecommunications: "Telecoms",
+  Commerce: "E-commerce",
+  Fintech: "Fintech",
+  Energie: "Energie",
+  "Energie renouvelable": "Energie",
+  Mines: "Mines",
+  Finance: "Banque",
+  Microfinance: "Microfinance",
+  Transport: "Transport",
+  Logistique: "Logistique",
+  Construction: "Construction",
+  BTP: "Construction",
+  Immobilier: "Immobilier",
+  Sante: "Sante",
+  Pharmaceutique: "Pharmacie",
+  Education: "Education",
+  Formation: "Formation",
+  Industrie: "Industrie",
+  Chimie: "Industrie",
+  Textile: "Industrie",
+  Media: "Services",
+  Communication: "Services",
+  Environnement: "Services",
+  Securite: "Services",
+  Hotellerie: "Tourisme",
+  Tourisme: "Tourisme",
+  Autre: "Autre",
+};
+
+const HOME_CATEGORIES = [
+  { name: "Energie", codes: ["Energie", "Energie renouvelable"], icon: "\u26a1" },
+  { name: "Commerce", codes: ["Commerce"], icon: "\ud83d\uded2" },
+  { name: "BTP / Materiaux", codes: ["BTP", "Construction"], icon: "\ud83c\udfd7\ufe0f" },
+  { name: "Industrie", codes: ["Industrie", "Chimie", "Textile"], icon: "\ud83c\udfed" },
+  { name: "Finance", codes: ["Finance", "Microfinance"], icon: "\ud83c\udfe6" },
+  { name: "Agriculture / Agro", codes: ["Agriculture", "Agroalimentaire"], icon: "\ud83c\udf3e" },
+  { name: "Foret / Bois", codes: [], icon: "\ud83c\udf33" },
+  { name: "Industrie legere", codes: ["Industrie"], icon: "\ud83c\udfed" },
+  { name: "Textile / Habillement", codes: ["Textile"], icon: "\ud83d\udc55" },
+  { name: "Chimie / Plastique", codes: ["Chimie"], icon: "\u2697\ufe0f" },
+  { name: "Pharmaceutique", codes: ["Pharmaceutique"], icon: "\ud83d\udc8a" },
+  { name: "Transport / Logistique", codes: ["Transport", "Logistique"], icon: "\ud83d\ude9b" },
+  { name: "Telecommunications / IT", codes: ["Telecommunications", "Technologie"], icon: "\ud83d\udce1" },
+  { name: "Tourisme / Hotellerie", codes: ["Tourisme", "Hotellerie"], icon: "\ud83c\udfd6\ufe0f" },
+  { name: "Securite / Defense", codes: ["Securite"], icon: "\ud83d\udee1\ufe0f" },
+  { name: "Environnement / Dechets", codes: ["Environnement"], icon: "\u267b\ufe0f" },
+  { name: "PHARMACEUTIQUE", codes: ["Pharmaceutique"], icon: "\ud83d\udc8a" },
+];
+
 export default function HomePage() {
   const [stats, setStats] = useState<Stats>({
     totalEntreprises: 170,
@@ -19,6 +78,41 @@ export default function HomePage() {
     totalEmplois: 45000,
   });
   const [loading, setLoading] = useState(false);
+  const [sectorCounts, setSectorCounts] = useState<Record<string, number>>({});
+  const [totalEntreprises, setTotalEntreprises] = useState(170);
+
+  // Fetch vrais compteurs depuis l API
+  const fetchRealCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/entreprises?limit=10000");
+      if (!res.ok) return;
+      const data = await res.json();
+      const allEntreprises: Entreprise[] = data.entreprises || [];
+
+      setTotalEntreprises(allEntreprises.length);
+
+      // Compter par categorie d accueil
+      const counts: Record<string, number> = {};
+      HOME_CATEGORIES.forEach((cat) => (counts[cat.name] = 0));
+
+      allEntreprises.forEach((e) => {
+        const sector = e.secteurActivite;
+        HOME_CATEGORIES.forEach((cat) => {
+          if (cat.codes.includes(sector)) {
+            counts[cat.name] = (counts[cat.name] || 0) + 1;
+          }
+        });
+      });
+
+      setSectorCounts(counts);
+    } catch {
+      // Silencieux - garder les valeurs par defaut
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRealCounts();
+  }, [fetchRealCounts]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -52,14 +146,14 @@ export default function HomePage() {
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm mb-6">
               <span className="w-2 h-2 bg-[#FCD116] rounded-full animate-pulse" />
-              Données 2026 en temps réel
+              Donnees 2026 en temps reel
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               L'industrie camerounaise
               <span className="text-[#FCD116]"> en chiffres</span>
             </h2>
             <p className="text-lg text-white/80 mb-8">
-              Répertoire complet des entreprises industrielles, suivi de la production
+              Repertoire complet des entreprises industrielles, suivi de la production
               trimestrielle, semestrielle et annuelle. Notes de conjoncture et analyses sectorielles.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -87,75 +181,79 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={<Building2 className="w-6 h-6" />}
-            value={loading ? "..." : stats.totalEntreprises.toString()}
-            label="Toutes les entreprises du secteur industriel répertoriées"
+            value={totalEntreprises.toString()}
+            label="Toutes les entreprises du secteur industriel repertoriees"
             color="bg-[#007A3D]"
           />
           <StatCard
             icon={<TrendingUp className="w-6 h-6" />}
-            value={loading ? "..." : stats.totalSecteurs.toString()}
-            label="Secteurs d'activité"
+            value={stats.totalSecteurs.toString()}
+            label="Secteurs d'activite"
             color="bg-[#CE1126]"
           />
           <StatCard
             icon={<MapPin className="w-6 h-6" />}
-            value={loading ? "..." : stats.totalRegions.toString()}
-            label="Régions couvertes"
+            value={stats.totalRegions.toString()}
+            label="Regions couvertes"
             color="bg-[#FCD116] text-black"
           />
           <StatCard
             icon={<Users className="w-6 h-6" />}
-            value={loading ? "..." : stats.totalEmplois.toLocaleString() + "+"}
+            value={stats.totalEmplois.toLocaleString() + "+"}
             label="Emplois industriels"
             color="bg-slate-700"
           />
         </div>
       </section>
 
-      {/* Secteurs */}
+      {/* Secteurs avec VRAIS compteurs */}
       <section className="max-w-7xl mx-auto px-4 py-16">
         <h3 className="text-2xl font-bold text-center mb-12">
           Secteurs industriels couverts
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {SECTEURS.map((secteur) => (
-            <Link
-              key={secteur.code}
-              href={`/entreprises?sector=${secteur.code}`}
-              className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-[#007A3D] hover:shadow-lg transition-all"
-            >
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-[#007A3D]/10 transition-colors">
-                {secteur.icon}
-              </div>
-              <h4 className="font-semibold text-sm">{secteur.name}</h4>
-              <p className="text-xs text-gray-500 mt-1">{secteur.count} entreprises</p>
-            </Link>
-          ))}
+          {HOME_CATEGORIES.map((secteur) => {
+            const count = sectorCounts[secteur.name] || 0;
+            const firstCode = secteur.codes[0] || "";
+            return (
+              <Link
+                key={secteur.name}
+                href={firstCode ? `/entreprises?sector=${firstCode}` : "/entreprises"}
+                className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-[#007A3D] hover:shadow-lg transition-all"
+              >
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-[#007A3D]/10 transition-colors text-2xl">
+                  {secteur.icon}
+                </div>
+                <h4 className="font-semibold text-sm">{secteur.name}</h4>
+                <p className="text-xs text-gray-500 mt-1">{count} entreprises</p>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
-      {/* À propos / Mission */}
+      {/* A propos / Mission */}
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               <h3 className="text-2xl font-bold mb-4">Mission du Portail SPI-CAM</h3>
               <p className="text-gray-600 mb-4">
-                Le Portail de Suivi de la Production Industrielle du Cameroun (SPI-CAM) 
-                est une initiative du Ministère des Mines, de l'Industrie et du Développement 
-                Technologique pour centraliser et diffuser les données économiques du secteur 
+                Le Portail de Suivi de la Production Industrielle du Cameroun (SPI-CAM)
+                est une initiative du Ministere des Mines, de l'Industrie et du Developpement
+                Technologique pour centraliser et diffuser les donnees economiques du secteur
                 industriel camerounais.
               </p>
               <p className="text-gray-600 mb-6">
-                Notre objectif : offrir un outil de transparence et d'analyse pour les 
-                décideurs, les investisseurs et les professionnels du secteur industriel.
+                Notre objectif : offrir un outil de transparence et d'analyse pour les
+                decideurs, les investisseurs et les professionnels du secteur industriel.
               </p>
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center">
                     <Globe className="w-4 h-4 text-[#007A3D]" />
                   </div>
-                  <span className="text-sm text-gray-700">Couverture nationale des 10 régions</span>
+                  <span className="text-sm text-gray-700">Couverture nationale des 10 regions</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center">
@@ -167,12 +265,12 @@ export default function HomePage() {
                   <div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center">
                     <TrendingUp className="w-4 h-4 text-[#007A3D]" />
                   </div>
-                  <span className="text-sm text-gray-700">Indicateurs économiques en temps réel</span>
+                  <span className="text-sm text-gray-700">Indicateurs economiques en temps reel</span>
                 </div>
               </div>
             </div>
             <div className="bg-gradient-to-br from-[#007A3D]/5 to-[#CE1126]/5 rounded-2xl p-8">
-              <h4 className="font-bold text-lg mb-4">Accès rapide</h4>
+              <h4 className="font-bold text-lg mb-4">Acces rapide</h4>
               <div className="space-y-3">
                 <Link href="/entreprises" className="flex items-center justify-between p-4 bg-white rounded-xl hover:shadow-md transition group">
                   <div className="flex items-center gap-3">
@@ -212,13 +310,13 @@ export default function HomePage() {
               </div>
               <p className="text-sm text-gray-400">
                 Plateforme officielle de suivi de la production industrielle du Cameroun.
-                Données certifiées par le MINMIDT.
+                Donnees certifiees par le MINMIDT.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Liens rapides</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link href="/entreprises" className="hover:text-white">Répertoire des entreprises</Link></li>
+                <li><Link href="/entreprises" className="hover:text-white">Repertoire des entreprises</Link></li>
                 <li><Link href="/conjoncture" className="hover:text-white">Notes de conjoncture</Link></li>
                 <li><Link href="/login" className="hover:text-white">Espace professionnel</Link></li>
               </ul>
@@ -228,11 +326,11 @@ export default function HomePage() {
               <div className="space-y-2 text-sm text-gray-400">
                 <p className="flex items-center gap-2">
                   <Globe className="w-4 h-4" />
-                  MINMIDT - Ministère des Mines, de l'Industrie et du Développement Technologique
+                  MINMIDT - Ministere des Mines, de l'Industrie et du Developpement Technologique
                 </p>
                 <p className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
-                  Yaoundé, Cameroun
+                  Yaounde, Cameroun
                 </p>
                 <p className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
@@ -242,7 +340,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-500">
-            © 2026 Portail SPI Cam - Tous droits réservés
+            (c) 2026 Portail SPI Cam - Tous droits reserves
           </div>
         </div>
       </footer>
@@ -273,24 +371,3 @@ function StatCard({
     </div>
   );
 }
-
-const SECTEURS = [
-  { name: "Agriculture", code: "AGRICULTURE", count: 12, icon: <span className="text-2xl">🌾</span> },
-  { name: "Agroalimentaire", code: "AGROALIMENTAIRE", count: 18, icon: <span className="text-2xl">🍞</span> },
-  { name: "Technologie", code: "TECHNOLOGIE", count: 8, icon: <span className="text-2xl">💻</span> },
-  { name: "Télécoms", code: "TELECOMMUNICATIONS", count: 5, icon: <span className="text-2xl">📡</span> },
-  { name: "E-commerce", code: "E_COMMERCE", count: 4, icon: <span className="text-2xl">🛒</span> },
-  { name: "Fintech", code: "FINTECH", count: 3, icon: <span className="text-2xl">💳</span> },
-  { name: "Énergie", code: "ENERGIE", count: 10, icon: <span className="text-2xl">⚡</span> },
-  { name: "Mines", code: "MINES", count: 8, icon: <span className="text-2xl">⛏️</span> },
-  { name: "Banque", code: "BANQUE", count: 6, icon: <span className="text-2xl">🏦</span> },
-  { name: "Microfinance", code: "MICROFINANCE", count: 4, icon: <span className="text-2xl">💰</span> },
-  { name: "Transport", code: "TRANSPORT", count: 7, icon: <span className="text-2xl">🚛</span> },
-  { name: "Logistique", code: "LOGISTIQUE", count: 5, icon: <span className="text-2xl">📦</span> },
-  { name: "Construction", code: "CONSTRUCTION", count: 9, icon: <span className="text-2xl">🏗️</span> },
-  { name: "Immobilier", code: "IMMOBILIER", count: 6, icon: <span className="text-2xl">🏘️</span> },
-  { name: "Santé", code: "SANTE", count: 8, icon: <span className="text-2xl">🏥</span> },
-  { name: "Pharmacie", code: "PHARMACIE", count: 5, icon: <span className="text-2xl">💊</span> },
-  { name: "Éducation", code: "EDUCATION", count: 7, icon: <span className="text-2xl">🎓</span> },
-  { name: "Formation", code: "FORMATION", count: 4, icon: <span className="text-2xl">📚</span> },
-];
