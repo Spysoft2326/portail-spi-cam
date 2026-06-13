@@ -423,8 +423,7 @@ export default function EntreprisesContent() {
 
     const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${cell}"`).join(";"))
-      .join("
-");
+      .join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
