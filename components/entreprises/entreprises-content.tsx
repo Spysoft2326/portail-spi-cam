@@ -15,7 +15,15 @@ import {
   Wifi, Shirt, Plane, Bus, MoreHorizontal,
   Leaf, Beaker, Briefcase, BarChart3, TrendingUp,
   Users, DollarSign, MapPin, Calendar, FileSpreadsheet,
-  ArrowRight, Globe
+  ArrowRight, Globe, Hammer, Wrench, Factory as FactoryIcon,
+  Pickaxe, ShieldCheck, TreeDeciduous, Shirt as ShirtIcon,
+  Pill as PillIcon, Tractor, ShoppingBag, Zap as ZapIcon,
+  Wifi as WifiIcon, Plane as PlaneIcon, Bus as BusIcon,
+  Landmark as LandmarkIcon, GraduationCap as GraduationCapIcon,
+  Hotel as HotelIcon, Home as HomeIcon, TreePine as TreePineIcon,
+  Mountain as MountainIcon, Newspaper as NewspaperIcon,
+  PiggyBank as PiggyBankIcon, HeartPulse as HeartPulseIcon,
+  Shield as ShieldIcon, Cpu as CpuIcon
 } from "lucide-react";
 
 interface Entreprise {
@@ -36,141 +44,88 @@ interface Filters {
   cities: string[];
 }
 
-// Icones par secteur
+// ============================================================
+// VRAIS SECTEURS DE LA BASE DE DONNEES (151 entreprises)
+// ============================================================
+const REAL_SECTORS = [
+  "BTP / Matériaux",
+  "Télécommunications / IT",
+  "Transport / Logistique",
+  "Énergie",
+  "Métallurgie",
+  "Finance",
+  "Pharmaceutique",
+  "Sécurité / Défense",
+  "Tourisme / Hôtellerie",
+  "Forêt / Bois",
+  "Chimie / Plastique",
+  "Environnement / Déchets",
+  "Textile / Habillement",
+  "Agriculture / Agro-industrie",
+  "Commerce",
+  "Industrie légère",
+];
+
+// Mapping secteur -> icone
 const SECTOR_ICONS: Record<string, React.ElementType> = {
-  Agriculture: Sprout,
-  Agroalimentaire: UtensilsCrossed,
-  BTP: HardHat,
-  Chimie: FlaskConical,
-  Commerce: ShoppingCart,
-  Communication: Radio,
-  Construction: Building,
-  Education: GraduationCap,
-  Energie: Zap,
-  "Energie renouvelable": Sun,
-  Environnement: TreePine,
-  Finance: Landmark,
-  Fintech: Smartphone,
-  Formation: BookOpen,
-  Hotellerie: Hotel,
-  Immobilier: Home,
-  Industrie: Factory,
-  Logistique: Truck,
-  Media: Newspaper,
-  Microfinance: PiggyBank,
-  Mines: Mountain,
-  Pharmaceutique: Pill,
-  Sante: HeartPulse,
-  Securite: Shield,
-  Technologie: Cpu,
-  Telecommunications: Wifi,
-  Textile: Shirt,
-  Tourisme: Plane,
-  Transport: Bus,
-  Autre: MoreHorizontal,
+  "BTP / Matériaux": HardHat,
+  "Télécommunications / IT": Wifi,
+  "Transport / Logistique": Truck,
+  "Énergie": Zap,
+  "Métallurgie": Factory,
+  "Finance": Landmark,
+  "Pharmaceutique": Pill,
+  "Sécurité / Défense": Shield,
+  "Tourisme / Hôtellerie": Hotel,
+  "Forêt / Bois": TreePine,
+  "Chimie / Plastique": FlaskConical,
+  "Environnement / Déchets": TreeDeciduous,
+  "Textile / Habillement": Shirt,
+  "Agriculture / Agro-industrie": Sprout,
+  "Commerce": ShoppingCart,
+  "Industrie légère": FactoryIcon,
 };
 
 // Couleurs par secteur
 const SECTOR_COLORS: Record<string, { bg: string; text: string; border: string; icon: string }> = {
-  Agriculture: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200", icon: "text-green-600" },
-  Agroalimentaire: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: "text-emerald-600" },
-  BTP: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", icon: "text-orange-600" },
-  Chimie: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", icon: "text-blue-600" },
-  Commerce: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: "text-gray-600" },
-  Communication: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", icon: "text-indigo-600" },
-  Construction: { bg: "bg-stone-50", text: "text-stone-700", border: "border-stone-200", icon: "text-stone-600" },
-  Education: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200", icon: "text-sky-600" },
-  Energie: { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200", icon: "text-yellow-600" },
-  "Energie renouvelable": { bg: "bg-lime-50", text: "text-lime-700", border: "border-lime-200", icon: "text-lime-600" },
-  Environnement: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200", icon: "text-teal-600" },
-  Finance: { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200", icon: "text-cyan-600" },
-  Fintech: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", icon: "text-pink-600" },
-  Formation: { bg: "bg-lime-50", text: "text-lime-700", border: "border-lime-200", icon: "text-lime-600" },
-  Hotellerie: { bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-200", icon: "text-fuchsia-600" },
-  Immobilier: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", icon: "text-amber-600" },
-  Industrie: { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200", icon: "text-slate-600" },
-  Logistique: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", icon: "text-rose-600" },
-  Media: { bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200", icon: "text-violet-600" },
-  Microfinance: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200", icon: "text-teal-600" },
-  Mines: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", icon: "text-orange-600" },
-  Pharmaceutique: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", icon: "text-purple-600" },
-  Sante: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: "text-red-600" },
-  Securite: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: "text-gray-600" },
-  Technologie: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", icon: "text-blue-600" },
-  Telecommunications: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", icon: "text-indigo-600" },
-  Textile: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", icon: "text-orange-600" },
-  Tourisme: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", icon: "text-pink-600" },
-  Transport: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: "text-red-600" },
-  Autre: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: "text-gray-600" },
+  "BTP / Matériaux": { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", icon: "text-orange-600" },
+  "Télécommunications / IT": { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", icon: "text-indigo-600" },
+  "Transport / Logistique": { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: "text-red-600" },
+  "Énergie": { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200", icon: "text-yellow-600" },
+  "Métallurgie": { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200", icon: "text-slate-600" },
+  "Finance": { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200", icon: "text-cyan-600" },
+  "Pharmaceutique": { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", icon: "text-purple-600" },
+  "Sécurité / Défense": { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: "text-gray-600" },
+  "Tourisme / Hôtellerie": { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", icon: "text-pink-600" },
+  "Forêt / Bois": { bg: "bg-green-50", text: "text-green-700", border: "border-green-200", icon: "text-green-600" },
+  "Chimie / Plastique": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", icon: "text-blue-600" },
+  "Environnement / Déchets": { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200", icon: "text-teal-600" },
+  "Textile / Habillement": { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", icon: "text-rose-600" },
+  "Agriculture / Agro-industrie": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: "text-emerald-600" },
+  "Commerce": { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: "text-gray-600" },
+  "Industrie légère": { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", icon: "text-amber-600" },
 };
 
-const ALL_SECTORS = [
-  { value: "Agriculture", label: "Agriculture" },
-  { value: "Agroalimentaire", label: "Agroalimentaire" },
-  { value: "BTP", label: "BTP / Materiaux" },
-  { value: "Chimie", label: "Chimie / Plastique" },
-  { value: "Commerce", label: "Commerce" },
-  { value: "Communication", label: "Communication / Medias" },
-  { value: "Construction", label: "Construction" },
-  { value: "Education", label: "Education" },
-  { value: "Energie", label: "Energie" },
-  { value: "Energie renouvelable", label: "Energie renouvelable" },
-  { value: "Environnement", label: "Environnement" },
-  { value: "Finance", label: "Finance" },
-  { value: "Fintech", label: "Fintech" },
-  { value: "Formation", label: "Formation" },
-  { value: "Hotellerie", label: "Hotellerie" },
-  { value: "Immobilier", label: "Immobilier" },
-  { value: "Industrie", label: "Industrie" },
-  { value: "Logistique", label: "Logistique" },
-  { value: "Media", label: "Medias" },
-  { value: "Microfinance", label: "Microfinance" },
-  { value: "Mines", label: "Mines" },
-  { value: "Pharmaceutique", label: "Pharmaceutique" },
-  { value: "Sante", label: "Sante" },
-  { value: "Securite", label: "Securite" },
-  { value: "Technologie", label: "Technologie" },
-  { value: "Telecommunications", label: "Telecommunications" },
-  { value: "Textile", label: "Textile" },
-  { value: "Tourisme", label: "Tourisme" },
-  { value: "Transport", label: "Transport" },
-  { value: "Autre", label: "Autre" },
-];
-
 // ============================================================
-// MAPPING SECTEUR -> CATEGORIE (meme que sur le dashboard)
+// MAPPING SECTEUR -> CATEGORIE (base sur les vrais secteurs)
 // ============================================================
 const SECTOR_TO_CATEGORY: Record<string, string> = {
-  Agriculture: "Agriculture",
-  Agroalimentaire: "Agriculture",
-  BTP: "Construction",
-  Chimie: "Industrie",
-  Commerce: "Commerce",
-  Communication: "Services",
-  Construction: "Construction",
-  Education: "Services",
-  Energie: "Industrie",
-  "Energie renouvelable": "Industrie",
-  Environnement: "Services",
-  Finance: "Services",
-  Fintech: "Technologie",
-  Formation: "Services",
-  Hotellerie: "Tourisme",
-  Immobilier: "Construction",
-  Industrie: "Industrie",
-  Logistique: "Transport",
-  Media: "Services",
-  Microfinance: "Services",
-  Mines: "Industrie",
-  Pharmaceutique: "Industrie",
-  Sante: "Services",
-  Securite: "Services",
-  Technologie: "Technologie",
-  Telecommunications: "Technologie",
-  Textile: "Industrie",
-  Tourisme: "Tourisme",
-  Transport: "Transport",
-  Autre: "Autre",
+  "Agriculture / Agro-industrie": "Agriculture",
+  "BTP / Matériaux": "Construction",
+  "Chimie / Plastique": "Industrie",
+  "Commerce": "Commerce",
+  "Énergie": "Industrie",
+  "Environnement / Déchets": "Services",
+  "Finance": "Services",
+  "Forêt / Bois": "Agriculture",
+  "Industrie légère": "Industrie",
+  "Métallurgie": "Industrie",
+  "Pharmaceutique": "Industrie",
+  "Sécurité / Défense": "Services",
+  "Télécommunications / IT": "Technologie",
+  "Textile / Habillement": "Industrie",
+  "Tourisme / Hôtellerie": "Tourisme",
+  "Transport / Logistique": "Transport",
 };
 
 const CATEGORIES = [
@@ -207,7 +162,7 @@ export default function EntreprisesContent() {
   const [formData, setFormData] = useState({
     denomination: "",
     sigle: "",
-    secteurActivite: "Autre",
+    secteurActivite: "Commerce",
     ville: "",
     region: "Centre",
     siteWeb: "",
@@ -216,7 +171,7 @@ export default function EntreprisesContent() {
   });
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  // --- NOUVEAU : Compteurs par categorie ---
+  // Compteurs par categorie
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
   const fetchEntreprises = useCallback(async () => {
@@ -246,7 +201,7 @@ export default function EntreprisesContent() {
     }
   }, [searchQuery, selectedSector, selectedRegion, selectedCity, page]);
 
-  // --- NOUVEAU : Fetch tous les compteurs par categorie ---
+  // Fetch tous les compteurs par categorie
   const fetchCategoryCounts = useCallback(async () => {
     try {
       const res = await fetch("/api/entreprises?limit=10000");
@@ -268,7 +223,6 @@ export default function EntreprisesContent() {
     }
   }, []);
 
-  // Lire les parametres URL au chargement initial (client-side only)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
@@ -288,7 +242,6 @@ export default function EntreprisesContent() {
     fetchEntreprises();
   }, [fetchEntreprises]);
 
-  // --- NOUVEAU : Charger les compteurs au montage ---
   useEffect(() => {
     fetchCategoryCounts();
   }, [fetchCategoryCounts]);
@@ -313,7 +266,7 @@ export default function EntreprisesContent() {
     setFormData({
       denomination: "",
       sigle: "",
-      secteurActivite: "Autre",
+      secteurActivite: "Commerce",
       ville: "",
       region: "Centre",
       siteWeb: "",
@@ -378,7 +331,7 @@ export default function EntreprisesContent() {
 
       setShowModal(false);
       fetchEntreprises();
-      fetchCategoryCounts(); // --- Rafraichir les compteurs ---
+      fetchCategoryCounts();
     } catch (err: any) {
       alert("Erreur : " + err.message);
     } finally {
@@ -401,13 +354,12 @@ export default function EntreprisesContent() {
 
       setEntreprises((prev) => prev.filter((en) => en.id !== id));
       setTotal((t) => t - 1);
-      fetchCategoryCounts(); // --- Rafraichir les compteurs ---
+      fetchCategoryCounts();
     } catch (err: any) {
       alert("Erreur suppression : " + err.message);
     }
   };
 
-  // Export CSV
   const exportCSV = () => {
     const headers = ["Denomination", "Sigle", "Secteur", "Ville", "Region", "Site Web", "Produits", "Statut"];
     const rows = entreprises.map((e) => [
@@ -433,7 +385,7 @@ export default function EntreprisesContent() {
   };
 
   const getSectorStyle = (sector: string) => {
-    return SECTOR_COLORS[sector] || SECTOR_COLORS["Autre"];
+    return SECTOR_COLORS[sector] || SECTOR_COLORS["Commerce"];
   };
 
   const getSectorIcon = (sector: string) => {
@@ -442,7 +394,7 @@ export default function EntreprisesContent() {
 
   return (
     <div>
-      {/* Header avec boutons d action */}
+      {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Annuaire des Entreprises</h1>
@@ -482,9 +434,7 @@ export default function EntreprisesContent() {
         </div>
       </div>
 
-      {/* ============================================================
-          NOUVEAU : Compteurs par categorie de secteur
-          ============================================================ */}
+      {/* Compteurs par categorie */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
           <BarChart3 className="w-5 h-5 text-gray-500" />
@@ -493,16 +443,18 @@ export default function EntreprisesContent() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
           {CATEGORIES.map((cat) => {
             const count = categoryCounts[cat.key] || 0;
+            // Trouver le premier secteur de cette categorie pour le filtre
+            const firstSector = Object.entries(SECTOR_TO_CATEGORY).find(
+              ([, c]) => c === cat.key
+            )?.[0] || "";
             return (
               <button
                 key={cat.key}
                 onClick={() => {
-                  // Filtrer par le premier secteur de cette categorie
-                  const firstSector = Object.entries(SECTOR_TO_CATEGORY).find(
-                    ([, c]) => c === cat.key
-                  )?.[0] || "";
-                  setSelectedSector(firstSector);
-                  setPage(1);
+                  if (firstSector) {
+                    setSelectedSector(firstSector);
+                    setPage(1);
+                  }
                 }}
                 className={`relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all hover:shadow-md ${cat.color} ${
                   selectedSector && SECTOR_TO_CATEGORY[selectedSector] === cat.key
@@ -521,89 +473,87 @@ export default function EntreprisesContent() {
         </div>
       </div>
 
-      {/* Filtres ameliores */}
+      {/* Filtres */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-gray-500" />
           <h2 className="font-semibold text-gray-700">Filtres</h2>
           {(selectedSector || selectedRegion || selectedCity || searchQuery) && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-              Actifs
-            </span>
+            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Actifs</span>
           )}
         </div>
 
-      <form onSubmit={handleSearch} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>
-            <div className="flex">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Nom, sigle, description..."
-                className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-r-lg hover:bg-blue-700 transition">
-                <Search className="w-5 h-5" />
-              </button>
+        <form onSubmit={handleSearch} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>
+              <div className="flex">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Nom, sigle, description..."
+                  className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-r-lg hover:bg-blue-700 transition">
+                  <Search className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Secteur</label>
+              <select
+                value={selectedSector}
+                onChange={(e) => { setSelectedSector(e.target.value); setPage(1); }}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="">Tous les secteurs</option>
+                {(filters?.sectors || []).map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+              <select
+                value={selectedRegion}
+                onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="">Toutes les regions</option>
+                {(filters?.regions || []).map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Secteur</label>
-            <select
-              value={selectedSector}
-              onChange={(e) => { setSelectedSector(e.target.value); setPage(1); }}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
+          <div className="flex items-end gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
+              <select
+                value={selectedCity}
+                onChange={(e) => { setSelectedCity(e.target.value); setPage(1); }}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="">Toutes les villes</option>
+                {(filters?.cities || []).map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
             >
-              <option value="">Tous les secteurs</option>
-              {(filters?.sectors || []).map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+              <X className="w-4 h-4" />
+              Reinitialiser
+            </button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-            <select
-              value={selectedRegion}
-              onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="">Toutes les regions</option>
-              {(filters?.regions || []).map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="flex items-end gap-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
-            <select
-              value={selectedCity}
-              onChange={(e) => { setSelectedCity(e.target.value); setPage(1); }}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="">Toutes les villes</option>
-              {(filters?.cities || []).map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
-          >
-            <X className="w-4 h-4" />
-            Reinitialiser
-          </button>
-        </div>
-      </form>
+        </form>
       </div>
 
       {/* Resultats */}
@@ -615,9 +565,7 @@ export default function EntreprisesContent() {
       ) : error ? (
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-700">{error}</p>
-          <button onClick={fetchEntreprises} className="mt-2 text-red-600 hover:text-red-800 underline">
-            Reessayer
-          </button>
+          <button onClick={fetchEntreprises} className="mt-2 text-red-600 hover:text-red-800 underline">Reessayer</button>
         </div>
       ) : (
         <>
@@ -628,13 +576,11 @@ export default function EntreprisesContent() {
             </span>
           </div>
 
-          {/* Vue GRILLE */}
           {viewMode === "grid" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {entreprises.map((e) => {
                 const SectorIcon = getSectorIcon(e.secteurActivite);
                 const style = getSectorStyle(e.secteurActivite);
-
                 return (
                   <Link href={`/entreprises/${e.id}`} key={e.id} className="block group">
                     <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 cursor-pointer h-full">
@@ -647,54 +593,20 @@ export default function EntreprisesContent() {
                           <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
                           {isAdmin && (
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(ev) => ev.preventDefault()}>
-                              <button
-                                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); openEditModal(e); }}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                title="Modifier"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); handleDelete(e.id); }}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                title="Supprimer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <button onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); openEditModal(e); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Modifier"><Pencil className="w-4 h-4" /></button>
+                              <button onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); handleDelete(e.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer"><Trash2 className="w-4 h-4" /></button>
                             </div>
                           )}
                         </div>
                       </div>
-
-                      <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
-                        {e.denomination}
-                      </h3>
-
+                      <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">{e.denomination}</h3>
                       {e.sigle && <p className="text-sm text-gray-500 mb-3 font-medium">{e.sigle}</p>}
-
                       <div className="flex items-center gap-4 text-sm text-gray-600 mt-4">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                          {e.ville || "N/A"}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                          {e.region}
-                        </span>
+                        <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-gray-400" />{e.ville || "N/A"}</span>
+                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>{e.region}</span>
                       </div>
-
-                      {e.produitsPrincipaux && (
-                        <p className="text-sm text-gray-500 mt-3 line-clamp-2 bg-gray-50 p-2 rounded-lg">
-                          {e.produitsPrincipaux}
-                        </p>
-                      )}
-
-                      {e.siteWeb && (
-                        <p className="text-sm text-blue-600 mt-3 truncate flex items-center gap-1">
-                          <Globe className="w-3.5 h-3.5" />
-                          {e.siteWeb}
-                        </p>
-                      )}
+                      {e.produitsPrincipaux && <p className="text-sm text-gray-500 mt-3 line-clamp-2 bg-gray-50 p-2 rounded-lg">{e.produitsPrincipaux}</p>}
+                      {e.siteWeb && <p className="text-sm text-blue-600 mt-3 truncate flex items-center gap-1"><Globe className="w-3.5 h-3.5" />{e.siteWeb}</p>}
                     </div>
                   </Link>
                 );
@@ -702,7 +614,6 @@ export default function EntreprisesContent() {
             </div>
           )}
 
-          {/* Vue LISTE */}
           {viewMode === "list" && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <table className="w-full">
@@ -719,55 +630,16 @@ export default function EntreprisesContent() {
                   {entreprises.map((e) => {
                     const SectorIcon = getSectorIcon(e.secteurActivite);
                     const style = getSectorStyle(e.secteurActivite);
-
                     return (
                       <tr key={e.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => window.location.href = `/entreprises/${e.id}`}>
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-gray-900">{e.denomination}</div>
-                          {e.sigle && <div className="text-sm text-gray-500">{e.sigle}</div>}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}>
-                            <SectorIcon className={`w-3 h-3 ${style.icon}`} />
-                            {e.secteurActivite}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                            {e.ville || "N/A"}, {e.region}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                          {e.produitsPrincipaux || "-"}
-                        </td>
+                        <td className="px-6 py-4"><div className="font-semibold text-gray-900">{e.denomination}</div>{e.sigle && <div className="text-sm text-gray-500">{e.sigle}</div>}</td>
+                        <td className="px-6 py-4"><span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}><SectorIcon className={`w-3 h-3 ${style.icon}`} />{e.secteurActivite}</span></td>
+                        <td className="px-6 py-4 text-sm text-gray-600"><div className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-gray-400" />{e.ville || "N/A"}, {e.region}</div></td>
+                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{e.produitsPrincipaux || "-"}</td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-1">
-                            <Link
-                              href={`/entreprises/${e.id}`}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                              title="Voir le detail"
-                            >
-                              <ArrowRight className="w-4 h-4" />
-                            </Link>
-                            {isAdmin && (
-                              <>
-                                <button
-                                  onClick={(ev) => { ev.stopPropagation(); openEditModal(e); }}
-                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                  title="Modifier"
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id); }}
-                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
+                            <Link href={`/entreprises/${e.id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Voir le detail"><ArrowRight className="w-4 h-4" /></Link>
+                            {isAdmin && (<><button onClick={(ev) => { ev.stopPropagation(); openEditModal(e); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Modifier"><Pencil className="w-4 h-4" /></button><button onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer"><Trash2 className="w-4 h-4" /></button></>)}
                           </div>
                         </td>
                       </tr>
@@ -778,145 +650,47 @@ export default function EntreprisesContent() {
             </div>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-8">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Precedent
-              </button>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"><ChevronLeft className="w-4 h-4" />Precedent</button>
               <span className="text-sm text-gray-600">Page {page} / {totalPages}</span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"
-              >
-                Suivant
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2">Suivant<ChevronRight className="w-4 h-4" /></button>
             </div>
           )}
         </>
       )}
 
-      {/* Modal Ajouter/Modifier */}
       {isAdmin && showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-lg font-semibold">
-                {editingEntreprise ? "Modifier l entreprise" : "Ajouter une entreprise"}
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <h2 className="text-lg font-semibold">{editingEntreprise ? "Modifier l entreprise" : "Ajouter une entreprise"}</h2>
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Denomination *</label>
-                <input
-                  type="text"
-                  value={formData.denomination}
-                  onChange={(e) => setFormData({ ...formData, denomination: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sigle</label>
-                <input
-                  type="text"
-                  value={formData.sigle}
-                  onChange={(e) => setFormData({ ...formData, sigle: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Denomination *</label><input type="text" value={formData.denomination} onChange={(e) => setFormData({ ...formData, denomination: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" required /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Sigle</label><input type="text" value={formData.sigle} onChange={(e) => setFormData({ ...formData, sigle: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d activite</label>
-                <select
-                  value={formData.secteurActivite}
-                  onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                >
-                  {ALL_SECTORS.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
+                <select value={formData.secteurActivite} onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  {REAL_SECTORS.map((s) => (<option key={s} value={s}>{s}</option>))}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
-                  <input
-                    type="text"
-                    value={formData.ville}
-                    onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Ville</label><input type="text" value={formData.ville} onChange={(e) => setFormData({ ...formData, ville: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-                  <select
-                    value={formData.region}
-                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                  >
-                    <option value="Centre">Centre</option>
-                    <option value="Littoral">Littoral</option>
-                    <option value="Ouest">Ouest</option>
-                    <option value="Nord">Nord</option>
-                    <option value="Sud">Sud</option>
-                    <option value="Est">Est</option>
-                    <option value="Adamaoua">Adamaoua</option>
-                    <option value="Nord-Ouest">Nord-Ouest</option>
-                    <option value="Sud-Ouest">Sud-Ouest</option>
-                    <option value="Extreme-Nord">Extreme-Nord</option>
+                  <select value={formData.region} onChange={(e) => setFormData({ ...formData, region: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="Centre">Centre</option><option value="Littoral">Littoral</option><option value="Ouest">Ouest</option><option value="Nord">Nord</option><option value="Sud">Sud</option><option value="Est">Est</option><option value="Adamaoua">Adamaoua</option><option value="Nord-Ouest">Nord-Ouest</option><option value="Sud-Ouest">Sud-Ouest</option><option value="Extreme-Nord">Extreme-Nord</option>
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Site Web</label>
-                <input
-                  type="url"
-                  value={formData.siteWeb}
-                  onChange={(e) => setFormData({ ...formData, siteWeb: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Produits principaux</label>
-                <textarea
-                  value={formData.produitsPrincipaux}
-                  onChange={(e) => setFormData({ ...formData, produitsPrincipaux: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                  rows={3}
-                />
-              </div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Site Web</label><input type="url" value={formData.siteWeb} onChange={(e) => setFormData({ ...formData, siteWeb: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Produits principaux</label><textarea value={formData.produitsPrincipaux} onChange={(e) => setFormData({ ...formData, produitsPrincipaux: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" rows={3} /></div>
               <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                  disabled={submitLoading}
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center justify-center gap-2 disabled:opacity-50"
-                  disabled={submitLoading}
-                >
-                  {submitLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition" disabled={submitLoading}>Annuler</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-[#007A3D] text-white rounded-lg hover:bg-[#006633] transition flex items-center justify-center gap-2 disabled:opacity-50" disabled={submitLoading}>
+                  {submitLoading ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <Save className="w-4 h-4" />}
                   {editingEntreprise ? "Enregistrer" : "Ajouter"}
                 </button>
               </div>
