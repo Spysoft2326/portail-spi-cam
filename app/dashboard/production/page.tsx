@@ -1,12 +1,6 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import {
-  Plus, Factory, CalendarDays, TrendingUp, Package, DollarSign, Building2,
-  Save, ChevronLeft, Search, Filter, Download, Edit3, Trash2
-} from "lucide-react";
 
 interface Enterprise {
   id: string;
@@ -26,8 +20,6 @@ interface Production {
 }
 
 export default function ProductionPage() {
-  const { status } = useSession();
-  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [productions, setProductions] = useState<Production[]>([]);
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
@@ -45,12 +37,8 @@ export default function ProductionPage() {
   });
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    } else if (status === "authenticated") {
-      fetchData();
-    }
-  }, [status, router]);
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -148,7 +136,7 @@ export default function ProductionPage() {
   const totalCA = filteredProductions.reduce((sum, p) => sum + p.chiffreAffaires, 0);
   const totalEmployes = filteredProductions.reduce((sum, p) => sum + p.nombreEmployes, 0);
 
-  if (status === "loading" || loading) {
+  if (loading) {
     return (
       <div style={{ padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -167,13 +155,11 @@ export default function ProductionPage() {
           onClick={() => setShowForm(false)}
           style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
         >
-          <ChevronLeft style={{ width: "16px", height: "16px" }} /> Retour aux productions
+          ← Retour aux productions
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
-          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px" }}>
-            <Factory style={{ width: "24px", height: "24px", color: "#059669" }} />
-          </div>
+          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>🏭</div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Nouvelle saisie</h1>
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Production trimestrielle</p>
@@ -184,7 +170,7 @@ export default function ProductionPage() {
           {/* Section Entreprise */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              <Building2 style={{ width: "18px", height: "18px", color: "#2563eb" }} /> Entreprise
+              🏢 Entreprise
             </div>
             <div style={{ marginBottom: "12px" }}>
               <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
@@ -216,7 +202,7 @@ export default function ProductionPage() {
           {/* Section Période */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              <CalendarDays style={{ width: "18px", height: "18px", color: "#ea580c" }} /> Période
+              📅 Période
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
@@ -257,12 +243,12 @@ export default function ProductionPage() {
           {/* Section Données */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              <TrendingUp style={{ width: "18px", height: "18px", color: "#7c3aed" }} /> Données de production
+              📊 Données de production
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  <Package style={{ width: "14px", height: "14px", display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Production physique
+                  📦 Production physique
                 </label>
                 <input
                   type="number"
@@ -276,7 +262,7 @@ export default function ProductionPage() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  <DollarSign style={{ width: "14px", height: "14px", display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Chiffre d'affaires
+                  💰 Chiffre d'affaires
                 </label>
                 <input
                   type="number"
@@ -290,7 +276,7 @@ export default function ProductionPage() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  <Building2 style={{ width: "14px", height: "14px", display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Nombre d'employés
+                  👥 Nombre d'employés
                 </label>
                 <input
                   type="number"
@@ -329,8 +315,7 @@ export default function ProductionPage() {
                 opacity: submitting || !formData.entrepriseId ? 0.5 : 1
               }}
             >
-              <Save style={{ width: "16px", height: "16px" }} /> 
-              {submitting ? "Enregistrement..." : "Enregistrer"}
+              💾 {submitting ? "Enregistrement..." : "Enregistrer"}
             </button>
           </div>
         </form>
@@ -344,9 +329,7 @@ export default function ProductionPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px" }}>
-            <Factory style={{ width: "24px", height: "24px", color: "#059669" }} />
-          </div>
+          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>🏭</div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Production</h1>
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Gestion des saisies trimestrielles</p>
@@ -369,13 +352,13 @@ export default function ProductionPage() {
             }}
             style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            <Download style={{ width: "16px", height: "16px" }} /> Exporter CSV
+            📥 Exporter CSV
           </button>
           <button 
             onClick={() => setShowForm(true)}
             style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            <Plus style={{ width: "16px", height: "16px" }} /> Nouvelle saisie
+            ➕ Nouvelle saisie
           </button>
         </div>
       </div>
@@ -399,11 +382,11 @@ export default function ProductionPage() {
       {/* Filtres */}
       <div style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", marginBottom: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", fontWeight: "600", fontSize: "14px" }}>
-          <Filter style={{ width: "16px", height: "16px" }} /> Filtres
+          🔍 Filtres
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
           <div style={{ position: "relative" }}>
-            <Search style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", width: "16px", height: "16px", color: "#9ca3af" }} />
+            <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px" }}>🔍</span>
             <input
               type="text"
               placeholder="Rechercher entreprise, année..."
@@ -412,16 +395,6 @@ export default function ProductionPage() {
               style={{ width: "100%", padding: "8px 12px 8px 36px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
             />
           </div>
-          <select
-            value={searchTerm ? "" : "all"}
-            onChange={(e) => setSearchTerm("")}
-            style={{ padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", background: "white" }}
-          >
-            <option value="all">Toutes les années</option>
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-          </select>
         </div>
       </div>
 
@@ -429,21 +402,21 @@ export default function ProductionPage() {
       <div style={{ borderRadius: "8px", border: "1px solid #e5e7eb", background: "white" }}>
         <div style={{ padding: "16px", borderBottom: "1px solid #e5e7eb" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600" }}>
-            <Factory style={{ width: "18px", height: "18px" }} /> Historique des saisies
+            📊 Historique des saisies
           </div>
           <p style={{ fontSize: "13px", color: "#6b7280", margin: "4px 0 0 0" }}>{filteredProductions.length} résultat{filteredProductions.length > 1 ? "s" : ""}</p>
         </div>
         <div style={{ padding: "16px" }}>
           {filteredProductions.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px" }}>
-              <Factory style={{ width: "48px", height: "48px", color: "#d1d5db", margin: "0 auto 16px" }} />
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏭</div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune production enregistrée</h3>
               <p style={{ color: "#6b7280", margin: 0 }}>Commencez par ajouter votre première saisie.</p>
               <button 
                 onClick={() => setShowForm(true)}
                 style={{ marginTop: "16px", padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
-                <Plus style={{ width: "16px", height: "16px" }} /> Nouvelle saisie
+                ➕ Nouvelle saisie
               </button>
             </div>
           ) : (
@@ -461,9 +434,7 @@ export default function ProductionPage() {
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "6px" }}>
-                      <Factory style={{ width: "18px", height: "18px", color: "#059669" }} />
-                    </div>
+                    <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "6px", fontSize: "18px" }}>🏭</div>
                     <div>
                       <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{getEnterpriseName(p.entrepriseId)}</p>
                       <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
@@ -483,9 +454,9 @@ export default function ProductionPage() {
                     </div>
                     <button 
                       onClick={() => handleDelete(p.id)}
-                      style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444" }}
+                      style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444", fontSize: "16px" }}
                     >
-                      <Trash2 style={{ width: "16px", height: "16px" }} />
+                      🗑️
                     </button>
                   </div>
                 </div>

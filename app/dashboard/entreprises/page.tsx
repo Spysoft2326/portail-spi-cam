@@ -1,14 +1,6 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import {
-  Plus, Building2, Search, Filter, Download, ChevronLeft, Save,
-  Edit3, Trash2, MapPin, Briefcase, Phone, Mail, User, BarChart3,
-  Factory, Store, HardHat, Cpu, Truck, Plane, TreePine, Landmark,
-  Stethoscope, GraduationCap, MoreHorizontal
-} from "lucide-react";
 
 interface Enterprise {
   id: string;
@@ -25,18 +17,18 @@ interface Enterprise {
 }
 
 const SECTEURS = [
-  { value: "AGRICULTURE", label: "Agriculture", icon: TreePine, color: "#16a34a", bg: "#dcfce7" },
-  { value: "INDUSTRIE", label: "Industrie", icon: Factory, color: "#2563eb", bg: "#dbeafe" },
-  { value: "SERVICES", label: "Services", icon: Briefcase, color: "#9333ea", bg: "#f3e8ff" },
-  { value: "COMMERCE", label: "Commerce", icon: Store, color: "#d97706", bg: "#fef3c7" },
-  { value: "CONSTRUCTION", label: "Construction", icon: HardHat, color: "#ea580c", bg: "#ffedd5" },
-  { value: "TECHNOLOGIE", label: "Technologie", icon: Cpu, color: "#0891b2", bg: "#cffafe" },
-  { value: "TRANSPORT", label: "Transport", icon: Truck, color: "#e11d48", bg: "#ffe4e6" },
-  { value: "TOURISME", label: "Tourisme", icon: Plane, color: "#db2777", bg: "#fce7f3" },
-  { value: "SANTE", label: "Santé", icon: Stethoscope, color: "#dc2626", bg: "#fee2e2" },
-  { value: "EDUCATION", label: "Éducation", icon: GraduationCap, color: "#4f46e5", bg: "#e0e7ff" },
-  { value: "FINANCE", label: "Finance", icon: Landmark, color: "#059669", bg: "#d1fae5" },
-  { value: "AUTRE", label: "Autre", icon: MoreHorizontal, color: "#6b7280", bg: "#f3f4f6" },
+  { value: "AGRICULTURE", label: "Agriculture", emoji: "🌾", color: "#16a34a", bg: "#dcfce7" },
+  { value: "INDUSTRIE", label: "Industrie", emoji: "🏭", color: "#2563eb", bg: "#dbeafe" },
+  { value: "SERVICES", label: "Services", emoji: "💼", color: "#9333ea", bg: "#f3e8ff" },
+  { value: "COMMERCE", label: "Commerce", emoji: "🛒", color: "#d97706", bg: "#fef3c7" },
+  { value: "CONSTRUCTION", label: "Construction", emoji: "🏗️", color: "#ea580c", bg: "#ffedd5" },
+  { value: "TECHNOLOGIE", label: "Technologie", emoji: "💻", color: "#0891b2", bg: "#cffafe" },
+  { value: "TRANSPORT", label: "Transport", emoji: "🚚", color: "#e11d48", bg: "#ffe4e6" },
+  { value: "TOURISME", label: "Tourisme", emoji: "✈️", color: "#db2777", bg: "#fce7f3" },
+  { value: "SANTE", label: "Santé", emoji: "🏥", color: "#dc2626", bg: "#fee2e2" },
+  { value: "EDUCATION", label: "Éducation", emoji: "🎓", color: "#4f46e5", bg: "#e0e7ff" },
+  { value: "FINANCE", label: "Finance", emoji: "🏦", color: "#059669", bg: "#d1fae5" },
+  { value: "AUTRE", label: "Autre", emoji: "📦", color: "#6b7280", bg: "#f3f4f6" },
 ];
 
 const REGIONS = [
@@ -45,8 +37,6 @@ const REGIONS = [
 ];
 
 export default function EntreprisesPage() {
-  const { status } = useSession();
-  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,12 +51,8 @@ export default function EntreprisesPage() {
   });
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    } else if (status === "authenticated") {
-      fetchData();
-    }
-  }, [status, router]);
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -150,7 +136,7 @@ export default function EntreprisesPage() {
     return matchSearch && matchSecteur && matchRegion;
   });
 
-  if (status === "loading" || loading) {
+  if (loading) {
     return (
       <div style={{ padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -169,13 +155,11 @@ export default function EntreprisesPage() {
           onClick={() => setShowForm(false)}
           style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
         >
-          <ChevronLeft style={{ width: "16px", height: "16px" }} /> Retour à l'annuaire
+          ← Retour à l'annuaire
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
-          <div style={{ padding: "10px", background: "#dbeafe", borderRadius: "8px" }}>
-            <Building2 style={{ width: "24px", height: "24px", color: "#2563eb" }} />
-          </div>
+          <div style={{ padding: "10px", background: "#dbeafe", borderRadius: "8px", fontSize: "24px" }}>🏢</div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Ajouter une entreprise</h1>
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Nouvelle fiche entreprise</p>
@@ -186,7 +170,7 @@ export default function EntreprisesPage() {
           {/* Identité */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              <Building2 style={{ width: "18px", height: "18px", color: "#2563eb" }} /> Identité de l'entreprise
+              🏢 Identité de l'entreprise
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
               <div>
@@ -232,7 +216,7 @@ export default function EntreprisesPage() {
                 onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })}
                 style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", background: "white" }}
               >
-                {SECTEURS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                {SECTEURS.map((s) => <option key={s.value} value={s.value}>{s.emoji} {s.label}</option>)}
               </select>
             </div>
           </div>
@@ -242,7 +226,7 @@ export default function EntreprisesPage() {
           {/* Localisation */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              <MapPin style={{ width: "18px", height: "18px", color: "#ea580c" }} /> Localisation
+              📍 Localisation
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
               <div>
@@ -284,12 +268,12 @@ export default function EntreprisesPage() {
           {/* Contact */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              <User style={{ width: "18px", height: "18px", color: "#7c3aed" }} /> Contact de l'entreprise
+              👤 Contact de l'entreprise
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  <User style={{ width: "14px", height: "14px", display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Nom du contact
+                  👤 Nom du contact
                 </label>
                 <input
                   type="text"
@@ -301,7 +285,7 @@ export default function EntreprisesPage() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  <Phone style={{ width: "14px", height: "14px", display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Téléphone
+                  📞 Téléphone
                 </label>
                 <input
                   type="text"
@@ -314,7 +298,7 @@ export default function EntreprisesPage() {
             </div>
             <div>
               <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                <Mail style={{ width: "14px", height: "14px", display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Email
+                ✉️ Email
               </label>
               <input
                 type="email"
@@ -351,8 +335,7 @@ export default function EntreprisesPage() {
                 opacity: submitting ? 0.5 : 1
               }}
             >
-              <Save style={{ width: "16px", height: "16px" }} /> 
-              {submitting ? "Enregistrement..." : "Enregistrer"}
+              💾 {submitting ? "Enregistrement..." : "Enregistrer"}
             </button>
           </div>
         </form>
@@ -366,9 +349,7 @@ export default function EntreprisesPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ padding: "10px", background: "#dbeafe", borderRadius: "8px" }}>
-            <Building2 style={{ width: "24px", height: "24px", color: "#2563eb" }} />
-          </div>
+          <div style={{ padding: "10px", background: "#dbeafe", borderRadius: "8px", fontSize: "24px" }}>🏢</div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Annuaire des Entreprises</h1>
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>{enterprises.length} entreprises répertoriées</p>
@@ -391,13 +372,13 @@ export default function EntreprisesPage() {
             }}
             style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            <Download style={{ width: "16px", height: "16px" }} /> Exporter CSV
+            📥 Exporter CSV
           </button>
           <button 
             onClick={() => setShowForm(true)}
             style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            <Plus style={{ width: "16px", height: "16px" }} /> Ajouter
+            ➕ Ajouter
           </button>
         </div>
       </div>
@@ -406,7 +387,6 @@ export default function EntreprisesPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "12px", marginBottom: "24px" }}>
         {SECTEURS.map((secteur) => {
           const count = getSecteurCount(secteur.value);
-          const Icon = secteur.icon;
           return (
             <div 
               key={secteur.value}
@@ -422,8 +402,8 @@ export default function EntreprisesPage() {
               }}
             >
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-                <div style={{ padding: "8px", borderRadius: "6px", background: secteur.bg, marginBottom: "8px" }}>
-                  <Icon style={{ width: "18px", height: "18px", color: secteur.color }} />
+                <div style={{ padding: "8px", borderRadius: "6px", background: secteur.bg, marginBottom: "8px", fontSize: "20px" }}>
+                  {secteur.emoji}
                 </div>
                 <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>{count}</p>
                 <p style={{ fontSize: "12px", color: "#6b7280", margin: "4px 0 0 0" }}>{secteur.label}</p>
@@ -436,11 +416,11 @@ export default function EntreprisesPage() {
       {/* Filtres */}
       <div style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", marginBottom: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", fontWeight: "600", fontSize: "14px" }}>
-          <Filter style={{ width: "16px", height: "16px" }} /> Filtres
+          🔍 Filtres
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
           <div style={{ position: "relative" }}>
-            <Search style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", width: "16px", height: "16px", color: "#9ca3af" }} />
+            <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px" }}>🔍</span>
             <input
               type="text"
               placeholder="Nom, sigle, description..."
@@ -455,7 +435,7 @@ export default function EntreprisesPage() {
             style={{ padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", background: "white" }}
           >
             <option value="">Tous les secteurs</option>
-            {SECTEURS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            {SECTEURS.map((s) => <option key={s.value} value={s.value}>{s.emoji} {s.label}</option>)}
           </select>
           <select
             value={filterRegion}
@@ -472,28 +452,27 @@ export default function EntreprisesPage() {
       <div style={{ borderRadius: "8px", border: "1px solid #e5e7eb", background: "white" }}>
         <div style={{ padding: "16px", borderBottom: "1px solid #e5e7eb" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600" }}>
-            <BarChart3 style={{ width: "18px", height: "18px" }} /> Résultats
+            📊 Résultats
           </div>
           <p style={{ fontSize: "13px", color: "#6b7280", margin: "4px 0 0 0" }}>{filteredEnterprises.length} résultat{filteredEnterprises.length > 1 ? "s" : ""}</p>
         </div>
         <div style={{ padding: "16px" }}>
           {filteredEnterprises.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px" }}>
-              <Building2 style={{ width: "48px", height: "48px", color: "#d1d5db", margin: "0 auto 16px" }} />
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏢</div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune entreprise trouvée</h3>
               <p style={{ color: "#6b7280", margin: 0 }}>Ajustez vos filtres ou ajoutez une nouvelle entreprise.</p>
               <button 
                 onClick={() => setShowForm(true)}
                 style={{ marginTop: "16px", padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
-                <Plus style={{ width: "16px", height: "16px" }} /> Ajouter une entreprise
+                ➕ Ajouter une entreprise
               </button>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {filteredEnterprises.map((enterprise) => {
                 const secteurInfo = getSecteurInfo(enterprise.secteurActivite);
-                const SecteurIcon = secteurInfo.icon;
                 return (
                   <div
                     key={enterprise.id}
@@ -507,8 +486,8 @@ export default function EntreprisesPage() {
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <div style={{ padding: "8px", borderRadius: "6px", background: secteurInfo.bg }}>
-                        <SecteurIcon style={{ width: "18px", height: "18px", color: secteurInfo.color }} />
+                      <div style={{ padding: "8px", borderRadius: "6px", background: secteurInfo.bg, fontSize: "20px" }}>
+                        {secteurInfo.emoji}
                       </div>
                       <div>
                         <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{enterprise.nom}</p>
@@ -519,7 +498,7 @@ export default function EntreprisesPage() {
                           </span>
                           {enterprise.ville && (
                             <span style={{ padding: "2px 8px", background: "#f3f4f6", borderRadius: "4px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}>
-                              <MapPin style={{ width: "12px", height: "12px" }} /> {enterprise.ville}{enterprise.region && `, ${enterprise.region}`}
+                              📍 {enterprise.ville}{enterprise.region && `, ${enterprise.region}`}
                             </span>
                           )}
                         </div>
@@ -528,9 +507,9 @@ export default function EntreprisesPage() {
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button 
                         onClick={() => handleDelete(enterprise.id)}
-                        style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444" }}
+                        style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444", fontSize: "16px" }}
                       >
-                        <Trash2 style={{ width: "16px", height: "16px" }} />
+                        🗑️
                       </button>
                     </div>
                   </div>
