@@ -25,8 +25,10 @@ export default function HomePage() {
   });
   const [secteurs, setSecteurs] = useState<SecteurInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     fetchStats();
   }, []);
 
@@ -216,7 +218,9 @@ export default function HomePage() {
                 {secteur.icon}
               </div>
               <h4 className="font-semibold text-sm">{secteur.name}</h4>
-              <p className="text-xs text-gray-500 mt-1">{secteur.count} entreprises</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {isClient ? `${secteur.count} entreprises` : "Chargement..."}
+              </p>
             </Link>
           ))}
         </div>
