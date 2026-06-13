@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search, Building2, TrendingUp, FileText, MapPin, Users, ArrowRight, Globe, Mail } from "lucide-react";
 
 // ============================================================
-// SECTEURS UNIQUES - SANS COMPTEURS - AVEC EMOJIS
+// SECTEURS - SANS COMPTEURS - AVEC EMOJIS
 // ============================================================
 const HOME_SECTORS = [
   { name: "BTP / Matériaux", code: "BTP / Matériaux", emoji: "🏗️", color: "bg-orange-100", border: "border-orange-300", text: "text-orange-700" },
@@ -25,6 +25,60 @@ const HOME_SECTORS = [
   { name: "Commerce", code: "Commerce", emoji: "🛒", color: "bg-gray-100", border: "border-gray-300", text: "text-gray-700" },
   { name: "Industrie légère", code: "Industrie légère", emoji: "🏭", color: "bg-amber-100", border: "border-amber-300", text: "text-amber-700" },
 ];
+
+// ============================================================
+// COMPOSANT SECTEURS - RENDU UNIQUEMENT COTE CLIENT
+// ============================================================
+function SecteursClientOnly() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Ne rien rendre cote serveur (evite le flickering)
+  if (!mounted) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 py-16">
+        <h3 className="text-2xl font-bold text-center mb-4">Secteurs industriels couverts</h3>
+        <p className="text-center text-gray-500 mb-12">Chargement des secteurs...</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {Array.from({ length: 16 }).map((_, i) => (
+            <div key={i} className="p-5 bg-white rounded-2xl border border-gray-200 animate-pulse">
+              <div className="w-14 h-14 bg-gray-200 rounded-2xl mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 py-16">
+      <h3 className="text-2xl font-bold text-center mb-4">Secteurs industriels couverts</h3>
+      <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">
+        Decouvrez les entreprises camerounaises par secteur d activite. Cliquez sur un secteur pour explorer.
+      </p>
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {HOME_SECTORS.map((secteur) => (
+          <Link 
+            key={secteur.name} 
+            href={`/entreprises?sector=${encodeURIComponent(secteur.code)}`} 
+            className={`group p-5 bg-white rounded-2xl border ${secteur.border} hover:shadow-xl transition-all duration-300 text-center hover:border-[#007A3D]`}
+          >
+            <div className={`w-14 h-14 ${secteur.color} rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300`}>
+              <span className="text-3xl">{secteur.emoji}</span>
+            </div>
+            <h4 className={`font-semibold text-sm ${secteur.text} group-hover:text-[#007A3D] transition-colors leading-tight`}>
+              {secteur.name}
+            </h4>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   const [stats, setStats] = useState({
@@ -55,7 +109,7 @@ export default function HomePage() {
   }, [mounted, fetchTotal]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white" suppressHydrationWarning>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
       <header className="bg-[#007A3D] text-white">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -115,29 +169,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Secteurs industriels - SANS COMPTEURS */}
-      <section className="max-w-7xl mx-auto px-4 py-16">
-        <h3 className="text-2xl font-bold text-center mb-4">Secteurs industriels couverts</h3>
-        <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">
-          Decouvrez les entreprises camerounaises par secteur d activite. Cliquez sur un secteur pour explorer.
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {HOME_SECTORS.map((secteur) => (
-            <Link 
-              key={secteur.name} 
-              href={`/entreprises?sector=${encodeURIComponent(secteur.code)}`} 
-              className={`group p-5 bg-white rounded-2xl border ${secteur.border} hover:shadow-xl transition-all duration-300 text-center hover:border-[#007A3D]`}
-            >
-              <div className={`w-14 h-14 ${secteur.color} rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300`}>
-                <span className="text-3xl">{secteur.emoji}</span>
-              </div>
-              <h4 className={`font-semibold text-sm ${secteur.text} group-hover:text-[#007A3D] transition-colors leading-tight`}>
-                {secteur.name}
-              </h4>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* Secteurs - CLIENT ONLY (pas de flickering) */}
+      <SecteursClientOnly />
 
       {/* A propos */}
       <section className="bg-white py-16">
