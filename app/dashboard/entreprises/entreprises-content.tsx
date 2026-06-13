@@ -163,7 +163,7 @@ export default function EntreprisesContent() {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative flex-1"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Rechercher par nom, sigle, ville, secteur..." className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
+        <div className="relative flex-1"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Rechercher par nom, sigle, ville, secteur..." className="pl-8" value={searchQuery} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} /></div>
         {selectedCategory && <Badge variant="secondary" className="cursor-pointer" onClick={() => setSelectedCategory(null)}>{selectedCategory} ×</Badge>}
       </div>
 
