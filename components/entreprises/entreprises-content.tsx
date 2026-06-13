@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   Search, X, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Save,
   Download, Filter, LayoutGrid, List,
-  // Icônes secteurs
+  // Icones secteurs
   Sprout, UtensilsCrossed, HardHat, FlaskConical, ShoppingCart, 
   Radio, Building, GraduationCap, Zap, Sun,
   TreePine, Landmark, Smartphone, BookOpen, Hotel,
@@ -36,7 +36,7 @@ interface Filters {
   cities: string[];
 }
 
-// ✅ Icônes par secteur
+// Icones par secteur
 const SECTOR_ICONS: Record<string, React.ElementType> = {
   Agriculture: Sprout,
   Agroalimentaire: UtensilsCrossed,
@@ -70,7 +70,7 @@ const SECTOR_ICONS: Record<string, React.ElementType> = {
   Autre: MoreHorizontal,
 };
 
-// ✅ Couleurs par secteur
+// Couleurs par secteur
 const SECTOR_COLORS: Record<string, { bg: string; text: string; border: string; icon: string }> = {
   Agriculture: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200", icon: "text-green-600" },
   Agroalimentaire: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: "text-emerald-600" },
@@ -107,30 +107,30 @@ const SECTOR_COLORS: Record<string, { bg: string; text: string; border: string; 
 const ALL_SECTORS = [
   { value: "Agriculture", label: "Agriculture" },
   { value: "Agroalimentaire", label: "Agroalimentaire" },
-  { value: "BTP", label: "BTP / Matériaux" },
+  { value: "BTP", label: "BTP / Materiaux" },
   { value: "Chimie", label: "Chimie / Plastique" },
   { value: "Commerce", label: "Commerce" },
-  { value: "Communication", label: "Communication / Médias" },
+  { value: "Communication", label: "Communication / Medias" },
   { value: "Construction", label: "Construction" },
-  { value: "Education", label: "Éducation" },
-  { value: "Energie", label: "Énergie" },
-  { value: "Energie renouvelable", label: "Énergie renouvelable" },
+  { value: "Education", label: "Education" },
+  { value: "Energie", label: "Energie" },
+  { value: "Energie renouvelable", label: "Energie renouvelable" },
   { value: "Environnement", label: "Environnement" },
   { value: "Finance", label: "Finance" },
   { value: "Fintech", label: "Fintech" },
   { value: "Formation", label: "Formation" },
-  { value: "Hotellerie", label: "Hôtellerie" },
+  { value: "Hotellerie", label: "Hotellerie" },
   { value: "Immobilier", label: "Immobilier" },
   { value: "Industrie", label: "Industrie" },
   { value: "Logistique", label: "Logistique" },
-  { value: "Media", label: "Médias" },
+  { value: "Media", label: "Medias" },
   { value: "Microfinance", label: "Microfinance" },
   { value: "Mines", label: "Mines" },
   { value: "Pharmaceutique", label: "Pharmaceutique" },
-  { value: "Sante", label: "Santé" },
-  { value: "Securite", label: "Sécurité" },
+  { value: "Sante", label: "Sante" },
+  { value: "Securite", label: "Securite" },
   { value: "Technologie", label: "Technologie" },
-  { value: "Telecommunications", label: "Télécommunications" },
+  { value: "Telecommunications", label: "Telecommunications" },
   { value: "Textile", label: "Textile" },
   { value: "Tourisme", label: "Tourisme" },
   { value: "Transport", label: "Transport" },
@@ -311,7 +311,7 @@ export default function EntreprisesContent() {
     }
   };
 
-  // ✅ Export CSV
+  // Export CSV
   const exportCSV = () => {
     const headers = ["Denomination", "Sigle", "Secteur", "Ville", "Region", "Site Web", "Produits", "Statut"];
     const rows = entreprises.map((e) => [
@@ -346,7 +346,7 @@ export default function EntreprisesContent() {
 
   return (
     <div>
-      {/* Header avec boutons d'action */}
+      {/* Header avec boutons d action */}
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Annuaire des Entreprises</h1>
@@ -509,7 +509,7 @@ export default function EntreprisesContent() {
                           {e.secteurActivite}
                         </div>
                         <div className="flex items-center gap-1">
-                          <ArrowRight, Globe className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                          <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
                           {isAdmin && (
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(ev) => ev.preventDefault()}>
                               <button
@@ -613,7 +613,7 @@ export default function EntreprisesContent() {
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="Voir le detail"
                             >
-                              <ArrowRight, Globe className="w-4 h-4" />
+                              <ArrowRight className="w-4 h-4" />
                             </Link>
                             {isAdmin && (
                               <>
@@ -674,7 +674,7 @@ export default function EntreprisesContent() {
           <div className="bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-lg font-semibold">
-                {editingEntreprise ? "Modifier l'entreprise" : "Ajouter une entreprise"}
+                {editingEntreprise ? "Modifier l entreprise" : "Ajouter une entreprise"}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
@@ -704,7 +704,7 @@ export default function EntreprisesContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d'activite</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Secteur d activite</label>
                 <select
                   value={formData.secteurActivite}
                   onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })}
@@ -792,6 +792,3 @@ export default function EntreprisesContent() {
     </div>
   );
 }
-
-
-
