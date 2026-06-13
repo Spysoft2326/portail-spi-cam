@@ -262,6 +262,7 @@ export default function EntreprisesContent() {
       secteurActivite: "Commerce",
       ville: "",
       region: "Centre",
+      adresse: "",
       siteWeb: "",
       produitsPrincipaux: "",
       statut: "ACTIF",
