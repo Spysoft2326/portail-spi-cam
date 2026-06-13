@@ -8,17 +8,105 @@ interface Stats {
   totalEntreprises: number;
   totalSecteurs: number;
   totalRegions: number;
-  totalEmplois: number;
+}
+
+interface SecteurInfo {
+  name: string;
+  code: string;
+  count: number;
+  icon: string;
 }
 
 export default function HomePage() {
   const [stats, setStats] = useState<Stats>({
-    totalEntreprises: 170,
-    totalSecteurs: 23,
-    totalRegions: 10,
-    totalEmplois: 45000,
+    totalEntreprises: 0,
+    totalSecteurs: 0,
+    totalRegions: 0,
   });
-  const [loading, setLoading] = useState(false);
+  const [secteurs, setSecteurs] = useState<SecteurInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Récupérer les entreprises pour compter
+      const res = await fetch("/api/public/entreprises?limit=1");
+      if (!res.ok) throw new Error("Erreur API");
+
+      const data = await res.json();
+
+      // Calculer les stats réelles
+      const totalEntreprises = data.total || 0;
+      const sectorsList = data.filters?.sectors || [];
+      const regionsList = data.filters?.regions || [];
+
+      setStats({
+        totalEntreprises,
+        totalSecteurs: sectorsList.length,
+        totalRegions: regionsList.length,
+      });
+
+      // Mapper les secteurs avec les codes corrects (Title Case)
+      const secteursMap = sectorsList.map((s: string) => ({
+        name: s,
+        code: s, // Le code est le même que le nom (Title Case)
+        count: 0, // On pourrait compter par secteur si besoin
+        icon: getSectorEmoji(s),
+      }));
+
+      setSecteurs(secteursMap);
+    } catch (err) {
+      console.error("Erreur chargement stats:", err);
+      // Fallback sur les données statiques si l'API échoue
+      setStats({
+        totalEntreprises: 151,
+        totalSecteurs: 30,
+        totalRegions: 10,
+      });
+      setSecteurs(SECTEURS_FALLBACK);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSectorEmoji = (sector: string) => {
+    const emojis: Record<string, string> = {
+      Agriculture: "🌾",
+      Agroalimentaire: "🍞",
+      BTP: "🏗️",
+      Chimie: "⚗️",
+      Commerce: "🛒",
+      Communication: "📡",
+      Construction: "🏗️",
+      Education: "🎓",
+      Energie: "⚡",
+      "Energie renouvelable": "☀️",
+      Environnement: "🌳",
+      Finance: "🏦",
+      Fintech: "💳",
+      Formation: "📚",
+      Hotellerie: "🏨",
+      Immobilier: "🏠",
+      Industrie: "🏭",
+      Logistique: "📦",
+      Media: "📰",
+      Microfinance: "💰",
+      Mines: "⛏️",
+      Pharmaceutique: "💊",
+      Sante: "🏥",
+      Securite: "🛡️",
+      Technologie: "💻",
+      Telecommunications: "📡",
+      Textile: "👕",
+      Tourisme: "✈️",
+      Transport: "🚛",
+      Autre: "📋",
+    };
+    return emojis[sector] || "🏢";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -46,20 +134,20 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative bg-[#007A3D] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnY0em0wLTZ2LTRoLTJ2NGgyem0tNiA2aC00djJoNHYtMnptMC02di00aC00djRoNHptLTYgNmgtNHYyaDR2LTJ6bTAtNnYtNGgtNHY0aDR6Ii8+PC9nPjwvZz48L3N2Zz4=')]" />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnY0em0wLTZ2LTRoLTJ2NGgyem0tNiA2aC00djJoNHYtMnptMC02di00aC00djRoNHptLTYgNmgtNHYyaDR2LTJ6mTAtNnYtNGgtNHY0aDR6Ii8+PC9nPjwvZz48L3N2Zz4=')]" />
         </div>
         <div className="max-w-7xl mx-auto px-4 py-20 relative">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm mb-6">
               <span className="w-2 h-2 bg-[#FCD116] rounded-full animate-pulse" />
-              Données 2026 en temps réel
+              Donnees 2026 en temps reel
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               L'industrie camerounaise
               <span className="text-[#FCD116]"> en chiffres</span>
             </h2>
             <p className="text-lg text-white/80 mb-8">
-              Répertoire complet des entreprises industrielles, suivi de la production
+              Repertoire complet des entreprises industrielles, suivi de la production
               trimestrielle, semestrielle et annuelle. Notes de conjoncture et analyses sectorielles.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -88,24 +176,24 @@ export default function HomePage() {
           <StatCard
             icon={<Building2 className="w-6 h-6" />}
             value={loading ? "..." : stats.totalEntreprises.toString()}
-            label="Toutes les entreprises du secteur industriel répertoriées"
+            label="Toutes les entreprises du secteur industriel repertoriees"
             color="bg-[#007A3D]"
           />
           <StatCard
             icon={<TrendingUp className="w-6 h-6" />}
             value={loading ? "..." : stats.totalSecteurs.toString()}
-            label="Secteurs d'activité"
+            label="Secteurs d'activite"
             color="bg-[#CE1126]"
           />
           <StatCard
             icon={<MapPin className="w-6 h-6" />}
             value={loading ? "..." : stats.totalRegions.toString()}
-            label="Régions couvertes"
+            label="Regions couvertes"
             color="bg-[#FCD116] text-black"
           />
           <StatCard
             icon={<Users className="w-6 h-6" />}
-            value={loading ? "..." : stats.totalEmplois.toLocaleString() + "+"}
+            value={loading ? "..." : "45000+"}
             label="Emplois industriels"
             color="bg-slate-700"
           />
@@ -118,13 +206,13 @@ export default function HomePage() {
           Secteurs industriels couverts
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {SECTEURS.map((secteur) => (
+          {(secteurs.length > 0 ? secteurs : SECTEURS_FALLBACK).map((secteur) => (
             <Link
               key={secteur.code}
-              href={`/entreprises?sector=${secteur.code}`}
+              href={`/entreprises?sector=${encodeURIComponent(secteur.code)}`}
               className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-[#007A3D] hover:shadow-lg transition-all"
             >
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-[#007A3D]/10 transition-colors">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-[#007A3D]/10 transition-colors text-2xl">
                 {secteur.icon}
               </div>
               <h4 className="font-semibold text-sm">{secteur.name}</h4>
@@ -134,28 +222,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* À propos / Mission */}
+      {/* A propos / Mission */}
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               <h3 className="text-2xl font-bold mb-4">Mission du Portail SPI-CAM</h3>
               <p className="text-gray-600 mb-4">
-                Le Portail de Suivi de la Production Industrielle du Cameroun (SPI-CAM) 
-                est une initiative du Ministère des Mines, de l'Industrie et du Développement 
-                Technologique pour centraliser et diffuser les données économiques du secteur 
+                Le Portail de Suivi de la Production Industrielle du Cameroun (SPI-CAM)
+                est une initiative du Ministere des Mines, de l'Industrie et du Developpement
+                Technologique pour centraliser et diffuser les donnees economiques du secteur
                 industriel camerounais.
               </p>
               <p className="text-gray-600 mb-6">
-                Notre objectif : offrir un outil de transparence et d'analyse pour les 
-                décideurs, les investisseurs et les professionnels du secteur industriel.
+                Notre objectif : offrir un outil de transparence et d'analyse pour les
+                decideurs, les investisseurs et les professionnels du secteur industriel.
               </p>
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center">
                     <Globe className="w-4 h-4 text-[#007A3D]" />
                   </div>
-                  <span className="text-sm text-gray-700">Couverture nationale des 10 régions</span>
+                  <span className="text-sm text-gray-700">Couverture nationale des 10 regions</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center">
@@ -167,12 +255,12 @@ export default function HomePage() {
                   <div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center">
                     <TrendingUp className="w-4 h-4 text-[#007A3D]" />
                   </div>
-                  <span className="text-sm text-gray-700">Indicateurs économiques en temps réel</span>
+                  <span className="text-sm text-gray-700">Indicateurs economiques en temps reel</span>
                 </div>
               </div>
             </div>
             <div className="bg-gradient-to-br from-[#007A3D]/5 to-[#CE1126]/5 rounded-2xl p-8">
-              <h4 className="font-bold text-lg mb-4">Accès rapide</h4>
+              <h4 className="font-bold text-lg mb-4">Acces rapide</h4>
               <div className="space-y-3">
                 <Link href="/entreprises" className="flex items-center justify-between p-4 bg-white rounded-xl hover:shadow-md transition group">
                   <div className="flex items-center gap-3">
@@ -212,13 +300,13 @@ export default function HomePage() {
               </div>
               <p className="text-sm text-gray-400">
                 Plateforme officielle de suivi de la production industrielle du Cameroun.
-                Données certifiées par le MINMIDT.
+                Donnees certifiees par le MINMIDT.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Liens rapides</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link href="/entreprises" className="hover:text-white">Répertoire des entreprises</Link></li>
+                <li><Link href="/entreprises" className="hover:text-white">Repertoire des entreprises</Link></li>
                 <li><Link href="/conjoncture" className="hover:text-white">Notes de conjoncture</Link></li>
                 <li><Link href="/login" className="hover:text-white">Espace professionnel</Link></li>
               </ul>
@@ -228,11 +316,11 @@ export default function HomePage() {
               <div className="space-y-2 text-sm text-gray-400">
                 <p className="flex items-center gap-2">
                   <Globe className="w-4 h-4" />
-                  MINMIDT - Ministère des Mines, de l'Industrie et du Développement Technologique
+                  MINMIDT - Ministere des Mines, de l'Industrie et du Developpement Technologique
                 </p>
                 <p className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
-                  Yaoundé, Cameroun
+                  Yaounde, Cameroun
                 </p>
                 <p className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
@@ -242,7 +330,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-500">
-            © 2026 Portail SPI Cam - Tous droits réservés
+            © 2026 Portail SPI Cam - Tous droits reserves
           </div>
         </div>
       </footer>
@@ -274,23 +362,23 @@ function StatCard({
   );
 }
 
-const SECTEURS = [
-  { name: "Agriculture", code: "AGRICULTURE", count: 12, icon: <span className="text-2xl">🌾</span> },
-  { name: "Agroalimentaire", code: "AGROALIMENTAIRE", count: 18, icon: <span className="text-2xl">🍞</span> },
-  { name: "Technologie", code: "TECHNOLOGIE", count: 8, icon: <span className="text-2xl">💻</span> },
-  { name: "Télécoms", code: "TELECOMMUNICATIONS", count: 5, icon: <span className="text-2xl">📡</span> },
-  { name: "E-commerce", code: "E_COMMERCE", count: 4, icon: <span className="text-2xl">🛒</span> },
-  { name: "Fintech", code: "FINTECH", count: 3, icon: <span className="text-2xl">💳</span> },
-  { name: "Énergie", code: "ENERGIE", count: 10, icon: <span className="text-2xl">⚡</span> },
-  { name: "Mines", code: "MINES", count: 8, icon: <span className="text-2xl">⛏️</span> },
-  { name: "Banque", code: "BANQUE", count: 6, icon: <span className="text-2xl">🏦</span> },
-  { name: "Microfinance", code: "MICROFINANCE", count: 4, icon: <span className="text-2xl">💰</span> },
-  { name: "Transport", code: "TRANSPORT", count: 7, icon: <span className="text-2xl">🚛</span> },
-  { name: "Logistique", code: "LOGISTIQUE", count: 5, icon: <span className="text-2xl">📦</span> },
-  { name: "Construction", code: "CONSTRUCTION", count: 9, icon: <span className="text-2xl">🏗️</span> },
-  { name: "Immobilier", code: "IMMOBILIER", count: 6, icon: <span className="text-2xl">🏘️</span> },
-  { name: "Santé", code: "SANTE", count: 8, icon: <span className="text-2xl">🏥</span> },
-  { name: "Pharmacie", code: "PHARMACIE", count: 5, icon: <span className="text-2xl">💊</span> },
-  { name: "Éducation", code: "EDUCATION", count: 7, icon: <span className="text-2xl">🎓</span> },
-  { name: "Formation", code: "FORMATION", count: 4, icon: <span className="text-2xl">📚</span> },
+const SECTEURS_FALLBACK: SecteurInfo[] = [
+  { name: "Agriculture", code: "Agriculture", count: 12, icon: "🌾" },
+  { name: "Agroalimentaire", code: "Agroalimentaire", count: 18, icon: "🍞" },
+  { name: "Technologie", code: "Technologie", count: 8, icon: "💻" },
+  { name: "Telecommunications", code: "Telecommunications", count: 5, icon: "📡" },
+  { name: "Energie", code: "Energie", count: 10, icon: "⚡" },
+  { name: "Mines", code: "Mines", count: 8, icon: "⛏️" },
+  { name: "Finance", code: "Finance", count: 6, icon: "🏦" },
+  { name: "Microfinance", code: "Microfinance", count: 4, icon: "💰" },
+  { name: "Transport", code: "Transport", count: 7, icon: "🚛" },
+  { name: "Logistique", code: "Logistique", count: 5, icon: "📦" },
+  { name: "Construction", code: "Construction", count: 9, icon: "🏗️" },
+  { name: "Immobilier", code: "Immobilier", count: 6, icon: "🏠" },
+  { name: "Sante", code: "Sante", count: 8, icon: "🏥" },
+  { name: "Pharmaceutique", code: "Pharmaceutique", count: 5, icon: "💊" },
+  { name: "Education", code: "Education", count: 7, icon: "🎓" },
+  { name: "Formation", code: "Formation", count: 4, icon: "📚" },
+  { name: "Commerce", code: "Commerce", count: 6, icon: "🛒" },
+  { name: "Industrie", code: "Industrie", count: 9, icon: "🏭" },
 ];
