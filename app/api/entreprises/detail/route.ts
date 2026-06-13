@@ -9,10 +9,7 @@ export const dynamic = 'force-dynamic';
 // GET /api/entreprises/detail?id=...
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
+    // API publique - pas d authentification requise
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -79,3 +76,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
