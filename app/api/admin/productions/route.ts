@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role as string)) {
@@ -15,38 +15,33 @@ export async function GET() {
     const productions = await prisma.production.findMany({
       include: {
         entreprise: {
-          select: { denomination: true },
+          select: {
+            denomination: true,
+          },
         },
       },
-      orderBy: { createdAt: "desc" },
-      take: 100,
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    // Récupérer les noms des agents séparément (compatible TypeScript)
-    const agentIds: string[] = [];
+    // Comptage par entreprise (pas par agent car saisiePar n'existe pas)
+    const entrepriseIds: string[] = [];
     productions.forEach(p => {
-      if (!agentIds.includes(p.saisiePar)) {
-        agentIds.push(p.saisiePar);
+      if (!entrepriseIds.includes(p.entrepriseId)) {
+        entrepriseIds.push(p.entrepriseId);
       }
     });
 
-    const agents = await prisma.user.findMany({
-      where: { id: { in: agentIds } },
-      select: { id: true, name: true },
+    return NextResponse.json({
+      productions,
+      total: productions.length,
+      nombreEntreprises: entrepriseIds.length,
     });
-
-    const agentMap = new Map(agents.map(a => [a.id, a.name]));
-
-    const productionsWithAgent = productions.map(p => ({
-      ...p,
-      agent: { name: agentMap.get(p.saisiePar) || null },
-    }));
-
-    return NextResponse.json(productionsWithAgent);
   } catch (error) {
     console.error("Erreur API admin productions:", error);
     return NextResponse.json(
-      { error: "Erreur de chargement des productions" },
+      { error: "Erreur lors de la recuperation" },
       { status: 500 }
     );
   }
