@@ -16,28 +16,28 @@ export async function GET() {
       totalUsers,
       totalAgents,
       totalAdmins,
-      productionsEnAttente,
-      productionsValidees,
-      productionsRejetees,
+      totalProductions,
       totalEntreprises,
+      entreprisesEnAttente,
+      entreprisesActives,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { role: "AGENT_SAISIE" } }),
       prisma.user.count({ where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } } }),
-      prisma.production.count({ where: { statut: "EN_ATTENTE" } }),
-      prisma.production.count({ where: { statut: "VALIDEE" } }),
-      prisma.production.count({ where: { statut: "REJETEE" } }),
+      prisma.production.count(),
       prisma.entreprise.count(),
+      prisma.entreprise.count({ where: { statut: "EN_ATTENTE" } }),
+      prisma.entreprise.count({ where: { statut: "ACTIF" } }),
     ]);
 
     return NextResponse.json({
       totalUsers,
       totalAgents,
       totalAdmins,
-      productionsEnAttente,
-      productionsValidees,
-      productionsRejetees,
+      totalProductions,
       totalEntreprises,
+      entreprisesEnAttente,
+      entreprisesActives,
     });
   } catch (error) {
     console.error("Erreur API admin stats:", error);
