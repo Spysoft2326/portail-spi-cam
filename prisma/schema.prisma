@@ -46,6 +46,7 @@ model User {
   password      String?
   role          String    @default("AGENT_SAISIE")
   isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
   accounts      Account[]
   sessions      Session[]
   entreprisesCreees Entreprise[] @relation("AgentEntreprises")
@@ -93,20 +94,17 @@ model Production {
   id                String     @id @default(uuid())
   entrepriseId      String
   entreprise        Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
-  // === Champs de base ===
   produit           String
   quantite          Float?
   unite             String?
   periode           String?
   annee             Int?
-  // === Champs détaillés pour le workflow ===
   trimestre         Int?
   productionPhysique Float?
   chiffreAffaires   Float?
   effectifs         Int?
   investissements   Float?
   commentaire       String?
-  // === Workflow Agent→Admin→SuperAdmin ===
   statut            String     @default("EN_ATTENTE")
   saisiePar         String?
   validePar         String?
