@@ -16,7 +16,8 @@ interface Enterprise {
   nomContact: string | null;
 }
 
-// ✅ MAPPING COMPLET : Secteurs réels du Cameroun (avec slashes et espaces) → Catégories du frontend
+// ✅ MAPPING COMPLET : Secteurs réels du Cameroun → Catégories du frontend
+// ⚠️ AUCUN DOUBLON de clé autorisé !
 const SECTEUR_MAPPING: Record<string, string> = {
   // === AGRICULTURE 🌾 ===
   "AGRICULTURE": "AGRICULTURE",
@@ -29,7 +30,6 @@ const SECTEUR_MAPPING: Record<string, string> = {
   "ELEVAGE": "AGRICULTURE",
   "PECHE": "AGRICULTURE",
   "FORESTERIE": "AGRICULTURE",
-  "AGRICULTURE / AGRO-INDUSTRIE": "AGRICULTURE",
 
   // === INDUSTRIE 🏭 ===
   "INDUSTRIE": "INDUSTRIE",
@@ -46,7 +46,6 @@ const SECTEUR_MAPPING: Record<string, string> = {
   "HABILLEMENT": "INDUSTRIE",
   "MÉTALLURGIE": "INDUSTRIE",
   "METALLURGIE": "INDUSTRIE",
-  "PLASTIQUE": "INDUSTRIE",
   "BOIS": "INDUSTRIE",
   "FORÊT / BOIS": "INDUSTRIE",
   "FORET / BOIS": "INDUSTRIE",
