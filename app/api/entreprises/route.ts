@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
     const entreprises = await prisma.entreprise.findMany({
       where,
-      orderBy: { nom: "asc" },
+      orderBy: [{ nom: "asc" }],
       include: {
         _count: {
           select: { productions: true },
@@ -50,7 +50,6 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    // Vérifier authentification
     if (!session || !session.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -58,12 +57,10 @@ export async function POST(request: Request) {
     const userRole = session.user.role;
     const userId = session.user.id;
 
-    // Vérifier que le rôle est défini
     if (!userRole) {
       return NextResponse.json({ error: "Rôle non défini" }, { status: 403 });
     }
 
-    // Tous les rôles authentifiés peuvent créer (Agent, Admin, SuperAdmin)
     const allowedRoles = ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"];
     if (!allowedRoles.includes(userRole)) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
@@ -71,7 +68,6 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    // Déterminer le statut selon le rôle
     let statut = "EN_ATTENTE";
     if (userRole === "SUPER_ADMIN") {
       statut = "ACTIF";
@@ -84,12 +80,10 @@ export async function POST(request: Request) {
         ville: body.ville?.trim() || null,
         secteurActivite: body.secteurActivite || "AUTRE",
         statut: statut,
-        // === CHAMPS CONTACT ===
         telephone: body.telephone?.trim() || null,
         email: body.email?.trim() || null,
         nomContact: body.nomContact?.trim() || null,
         adresse: body.adresse?.trim() || null,
-        // === LIEN AVEC L'AGENT ===
         agentId: userRole === "AGENT_SAISIE" ? userId : null,
       },
     });
