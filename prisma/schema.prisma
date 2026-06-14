@@ -48,7 +48,6 @@ model User {
   isActive      Boolean   @default(true)
   accounts      Account[]
   sessions      Session[]
-  // === NOUVEAU : Relation avec les entreprises créées ===
   entreprisesCreees Entreprise[] @relation("AgentEntreprises")
 }
 
@@ -85,7 +84,6 @@ model Entreprise {
   nomZoneIndustrielle     String?
   createdAt               DateTime     @default(now())
   updatedAt               DateTime     @updatedAt
-  // === NOUVEAU : Lien optionnel avec l'Agent ===
   agentId                 String?
   agent                   User?        @relation("AgentEntreprises", fields: [agentId], references: [id])
   productions             Production[]
@@ -100,6 +98,11 @@ model Production {
   unite         String?
   periode       String?
   annee         Int?
+  // === NOUVEAU : Champs pour le workflow Agent→Admin→SuperAdmin ===
+  statut        String     @default("EN_ATTENTE")
+  saisiePar     String?
+  validePar     String?
+  dateValidation DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 }
