@@ -21,9 +21,8 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
-        createdAt: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { id: "desc" },
     });
 
     return NextResponse.json({ users });
@@ -78,7 +77,6 @@ export async function POST(request: Request) {
         name: true,
         email: true,
         role: true,
-        createdAt: true,
       },
     });
 
