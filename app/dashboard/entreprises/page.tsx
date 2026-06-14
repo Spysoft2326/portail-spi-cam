@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from "react";
 
 interface Enterprise {
   id: string;
-  nom: string;
+  denomination: string;
   sigle: string | null;
   description: string | null;
   secteurActivite: string;
@@ -46,7 +46,7 @@ export default function EntreprisesPage() {
   const [filterRegion, setFilterRegion] = useState("");
 
   const [formData, setFormData] = useState({
-    nom: "", sigle: "", description: "", secteurActivite: "AUTRE",
+    denomination: "", sigle: "", description: "", secteurActivite: "AUTRE",
     ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
   });
 
@@ -60,7 +60,9 @@ export default function EntreprisesPage() {
       const res = await fetch("/api/entreprises");
       if (res.ok) {
         const data = await res.json();
-        setEnterprises(data.enterprises || data || []);
+        // ✅ CORRECTION : L'API retourne "entreprises" (français), pas "enterprises"
+        const list = data.entreprises || data;
+        setEnterprises(Array.isArray(list) ? list : []);
       }
     } catch (error) {
       console.error("Erreur:", error);
@@ -71,8 +73,8 @@ export default function EntreprisesPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!formData.nom.trim()) {
-      alert("Le nom est obligatoire");
+    if (!formData.denomination.trim()) {
+      alert("La dénomination est obligatoire");
       return;
     }
 
@@ -88,7 +90,7 @@ export default function EntreprisesPage() {
         alert("Entreprise ajoutée !");
         setShowForm(false);
         setFormData({
-          nom: "", sigle: "", description: "", secteurActivite: "AUTRE",
+          denomination: "", sigle: "", description: "", secteurActivite: "AUTRE",
           ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
         });
         fetchData();
@@ -122,19 +124,23 @@ export default function EntreprisesPage() {
   };
 
   const getSecteurCount = (secteur: string) => {
-    return enterprises.filter((e) => e.secteurActivite === secteur).length;
+    return Array.isArray(enterprises) 
+      ? enterprises.filter((e) => e.secteurActivite === secteur).length 
+      : 0;
   };
 
-  const filteredEnterprises = enterprises.filter((e) => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchSearch = e.nom.toLowerCase().includes(searchLower) ||
-      (e.sigle && e.sigle.toLowerCase().includes(searchLower)) ||
-      (e.description && e.description.toLowerCase().includes(searchLower)) ||
-      (e.ville && e.ville.toLowerCase().includes(searchLower));
-    const matchSecteur = !filterSecteur || e.secteurActivite === filterSecteur;
-    const matchRegion = !filterRegion || e.region === filterRegion;
-    return matchSearch && matchSecteur && matchRegion;
-  });
+  const filteredEnterprises = Array.isArray(enterprises) 
+    ? enterprises.filter((e) => {
+        const searchLower = searchTerm.toLowerCase();
+        const matchSearch = e.denomination.toLowerCase().includes(searchLower) ||
+          (e.sigle && e.sigle.toLowerCase().includes(searchLower)) ||
+          (e.description && e.description.toLowerCase().includes(searchLower)) ||
+          (e.ville && e.ville.toLowerCase().includes(searchLower));
+        const matchSecteur = !filterSecteur || e.secteurActivite === filterSecteur;
+        const matchRegion = !filterRegion || e.region === filterRegion;
+        return matchSearch && matchSecteur && matchRegion;
+      })
+    : [];
 
   if (loading) {
     return (
@@ -151,7 +157,7 @@ export default function EntreprisesPage() {
   if (showForm) {
     return (
       <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
-        <button 
+        <button
           onClick={() => setShowForm(false)}
           style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
         >
@@ -181,8 +187,8 @@ export default function EntreprisesPage() {
                   type="text"
                   placeholder="Nom de l'entreprise"
                   required
-                  value={formData.nom}
-                  onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                  value={formData.denomination}
+                  onChange={(e) => setFormData({ ...formData, denomination: e.target.value })}
                   style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
                 />
               </div>
@@ -321,13 +327,13 @@ export default function EntreprisesPage() {
             <button
               type="submit"
               disabled={submitting}
-              style={{ 
-                padding: "10px 20px", 
-                border: "none", 
-                borderRadius: "6px", 
-                background: "#059669", 
-                color: "white", 
-                cursor: "pointer", 
+              style={{
+                padding: "10px 20px",
+                border: "none",
+                borderRadius: "6px",
+                background: "#059669",
+                color: "white",
+                cursor: "pointer",
                 fontSize: "14px",
                 display: "flex",
                 alignItems: "center",
@@ -356,25 +362,25 @@ export default function EntreprisesPage() {
           </div>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
-          <button 
+          <button
             onClick={() => {
               const csv = [
-                ["Nom", "Sigle", "Secteur", "Ville", "Région", "Téléphone", "Email", "Contact"].join(","),
+                ["Dénomination", "Sigle", "Secteur", "Ville", "Région", "Téléphone", "Email", "Contact"].join(","),
                 ...filteredEnterprises.map((e) => [
-                  e.nom, e.sigle || "", e.secteurActivite, e.ville || "", e.region || "",
+                  e.denomination, e.sigle || "", e.secteurActivite, e.ville || "", e.region || "",
                   e.telephone || "", e.email || "", e.nomContact || ""
                 ].join(","))
               ].join("\n");
               const blob = new Blob([csv], { type: "text/csv" });
               const url = window.URL.createObjectURL(blob);
-              const a = document.createElement("a"); a.href = url; 
+              const a = document.createElement("a"); a.href = url;
               a.download = `entreprises_${new Date().toISOString().split("T")[0]}.csv`; a.click();
             }}
             style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
             📥 Exporter CSV
           </button>
-          <button 
+          <button
             onClick={() => setShowForm(true)}
             style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
@@ -388,13 +394,13 @@ export default function EntreprisesPage() {
         {SECTEURS.map((secteur) => {
           const count = getSecteurCount(secteur.value);
           return (
-            <div 
+            <div
               key={secteur.value}
               onClick={() => setFilterSecteur(filterSecteur === secteur.value ? "" : secteur.value)}
-              style={{ 
-                padding: "12px", 
-                borderRadius: "8px", 
-                border: "1px solid #e5e7eb", 
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid #e5e7eb",
                 cursor: "pointer",
                 transition: "all 0.2s",
                 background: filterSecteur === secteur.value ? "#eff6ff" : "white",
@@ -462,7 +468,7 @@ export default function EntreprisesPage() {
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏢</div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune entreprise trouvée</h3>
               <p style={{ color: "#6b7280", margin: 0 }}>Ajustez vos filtres ou ajoutez une nouvelle entreprise.</p>
-              <button 
+              <button
                 onClick={() => setShowForm(true)}
                 style={{ marginTop: "16px", padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
@@ -490,7 +496,7 @@ export default function EntreprisesPage() {
                         {secteurInfo.emoji}
                       </div>
                       <div>
-                        <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{enterprise.nom}</p>
+                        <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{enterprise.denomination}</p>
                         {enterprise.sigle && <p style={{ fontSize: "14px", color: "#6b7280", margin: "2px 0 0 0" }}>{enterprise.sigle}</p>}
                         <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
                           <span style={{ padding: "2px 8px", border: "1px solid #e5e7eb", borderRadius: "4px", fontSize: "12px" }}>
@@ -505,7 +511,7 @@ export default function EntreprisesPage() {
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: "8px" }}>
-                      <button 
+                      <button
                         onClick={() => handleDelete(enterprise.id)}
                         style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444", fontSize: "16px" }}
                       >

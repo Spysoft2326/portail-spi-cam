@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from "react";
 
 interface Enterprise {
   id: string;
-  nom: string;
+  denomination: string;
   sigle: string | null;
   secteurActivite: string;
 }
@@ -16,7 +16,9 @@ interface Production {
   trimestre: string;
   productionPhysique: number;
   chiffreAffaires: number;
-  nombreEmployes: number;
+  effectifs: number;
+  commentaire?: string | null;
+  statut?: string;
 }
 
 export default function ProductionPage() {
@@ -34,6 +36,7 @@ export default function ProductionPage() {
     productionPhysique: "",
     chiffreAffaires: "",
     nombreEmployes: "",
+    commentaire: "",
   });
 
   useEffect(() => {
@@ -45,17 +48,21 @@ export default function ProductionPage() {
       setLoading(true);
       const [entRes, prodRes] = await Promise.all([
         fetch("/api/entreprises"),
-        fetch("/api/productions")
+        fetch("/api/production")
       ]);
 
       if (entRes.ok) {
         const entData = await entRes.json();
-        setEnterprises(entData.enterprises || entData || []);
+        // ✅ CORRECTION : L'API retourne "entreprises" (français)
+        const entList = entData.entreprises || entData;
+        setEnterprises(Array.isArray(entList) ? entList : []);
       }
 
       if (prodRes.ok) {
         const prodData = await prodRes.json();
-        setProductions(prodData.productions || prodData || []);
+        // ✅ CORRECTION : L'API retourne "productions"
+        const prodList = prodData.productions || prodData;
+        setProductions(Array.isArray(prodList) ? prodList : []);
       }
     } catch (error) {
       console.error("Erreur:", error);
@@ -73,7 +80,7 @@ export default function ProductionPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/productions", {
+      const res = await fetch("/api/production", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -82,7 +89,8 @@ export default function ProductionPage() {
           trimestre: formData.trimestre,
           productionPhysique: parseFloat(formData.productionPhysique) || 0,
           chiffreAffaires: parseFloat(formData.chiffreAffaires) || 0,
-          nombreEmployes: parseInt(formData.nombreEmployes) || 0,
+          effectifs: parseInt(formData.nombreEmployes) || 0,
+          commentaire: formData.commentaire,
         }),
       });
 
@@ -91,11 +99,12 @@ export default function ProductionPage() {
         setShowForm(false);
         setFormData({
           entrepriseId: "", annee: "2026", trimestre: "T1",
-          productionPhysique: "", chiffreAffaires: "", nombreEmployes: "",
+          productionPhysique: "", chiffreAffaires: "", nombreEmployes: "", commentaire: "",
         });
         fetchData();
       } else {
-        alert("Erreur lors de l'enregistrement");
+        const err = await res.json().catch(() => ({}));
+        alert("Erreur : " + (err.error || "Erreur lors de l'enregistrement"));
       }
     } catch (error) {
       alert("Erreur de connexion");
@@ -107,7 +116,7 @@ export default function ProductionPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette production ?")) return;
     try {
-      const res = await fetch(`/api/productions/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/production/${id}`, { method: "DELETE" });
       if (res.ok) {
         alert("Production supprimée");
         fetchData();
@@ -119,22 +128,33 @@ export default function ProductionPage() {
     }
   };
 
+  // ✅ CORRECTION : Fonction sécurisée avec vérification Array.isArray
   const getEnterpriseName = (id: string) => {
+    if (!Array.isArray(enterprises)) return "Entreprise inconnue";
     const ent = enterprises.find((e) => e.id === id);
-    return ent ? `${ent.nom}${ent.sigle ? ` (${ent.sigle})` : ""}` : "Entreprise inconnue";
+    return ent ? `${ent.denomination}${ent.sigle ? ` (${ent.sigle})` : ""}` : "Entreprise inconnue";
   };
 
-  const filteredProductions = productions.filter((p) => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return getEnterpriseName(p.entrepriseId).toLowerCase().includes(searchLower) ||
-      p.trimestre.toLowerCase().includes(searchLower) ||
-      p.annee.toString().includes(searchLower);
-  });
+  // ✅ CORRECTION : Fonction sécurisée pour le secteur
+  const getEnterpriseSecteur = (id: string) => {
+    if (!Array.isArray(enterprises)) return "N/A";
+    const ent = enterprises.find((e) => e.id === id);
+    return ent?.secteurActivite || "N/A";
+  };
 
-  const totalProduction = filteredProductions.reduce((sum, p) => sum + p.productionPhysique, 0);
-  const totalCA = filteredProductions.reduce((sum, p) => sum + p.chiffreAffaires, 0);
-  const totalEmployes = filteredProductions.reduce((sum, p) => sum + p.nombreEmployes, 0);
+  const filteredProductions = Array.isArray(productions) 
+    ? productions.filter((p) => {
+        if (!searchTerm) return true;
+        const searchLower = searchTerm.toLowerCase();
+        return getEnterpriseName(p.entrepriseId).toLowerCase().includes(searchLower) ||
+          p.trimestre.toLowerCase().includes(searchLower) ||
+          p.annee.toString().includes(searchLower);
+      })
+    : [];
+
+  const totalProduction = filteredProductions.reduce((sum, p) => sum + (p.productionPhysique || 0), 0);
+  const totalCA = filteredProductions.reduce((sum, p) => sum + (p.chiffreAffaires || 0), 0);
+  const totalEmployes = filteredProductions.reduce((sum, p) => sum + (p.effectifs || 0), 0);
 
   if (loading) {
     return (
@@ -151,7 +171,7 @@ export default function ProductionPage() {
   if (showForm) {
     return (
       <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
-        <button 
+        <button
           onClick={() => setShowForm(false)}
           style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
         >
@@ -182,14 +202,14 @@ export default function ProductionPage() {
                 style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", background: "white" }}
               >
                 <option value="">Choisir une entreprise...</option>
-                {enterprises.map((ent) => (
-                  <option key={ent.id} value={ent.id}>{ent.nom}{ent.sigle ? ` (${ent.sigle})` : ""}</option>
+                {Array.isArray(enterprises) && enterprises.map((ent) => (
+                  <option key={ent.id} value={ent.id}>{ent.denomination}{ent.sigle ? ` (${ent.sigle})` : ""}</option>
                 ))}
               </select>
               {formData.entrepriseId && (
                 <div style={{ marginTop: "8px", padding: "8px 12px", background: "#f9fafb", borderRadius: "6px", fontSize: "13px", color: "#6b7280" }}>
                   <span style={{ padding: "2px 8px", background: "#e5e7eb", borderRadius: "4px", fontSize: "12px", marginRight: "8px" }}>
-                    {enterprises.find(e => e.id === formData.entrepriseId)?.secteurActivite || "N/A"}
+                    {getEnterpriseSecteur(formData.entrepriseId)}
                   </span>
                   {getEnterpriseName(formData.entrepriseId)}
                 </div>
@@ -290,6 +310,20 @@ export default function ProductionPage() {
             </div>
           </div>
 
+          {/* Commentaire */}
+          <div style={{ marginBottom: "32px" }}>
+            <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
+              💬 Commentaire (optionnel)
+            </label>
+            <textarea
+              placeholder="Notes additionnelles..."
+              value={formData.commentaire}
+              onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })}
+              rows={3}
+              style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", resize: "vertical" }}
+            />
+          </div>
+
           <div style={{ display: "flex", gap: "12px", paddingTop: "16px" }}>
             <button
               type="button"
@@ -301,13 +335,13 @@ export default function ProductionPage() {
             <button
               type="submit"
               disabled={submitting || !formData.entrepriseId}
-              style={{ 
-                padding: "10px 20px", 
-                border: "none", 
-                borderRadius: "6px", 
-                background: "#059669", 
-                color: "white", 
-                cursor: "pointer", 
+              style={{
+                padding: "10px 20px",
+                border: "none",
+                borderRadius: "6px",
+                background: "#059669",
+                color: "white",
+                cursor: "pointer",
                 fontSize: "14px",
                 display: "flex",
                 alignItems: "center",
@@ -336,25 +370,25 @@ export default function ProductionPage() {
           </div>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
-          <button 
+          <button
             onClick={() => {
               const csv = [
                 ["Entreprise", "Année", "Trimestre", "Production", "CA (FCFA)", "Employés"].join(","),
                 ...filteredProductions.map((p) => [
-                  getEnterpriseName(p.entrepriseId), p.annee, p.trimestre, 
-                  p.productionPhysique, p.chiffreAffaires, p.nombreEmployes
+                  getEnterpriseName(p.entrepriseId), p.annee, p.trimestre,
+                  p.productionPhysique, p.chiffreAffaires, p.effectifs
                 ].join(","))
               ].join("\n");
               const blob = new Blob([csv], { type: "text/csv" });
               const url = window.URL.createObjectURL(blob);
-              const a = document.createElement("a"); a.href = url; 
+              const a = document.createElement("a"); a.href = url;
               a.download = `productions_${new Date().toISOString().split("T")[0]}.csv`; a.click();
             }}
             style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
             📥 Exporter CSV
           </button>
-          <button 
+          <button
             onClick={() => setShowForm(true)}
             style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
@@ -412,7 +446,7 @@ export default function ProductionPage() {
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏭</div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune production enregistrée</h3>
               <p style={{ color: "#6b7280", margin: 0 }}>Commencez par ajouter votre première saisie.</p>
-              <button 
+              <button
                 onClick={() => setShowForm(true)}
                 style={{ marginTop: "16px", padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
@@ -442,17 +476,34 @@ export default function ProductionPage() {
                           {p.annee} - {p.trimestre}
                         </span>
                         <span style={{ padding: "2px 8px", background: "#f3f4f6", borderRadius: "4px", fontSize: "12px" }}>
-                          {enterprises.find(e => e.id === p.entrepriseId)?.secteurActivite || "N/A"}
+                          {getEnterpriseSecteur(p.entrepriseId)}
                         </span>
+                        {p.statut && (
+                          <span style={{ 
+                            padding: "2px 8px", 
+                            borderRadius: "4px", 
+                            fontSize: "12px",
+                            background: p.statut === "VALIDE" ? "#d1fae5" : p.statut === "EN_ATTENTE" ? "#fef3c7" : "#fee2e2",
+                            color: p.statut === "VALIDE" ? "#059669" : p.statut === "EN_ATTENTE" ? "#d97706" : "#dc2626"
+                          }}>
+                            {p.statut === "VALIDE" ? "✅ Validé" : p.statut === "EN_ATTENTE" ? "⏳ En attente" : "❌ Rejeté"}
+                          </span>
+                        )}
                       </div>
+                      {p.commentaire && (
+                        <p style={{ fontSize: "12px", color: "#9ca3af", margin: "4px 0 0 0", fontStyle: "italic" }}>
+                          💬 {p.commentaire}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                     <div style={{ textAlign: "right" }}>
-                      <p style={{ fontWeight: "600", margin: 0, fontSize: "14px" }}>{p.productionPhysique.toLocaleString()} unités</p>
-                      <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{p.chiffreAffaires.toLocaleString()} FCFA</p>
+                      <p style={{ fontWeight: "600", margin: 0, fontSize: "14px" }}>{(p.productionPhysique || 0).toLocaleString()} unités</p>
+                      <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{(p.chiffreAffaires || 0).toLocaleString()} FCFA</p>
+                      <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employés</p>
                     </div>
-                    <button 
+                    <button
                       onClick={() => handleDelete(p.id)}
                       style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444", fontSize: "16px" }}
                     >
