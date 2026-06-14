@@ -16,6 +16,134 @@ interface Enterprise {
   nomContact: string | null;
 }
 
+// ✅ MAPPING COMPLET : Secteurs réels du Cameroun (avec slashes et espaces) → Catégories du frontend
+const SECTEUR_MAPPING: Record<string, string> = {
+  // === AGRICULTURE 🌾 ===
+  "AGRICULTURE": "AGRICULTURE",
+  "AGROALIMENTAIRE": "AGRICULTURE",
+  "AGRO-ALIMENTAIRE": "AGRICULTURE",
+  "AGRO INDUSTRIE": "AGRICULTURE",
+  "AGRO-INDUSTRIE": "AGRICULTURE",
+  "AGRICULTURE / AGRO-INDUSTRIE": "AGRICULTURE",
+  "AGRICULTURE/AGRO-INDUSTRIE": "AGRICULTURE",
+  "ELEVAGE": "AGRICULTURE",
+  "PECHE": "AGRICULTURE",
+  "FORESTERIE": "AGRICULTURE",
+  "AGRICULTURE / AGRO-INDUSTRIE": "AGRICULTURE",
+
+  // === INDUSTRIE 🏭 ===
+  "INDUSTRIE": "INDUSTRIE",
+  "INDUSTRIE LÉGÈRE": "INDUSTRIE",
+  "INDUSTRIE LEGERE": "INDUSTRIE",
+  "PHARMACEUTIQUE": "INDUSTRIE",
+  "CHIMIE": "INDUSTRIE",
+  "CHIMIE / PLASTIQUE": "INDUSTRIE",
+  "CHIMIE/PLASTIQUE": "INDUSTRIE",
+  "PLASTIQUE": "INDUSTRIE",
+  "TEXTILE": "INDUSTRIE",
+  "TEXTILE / HABILLEMENT": "INDUSTRIE",
+  "TEXTILE/HABILLEMENT": "INDUSTRIE",
+  "HABILLEMENT": "INDUSTRIE",
+  "MÉTALLURGIE": "INDUSTRIE",
+  "METALLURGIE": "INDUSTRIE",
+  "PLASTIQUE": "INDUSTRIE",
+  "BOIS": "INDUSTRIE",
+  "FORÊT / BOIS": "INDUSTRIE",
+  "FORET / BOIS": "INDUSTRIE",
+  "FORÊT/BOIS": "INDUSTRIE",
+  "CIMENT": "INDUSTRIE",
+  "ÉNERGIE": "INDUSTRIE",
+  "ENERGIE": "INDUSTRIE",
+  "MINES": "INDUSTRIE",
+
+  // === SERVICES 💼 ===
+  "SERVICES": "SERVICES",
+  "CONSULTING": "SERVICES",
+  "INFORMATIQUE": "SERVICES",
+  "TÉLÉCOMMUNICATIONS / IT": "SERVICES",
+  "TELECOMMUNICATIONS / IT": "SERVICES",
+  "TÉLÉCOMMUNICATIONS/IT": "SERVICES",
+  "TELECOMMUNICATIONS/IT": "SERVICES",
+  "TELECOM": "SERVICES",
+  "TÉLÉCOMMUNICATIONS": "SERVICES",
+  "TELECOMMUNICATIONS": "SERVICES",
+
+  // === COMMERCE 🛒 ===
+  "COMMERCE": "COMMERCE",
+  "DISTRIBUTION": "COMMERCE",
+  "IMPORT-EXPORT": "COMMERCE",
+  "IMPORT EXPORT": "COMMERCE",
+
+  // === CONSTRUCTION 🏗️ ===
+  "CONSTRUCTION": "CONSTRUCTION",
+  "BÂTIMENT": "CONSTRUCTION",
+  "BATIMENT": "CONSTRUCTION",
+  "TRAVAUX PUBLICS": "CONSTRUCTION",
+  "BTP": "CONSTRUCTION",
+  "BTP / MATÉRIAUX": "CONSTRUCTION",
+  "BTP/MATÉRIAUX": "CONSTRUCTION",
+  "BTP / MATERIAUX": "CONSTRUCTION",
+  "BTP/MATERIAUX": "CONSTRUCTION",
+  "MATÉRIAUX": "CONSTRUCTION",
+  "MATERIAUX": "CONSTRUCTION",
+
+  // === TECHNOLOGIE 💻 ===
+  "TECHNOLOGIE": "TECHNOLOGIE",
+  "TECH": "TECHNOLOGIE",
+  "NUMÉRIQUE": "TECHNOLOGIE",
+  "NUMERIQUE": "TECHNOLOGIE",
+  "DIGITAL": "TECHNOLOGIE",
+  "IT": "TECHNOLOGIE",
+
+  // === TRANSPORT 🚚 ===
+  "TRANSPORT": "TRANSPORT",
+  "LOGISTIQUE": "TRANSPORT",
+  "TRANSPORT / LOGISTIQUE": "TRANSPORT",
+  "TRANSPORT/LOGISTIQUE": "TRANSPORT",
+  "TRANSPORT-LOGISTIQUE": "TRANSPORT",
+
+  // === TOURISME ✈️ ===
+  "TOURISME": "TOURISME",
+  "HÔTELLERIE": "TOURISME",
+  "HOTELLERIE": "TOURISME",
+  "RESTAURATION": "TOURISME",
+  "TOURISME / HÔTELLERIE": "TOURISME",
+  "TOURISME/HÔTELLERIE": "TOURISME",
+  "TOURISME / HOTELLERIE": "TOURISME",
+  "TOURISME/HOTELLERIE": "TOURISME",
+
+  // === SANTÉ 🏥 ===
+  "SANTÉ": "SANTE",
+  "SANTE": "SANTE",
+  "PHARMACIE": "SANTE",
+  "MÉDICAL": "SANTE",
+  "MEDICAL": "SANTE",
+
+  // === ÉDUCATION 🎓 ===
+  "ÉDUCATION": "EDUCATION",
+  "EDUCATION": "EDUCATION",
+  "FORMATION": "EDUCATION",
+  "ENSEIGNEMENT": "EDUCATION",
+
+  // === FINANCE 🏦 ===
+  "FINANCE": "FINANCE",
+  "BANQUE": "FINANCE",
+  "ASSURANCE": "FINANCE",
+  "MICROFINANCE": "FINANCE",
+
+  // === AUTRE 📦 ===
+  "AUTRE": "AUTRE",
+  "SÉCURITÉ / DÉFENSE": "AUTRE",
+  "SECURITE / DEFENSE": "AUTRE",
+  "SÉCURITÉ/DÉFENSE": "AUTRE",
+  "SECURITE/DEFENSE": "AUTRE",
+  "ENVIRONNEMENT / DÉCHETS": "AUTRE",
+  "ENVIRONNEMENT/DECHETS": "AUTRE",
+  "ENVIRONNEMENT": "AUTRE",
+  "DÉCHETS": "AUTRE",
+  "DECHETS": "AUTRE",
+};
+
 const SECTEURS = [
   { value: "AGRICULTURE", label: "Agriculture", emoji: "🌾", color: "#16a34a", bg: "#dcfce7" },
   { value: "INDUSTRIE", label: "Industrie", emoji: "🏭", color: "#2563eb", bg: "#dbeafe" },
@@ -35,6 +163,45 @@ const REGIONS = [
   "Adamaoua", "Centre", "Est", "Extrême-Nord", "Littoral",
   "Nord", "Nord-Ouest", "Ouest", "Sud", "Sud-Ouest"
 ];
+
+// ✅ Fonction de normalisation du secteur (insensible à la casse, aux espaces, aux slashes)
+function normalizeSecteur(secteur: string | null): string {
+  if (!secteur) return "AUTRE";
+
+  // Normaliser : majuscules, trim, remplacer les espaces multiples par un seul
+  const normalized = secteur.toUpperCase().trim().replace(/\s+/g, " ");
+
+  // Chercher dans le mapping
+  const mapped = SECTEUR_MAPPING[normalized];
+  if (mapped) return mapped;
+
+  // Si pas trouvé exactement, essayer sans accents
+  const sansAccents = normalized
+    .replace(/[ÉÈÊË]/g, "E")
+    .replace(/[ÀÂÄ]/g, "A")
+    .replace(/[ÔÖ]/g, "O")
+    .replace(/[ÙÛÜ]/g, "U")
+    .replace(/[ÎÏ]/g, "I")
+    .replace(/[Ç]/g, "C");
+
+  const mappedSansAccents = SECTEUR_MAPPING[sansAccents];
+  if (mappedSansAccents) return mappedSansAccents;
+
+  // Dernière tentative : chercher si le secteur contient un mot-clé connu
+  if (sansAccents.includes("AGRICULTURE") || sansAccents.includes("AGRO")) return "AGRICULTURE";
+  if (sansAccents.includes("BTP") || sansAccents.includes("BATIMENT") || sansAccents.includes("MATERIAUX")) return "CONSTRUCTION";
+  if (sansAccents.includes("FINANCE") || sansAccents.includes("BANQUE")) return "FINANCE";
+  if (sansAccents.includes("TRANSPORT") || sansAccents.includes("LOGISTIQUE")) return "TRANSPORT";
+  if (sansAccents.includes("TELECOMM") || sansAccents.includes("TELECOM") || sansAccents.includes("IT")) return "SERVICES";
+  if (sansAccents.includes("TOURISME") || sansAccents.includes("HOTEL")) return "TOURISME";
+  if (sansAccents.includes("SANTE") || sansAccents.includes("MEDICAL") || sansAccents.includes("PHARMA")) return "SANTE";
+  if (sansAccents.includes("EDUCATION") || sansAccents.includes("FORMATION")) return "EDUCATION";
+  if (sansAccents.includes("ENERGIE") || sansAccents.includes("MINES") || sansAccents.includes("METALL") || sansAccents.includes("CHIMIE") || sansAccents.includes("TEXTILE") || sansAccents.includes("PLASTIQUE") || sansAccents.includes("BOIS") || sansAccents.includes("FORÊT") || sansAccents.includes("FORET") || sansAccents.includes("CIMENT") || sansAccents.includes("INDUSTRIE")) return "INDUSTRIE";
+  if (sansAccents.includes("COMMERCE") || sansAccents.includes("DISTRIBUTION") || sansAccents.includes("IMPORT")) return "COMMERCE";
+  if (sansAccents.includes("TECHNO") || sansAccents.includes("NUMERIQUE") || sansAccents.includes("DIGITAL")) return "TECHNOLOGIE";
+
+  return "AUTRE";
+}
 
 export default function EntreprisesPage() {
   const [showForm, setShowForm] = useState(false);
@@ -60,7 +227,6 @@ export default function EntreprisesPage() {
       const res = await fetch("/api/entreprises");
       if (res.ok) {
         const data = await res.json();
-        // ✅ CORRECTION : L'API retourne "entreprises" (français), pas "enterprises"
         const list = data.entreprises || data;
         setEnterprises(Array.isArray(list) ? list : []);
       }
@@ -123,12 +289,13 @@ export default function EntreprisesPage() {
     return SECTEURS.find((s) => s.value === secteur) || SECTEURS[SECTEURS.length - 1];
   };
 
-  const getSecteurCount = (secteur: string) => {
-    return Array.isArray(enterprises) 
-      ? enterprises.filter((e) => e.secteurActivite === secteur).length 
-      : 0;
+  // ✅ CORRECTION : Compteurs avec normalisation complète
+  const getSecteurCount = (secteurCategorie: string) => {
+    if (!Array.isArray(enterprises)) return 0;
+    return enterprises.filter((e) => normalizeSecteur(e.secteurActivite) === secteurCategorie).length;
   };
 
+  // ✅ CORRECTION : Filtrage avec normalisation
   const filteredEnterprises = Array.isArray(enterprises) 
     ? enterprises.filter((e) => {
         const searchLower = searchTerm.toLowerCase();
@@ -136,7 +303,7 @@ export default function EntreprisesPage() {
           (e.sigle && e.sigle.toLowerCase().includes(searchLower)) ||
           (e.description && e.description.toLowerCase().includes(searchLower)) ||
           (e.ville && e.ville.toLowerCase().includes(searchLower));
-        const matchSecteur = !filterSecteur || e.secteurActivite === filterSecteur;
+        const matchSecteur = !filterSecteur || normalizeSecteur(e.secteurActivite) === filterSecteur;
         const matchRegion = !filterRegion || e.region === filterRegion;
         return matchSearch && matchSecteur && matchRegion;
       })
@@ -478,7 +645,8 @@ export default function EntreprisesPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {filteredEnterprises.map((enterprise) => {
-                const secteurInfo = getSecteurInfo(enterprise.secteurActivite);
+                const secteurNormalise = normalizeSecteur(enterprise.secteurActivite);
+                const secteurInfo = getSecteurInfo(secteurNormalise);
                 return (
                   <div
                     key={enterprise.id}
@@ -500,7 +668,7 @@ export default function EntreprisesPage() {
                         {enterprise.sigle && <p style={{ fontSize: "14px", color: "#6b7280", margin: "2px 0 0 0" }}>{enterprise.sigle}</p>}
                         <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
                           <span style={{ padding: "2px 8px", border: "1px solid #e5e7eb", borderRadius: "4px", fontSize: "12px" }}>
-                            {secteurInfo.label}
+                            {enterprise.secteurActivite || secteurInfo.label}
                           </span>
                           {enterprise.ville && (
                             <span style={{ padding: "2px 8px", background: "#f3f4f6", borderRadius: "4px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}>
