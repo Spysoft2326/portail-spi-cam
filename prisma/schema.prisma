@@ -90,19 +90,27 @@ model Entreprise {
 }
 
 model Production {
-  id            String     @id @default(uuid())
-  entrepriseId  String
-  entreprise    Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
-  produit       String
-  quantite      Float?
-  unite         String?
-  periode       String?
-  annee         Int?
-  // === NOUVEAU : Champs pour le workflow Agent→Admin→SuperAdmin ===
-  statut        String     @default("EN_ATTENTE")
-  saisiePar     String?
-  validePar     String?
-  dateValidation DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id                String     @id @default(uuid())
+  entrepriseId      String
+  entreprise        Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  // === Champs de base ===
+  produit           String
+  quantite          Float?
+  unite             String?
+  periode           String?
+  annee             Int?
+  // === Champs détaillés pour le workflow ===
+  trimestre         Int?
+  productionPhysique Float?
+  chiffreAffaires   Float?
+  effectifs         Int?
+  investissements   Float?
+  commentaire       String?
+  // === Workflow Agent→Admin→SuperAdmin ===
+  statut            String     @default("EN_ATTENTE")
+  saisiePar         String?
+  validePar         String?
+  dateValidation    DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 }
