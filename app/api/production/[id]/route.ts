@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// PATCH /api/production/[id] - Valider/Rejeter une production (Admin/SuperAdmin)
+// PATCH /api/production/[id] - Modifier une production (Admin/SuperAdmin)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -14,27 +14,17 @@ export async function PATCH(
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    // Vérifier que l'utilisateur est Admin ou SuperAdmin
     if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
       return NextResponse.json(
-        { error: "Non autorisé - Seuls Admin et SuperAdmin peuvent valider" },
+        { error: "Non autorisé - Seuls Admin et SuperAdmin peuvent modifier" },
         { status: 403 }
       );
     }
 
     const { id } = params;
     const body = await request.json();
-    const { statut } = body;
+    const { produit, quantite, unite, periode, annee } = body;
 
-    // Validation du statut
-    if (!statut || !["VALIDE", "REJETE"].includes(statut)) {
-      return NextResponse.json(
-        { error: "Statut invalide. Utilisez 'VALIDE' ou 'REJETE'" },
-        { status: 400 }
-      );
-    }
-
-    // Vérifier que la production existe
     const existing = await prisma.production.findUnique({
       where: { id },
     });
@@ -46,14 +36,16 @@ export async function PATCH(
       );
     }
 
-    // Mettre à jour la production
+    const updateData: any = {};
+    if (produit !== undefined) updateData.produit = produit;
+    if (quantite !== undefined) updateData.quantite = quantite;
+    if (unite !== undefined) updateData.unite = unite;
+    if (periode !== undefined) updateData.periode = periode;
+    if (annee !== undefined) updateData.annee = annee;
+
     const production = await prisma.production.update({
       where: { id },
-      data: {
-        statut,
-        validePar: session.user.id,
-        dateValidation: new Date(),
-      },
+      data: updateData,
       include: {
         entreprise: {
           select: {
@@ -69,7 +61,7 @@ export async function PATCH(
   } catch (error) {
     console.error("[PRODUCTION_PATCH]", error);
     return NextResponse.json(
-      { error: "Erreur lors de la validation de la production" },
+      { error: "Erreur lors de la modification de la production" },
       { status: 500 }
     );
   }
@@ -132,7 +124,6 @@ export async function DELETE(
 
     const { id } = params;
 
-    // Vérifier que la production existe
     const existing = await prisma.production.findUnique({
       where: { id },
     });
@@ -144,15 +135,12 @@ export async function DELETE(
       );
     }
 
-    // Vérifier les permissions : Admin/SuperAdmin peuvent tout supprimer
-    // Agent peut supprimer seulement ses propres productions en attente
-    if (session.user.role === "AGENT_SAISIE") {
-      if (existing.saisiePar !== session.user.id || existing.statut !== "EN_ATTENTE") {
-        return NextResponse.json(
-          { error: "Non autorisé - Vous ne pouvez supprimer que vos productions en attente" },
-          { status: 403 }
-        );
-      }
+    // Seuls Admin et SuperAdmin peuvent supprimer
+    if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Non autorisé - Seuls Admin et SuperAdmin peuvent supprimer" },
+        { status: 403 }
+      );
     }
 
     await prisma.production.delete({
