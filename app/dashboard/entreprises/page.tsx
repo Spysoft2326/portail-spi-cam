@@ -14,11 +14,10 @@ interface Enterprise {
   telephone: string | null;
   email: string | null;
   nomContact: string | null;
+  statut: string;
 }
 
-// ✅ MAPPING COMPLET : Secteurs réels du Cameroun → Catégories du frontend
 const SECTEUR_MAPPING: Record<string, string> = {
-  // === AGRICULTURE 🌾 ===
   "AGRICULTURE": "AGRICULTURE",
   "AGROALIMENTAIRE": "AGRICULTURE",
   "AGRO-ALIMENTAIRE": "AGRICULTURE",
@@ -29,8 +28,6 @@ const SECTEUR_MAPPING: Record<string, string> = {
   "ELEVAGE": "AGRICULTURE",
   "PECHE": "AGRICULTURE",
   "FORESTERIE": "AGRICULTURE",
-
-  // === INDUSTRIE 🏭 ===
   "INDUSTRIE": "INDUSTRIE",
   "INDUSTRIE LÉGÈRE": "INDUSTRIE",
   "INDUSTRIE LEGERE": "INDUSTRIE",
@@ -53,8 +50,6 @@ const SECTEUR_MAPPING: Record<string, string> = {
   "ÉNERGIE": "INDUSTRIE",
   "ENERGIE": "INDUSTRIE",
   "MINES": "INDUSTRIE",
-
-  // === SERVICES 💼 ===
   "SERVICES": "SERVICES",
   "CONSULTING": "SERVICES",
   "INFORMATIQUE": "SERVICES",
@@ -65,14 +60,10 @@ const SECTEUR_MAPPING: Record<string, string> = {
   "TELECOM": "SERVICES",
   "TÉLÉCOMMUNICATIONS": "SERVICES",
   "TELECOMMUNICATIONS": "SERVICES",
-
-  // === COMMERCE 🛒 ===
   "COMMERCE": "COMMERCE",
   "DISTRIBUTION": "COMMERCE",
   "IMPORT-EXPORT": "COMMERCE",
   "IMPORT EXPORT": "COMMERCE",
-
-  // === CONSTRUCTION 🏗️ ===
   "CONSTRUCTION": "CONSTRUCTION",
   "BÂTIMENT": "CONSTRUCTION",
   "BATIMENT": "CONSTRUCTION",
@@ -84,23 +75,17 @@ const SECTEUR_MAPPING: Record<string, string> = {
   "BTP/MATERIAUX": "CONSTRUCTION",
   "MATÉRIAUX": "CONSTRUCTION",
   "MATERIAUX": "CONSTRUCTION",
-
-  // === TECHNOLOGIE 💻 ===
   "TECHNOLOGIE": "TECHNOLOGIE",
   "TECH": "TECHNOLOGIE",
   "NUMÉRIQUE": "TECHNOLOGIE",
   "NUMERIQUE": "TECHNOLOGIE",
   "DIGITAL": "TECHNOLOGIE",
   "IT": "TECHNOLOGIE",
-
-  // === TRANSPORT 🚚 ===
   "TRANSPORT": "TRANSPORT",
   "LOGISTIQUE": "TRANSPORT",
   "TRANSPORT / LOGISTIQUE": "TRANSPORT",
   "TRANSPORT/LOGISTIQUE": "TRANSPORT",
   "TRANSPORT-LOGISTIQUE": "TRANSPORT",
-
-  // === TOURISME ✈️ ===
   "TOURISME": "TOURISME",
   "HÔTELLERIE": "TOURISME",
   "HOTELLERIE": "TOURISME",
@@ -109,27 +94,19 @@ const SECTEUR_MAPPING: Record<string, string> = {
   "TOURISME/HÔTELLERIE": "TOURISME",
   "TOURISME / HOTELLERIE": "TOURISME",
   "TOURISME/HOTELLERIE": "TOURISME",
-
-  // === SANTÉ 🏥 ===
   "SANTÉ": "SANTE",
   "SANTE": "SANTE",
   "PHARMACIE": "SANTE",
   "MÉDICAL": "SANTE",
   "MEDICAL": "SANTE",
-
-  // === ÉDUCATION 🎓 ===
   "ÉDUCATION": "EDUCATION",
   "EDUCATION": "EDUCATION",
   "FORMATION": "EDUCATION",
   "ENSEIGNEMENT": "EDUCATION",
-
-  // === FINANCE 🏦 ===
   "FINANCE": "FINANCE",
   "BANQUE": "FINANCE",
   "ASSURANCE": "FINANCE",
   "MICROFINANCE": "FINANCE",
-
-  // === AUTRE 📦 ===
   "AUTRE": "AUTRE",
   "SÉCURITÉ / DÉFENSE": "AUTRE",
   "SECURITE / DEFENSE": "AUTRE",
@@ -162,7 +139,6 @@ const REGIONS = [
   "Nord", "Nord-Ouest", "Ouest", "Sud", "Sud-Ouest"
 ];
 
-// ✅ Fonction de normalisation du secteur
 function normalizeSecteur(secteur: string | null): string {
   if (!secteur) return "AUTRE";
   const normalized = secteur.toUpperCase().trim().replace(/\s+/g, " ");
@@ -203,6 +179,8 @@ export default function EntreprisesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSecteur, setFilterSecteur] = useState("");
   const [filterRegion, setFilterRegion] = useState("");
+  const [userRole, setUserRole] = useState<string>("");
+  const [validatingId, setValidatingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     denomination: "", sigle: "", description: "", secteurActivite: "AUTRE",
@@ -213,14 +191,13 @@ export default function EntreprisesPage() {
     fetchAllData();
   }, []);
 
-  // ✅ CORRECTION : Charger TOUTES les pages (pas seulement la première)
   const fetchAllData = async () => {
     try {
       setLoading(true);
       let allEnterprises: Enterprise[] = [];
       let page = 1;
       let hasMore = true;
-      const limit = 100; // 100 par page pour minimiser les requêtes
+      const limit = 100;
 
       while (hasMore) {
         const res = await fetch(`/api/entreprises?page=${page}&limit=${limit}`);
@@ -228,19 +205,21 @@ export default function EntreprisesPage() {
           const data = await res.json();
           const list = data.entreprises || [];
           allEnterprises = [...allEnterprises, ...list];
-
-          // Vérifier s'il y a encore des pages
           hasMore = list.length === limit && page < (data.totalPages || 1);
           page++;
-
-          // Sécurité : max 10 pages (1000 entreprises)
           if (page > 10) hasMore = false;
         } else {
           hasMore = false;
         }
       }
 
-      setEnterprises(allEnterprises);
+      setEnterprises(Array.isArray(allEnterprises) ? allEnterprises : []);
+
+      const sessionRes = await fetch("/api/auth/session");
+      if (sessionRes.ok) {
+        const sessionData = await sessionRes.json();
+        setUserRole(sessionData?.user?.role || "");
+      }
     } catch (error) {
       console.error("Erreur:", error);
     } finally {
@@ -272,7 +251,8 @@ export default function EntreprisesPage() {
         });
         fetchAllData();
       } else {
-        alert("Erreur lors de l'ajout");
+        const err = await res.json().catch(() => ({}));
+        alert("Erreur : " + (err.error || "Erreur lors de l'ajout"));
       }
     } catch (error) {
       alert("Erreur de connexion");
@@ -289,7 +269,29 @@ export default function EntreprisesPage() {
         alert("Entreprise supprimée");
         fetchAllData();
       } else {
-        alert("Erreur");
+        const err = await res.json().catch(() => ({}));
+        alert("Erreur : " + (err.error || "Erreur lors de la suppression"));
+      }
+    } catch (error) {
+      alert("Erreur de connexion");
+    }
+  };
+
+  const handleValidate = async (id: string, statut: "ACTIF" | "REJETE") => {
+    try {
+      const res = await fetch(`/api/entreprises/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statut }),
+      });
+
+      if (res.ok) {
+        alert(statut === "ACTIF" ? "Entreprise validée !" : "Entreprise rejetée.");
+        setValidatingId(null);
+        fetchAllData();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert("Erreur : " + (err.error || "Erreur lors de la validation"));
       }
     } catch (error) {
       alert("Erreur de connexion");
@@ -318,18 +320,26 @@ export default function EntreprisesPage() {
       })
     : [];
 
+  const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+  const isSuperAdmin = userRole === "SUPER_ADMIN";
+  const isAgent = userRole === "AGENT_SAISIE";
+
+  // Compteurs par statut
+  const actifCount = enterprises.filter(e => e.statut === "ACTIF").length;
+  const enAttenteCount = enterprises.filter(e => e.statut === "EN_ATTENTE").length;
+  const rejeteCount = enterprises.filter(e => e.statut === "REJETE").length;
+
   if (loading) {
     return (
       <div style={{ padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "20px", height: "20px", border: "3px solid #e5e7eb", borderTop: "3px solid #059669", borderRadius: "50%", animation: "spin 1s linear infinite" }}></div>
-          <span>Chargement de toutes les entreprises...</span>
+          <span>Chargement...</span>
         </div>
       </div>
     );
   }
 
-  // Formulaire
   if (showForm) {
     return (
       <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
@@ -344,12 +354,13 @@ export default function EntreprisesPage() {
           <div style={{ padding: "10px", background: "#dbeafe", borderRadius: "8px", fontSize: "24px" }}>🏢</div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Ajouter une entreprise</h1>
-            <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Nouvelle fiche entreprise</p>
+            <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>
+              {isAgent ? "Saisie en attente de validation" : isAdmin ? "Saisie en attente de validation SuperAdmin" : "Nouvelle fiche entreprise"}
+            </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Identité */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               🏢 Identité de l'entreprise
@@ -405,7 +416,6 @@ export default function EntreprisesPage() {
 
           <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
 
-          {/* Localisation */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               📍 Localisation
@@ -447,7 +457,6 @@ export default function EntreprisesPage() {
 
           <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
 
-          {/* Contact */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               👤 Contact de l'entreprise
@@ -525,7 +534,6 @@ export default function EntreprisesPage() {
     );
   }
 
-  // Liste
   return (
     <div style={{ padding: "24px" }}>
       {/* Header */}
@@ -541,10 +549,10 @@ export default function EntreprisesPage() {
           <button
             onClick={() => {
               const csv = [
-                ["Dénomination", "Sigle", "Secteur", "Ville", "Région", "Téléphone", "Email", "Contact"].join(","),
+                ["Dénomination", "Sigle", "Secteur", "Ville", "Région", "Téléphone", "Email", "Contact", "Statut"].join(","),
                 ...filteredEnterprises.map((e) => [
                   e.denomination, e.sigle || "", e.secteurActivite, e.ville || "", e.region || "",
-                  e.telephone || "", e.email || "", e.nomContact || ""
+                  e.telephone || "", e.email || "", e.nomContact || "", e.statut
                 ].join(","))
               ].join("\n");
               const blob = new Blob([csv], { type: "text/csv" });
@@ -564,6 +572,24 @@ export default function EntreprisesPage() {
           </button>
         </div>
       </div>
+
+      {/* ✅ NOUVEAU : Compteurs par statut (Admin/SuperAdmin) */}
+      {isAdmin && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
+          <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #d1fae5", background: "#d1fae5", textAlign: "center" }}>
+            <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#059669" }}>{actifCount}</p>
+            <p style={{ fontSize: "12px", color: "#065f46", margin: "4px 0 0 0" }}>✅ Actifs</p>
+          </div>
+          <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
+            <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#d97706" }}>{enAttenteCount}</p>
+            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0" }}>⏳ En attente</p>
+          </div>
+          <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fee2e2", background: "#fee2e2", textAlign: "center" }}>
+            <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#dc2626" }}>{rejeteCount}</p>
+            <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0" }}>❌ Rejetés</p>
+          </div>
+        </div>
+      )}
 
       {/* Compteurs par secteur */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "12px", marginBottom: "24px" }}>
@@ -668,14 +694,14 @@ export default function EntreprisesPage() {
                       borderRadius: "8px",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
                       <div style={{ padding: "8px", borderRadius: "6px", background: secteurInfo.bg, fontSize: "20px" }}>
                         {secteurInfo.emoji}
                       </div>
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{enterprise.denomination}</p>
                         {enterprise.sigle && <p style={{ fontSize: "14px", color: "#6b7280", margin: "2px 0 0 0" }}>{enterprise.sigle}</p>}
-                        <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                        <div style={{ display: "flex", gap: "8px", marginTop: "4px", flexWrap: "wrap" }}>
                           <span style={{ padding: "2px 8px", border: "1px solid #e5e7eb", borderRadius: "4px", fontSize: "12px" }}>
                             {enterprise.secteurActivite || secteurInfo.label}
                           </span>
@@ -684,16 +710,65 @@ export default function EntreprisesPage() {
                               📍 {enterprise.ville}{enterprise.region && `, ${enterprise.region}`}
                             </span>
                           )}
+                          {/* ✅ Badge statut */}
+                          <span style={{ 
+                            padding: "2px 8px", 
+                            borderRadius: "4px", 
+                            fontSize: "12px",
+                            background: enterprise.statut === "ACTIF" ? "#d1fae5" : enterprise.statut === "EN_ATTENTE" ? "#fef3c7" : "#fee2e2",
+                            color: enterprise.statut === "ACTIF" ? "#059669" : enterprise.statut === "EN_ATTENTE" ? "#d97706" : "#dc2626"
+                          }}>
+                            {enterprise.statut === "ACTIF" ? "✅ Actif" : enterprise.statut === "EN_ATTENTE" ? "⏳ En attente" : "❌ Rejeté"}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        onClick={() => handleDelete(enterprise.id)}
-                        style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444", fontSize: "16px" }}
-                      >
-                        🗑️
-                      </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+
+                      {/* ✅ Boutons Valider pour Admin/SuperAdmin sur EN_ATTENTE */}
+                      {isAdmin && enterprise.statut === "EN_ATTENTE" && (
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          {validatingId === enterprise.id ? (
+                            <div style={{ display: "flex", gap: "4px" }}>
+                              <button
+                                onClick={() => handleValidate(enterprise.id, "ACTIF")}
+                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px" }}
+                              >
+                                ✅ Valider
+                              </button>
+                              <button
+                                onClick={() => handleValidate(enterprise.id, "REJETE")}
+                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px" }}
+                              >
+                                ❌ Rejeter
+                              </button>
+                              <button
+                                onClick={() => setValidatingId(null)}
+                                style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px" }}
+                              >
+                                Annuler
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setValidatingId(enterprise.id)}
+                              style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151" }}
+                            >
+                              ⚙️ Valider
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* ✅ Bouton Supprimer uniquement SuperAdmin */}
+                      {isSuperAdmin && (
+                        <button
+                          onClick={() => handleDelete(enterprise.id)}
+                          style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444", fontSize: "16px" }}
+                        >
+                          🗑️
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

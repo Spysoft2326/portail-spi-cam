@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
-// ✅ GET — Liste des entreprises (existant, conservé)
+// ✅ GET — Liste des entreprises (filtrée par rôle)
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -76,11 +76,18 @@ export async function GET(request: Request) {
   }
 }
 
-// ✅ POST — Créer une nouvelle entreprise (AVEC CONTACTS)
+// ✅ POST — Créer une entreprise (WORKFLOW PAR RÔLE)
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const userRole = session.user.role;
+
+    // Tous les rôles authentifiés peuvent créer
+    if (!["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"].includes(userRole)) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -93,6 +100,15 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // ✅ WORKFLOW : Statut selon le rôle
+    let statut = "ACTIF";
+    if (userRole === "AGENT_SAISIE") {
+      statut = "EN_ATTENTE";
+    } else if (userRole === "ADMIN") {
+      statut = "EN_ATTENTE"; // Admin saisit mais doit être validé par SuperAdmin
+    }
+    // SuperAdmin → ACTIF directement
 
     // Génération d'une référence SPI unique
     const referenceSPI = `SPI-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -107,7 +123,7 @@ export async function POST(request: Request) {
         region: body.region || "Centre",
         siteWeb: body.siteWeb?.trim() || null,
         produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
-        statut: body.statut || "ACTIF",
+        statut,
         // === CHAMPS CONTACT ===
         telephone: body.telephone?.trim() || null,
         email: body.email?.trim() || null,

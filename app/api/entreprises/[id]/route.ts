@@ -3,22 +3,86 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-// ✅ PUT — Modifier une entreprise (AVEC CONTACTS + ADRESSE)
-export async function PUT(
+// GET /api/entreprises/[id] — Détails d'une entreprise
+export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const { id } = params;
+
+    const entreprise = await prisma.entreprise.findUnique({
+      where: { id },
+      include: {
+        productions: {
+          select: {
+            id: true,
+            annee: true,
+            trimestre: true,
+            statut: true,
+          },
+        },
+      },
+    });
+
+    if (!entreprise) {
+      return NextResponse.json(
+        { error: "Entreprise non trouvée" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ entreprise });
+  } catch (error) {
+    console.error("[ENTREPRISE_GET_ID]", error);
+    return NextResponse.json(
+      { error: "Erreur lors de la récupération de l'entreprise" },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/entreprises/[id] — Modifier statut (Admin/SuperAdmin)
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const userRole = session.user.role;
+
+    // Seuls Admin et SuperAdmin peuvent valider/rejeter
+    if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Non autorisé - Seuls Admin et SuperAdmin peuvent valider" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = params;
     const body = await request.json();
+    const { statut } = body;
+
+    // Validation du statut
+    if (!statut || !["ACTIF", "EN_ATTENTE", "REJETE"].includes(statut)) {
+      return NextResponse.json(
+        { error: "Statut invalide. Utilisez 'ACTIF', 'EN_ATTENTE' ou 'REJETE'" },
+        { status: 400 }
+      );
+    }
 
     // Vérifier que l'entreprise existe
     const existing = await prisma.entreprise.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existing) {
@@ -28,48 +92,48 @@ export async function PUT(
       );
     }
 
+    // Mettre à jour le statut
     const entreprise = await prisma.entreprise.update({
-      where: { id: params.id },
-      data: {
-        denomination: body.denomination?.trim() || existing.denomination,
-        sigle: body.sigle?.trim() || null,
-        secteurActivite: body.secteurActivite || existing.secteurActivite,
-        ville: body.ville?.trim() || null,
-        region: body.region || existing.region,
-        adresse: body.adresse?.trim() || null,  // ← AJOUTÉ : Adresse
-        siteWeb: body.siteWeb?.trim() || null,
-        produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
-        statut: body.statut || existing.statut,
-        // === CHAMPS CONTACT ===
-        telephone: body.telephone !== undefined ? (body.telephone?.trim() || null) : existing.telephone,
-        email: body.email !== undefined ? (body.email?.trim() || null) : existing.email,
-        nomContact: body.nomContact !== undefined ? (body.nomContact?.trim() || null) : existing.nomContact,
-      },
+      where: { id },
+      data: { statut },
     });
 
-    return NextResponse.json(entreprise);
-  } catch (error: any) {
-    console.error("Erreur modification entreprise:", error);
+    return NextResponse.json({ entreprise });
+  } catch (error) {
+    console.error("[ENTREPRISE_PATCH]", error);
     return NextResponse.json(
-      { error: "Erreur lors de la modification" },
+      { error: "Erreur lors de la validation de l'entreprise" },
       { status: 500 }
     );
   }
 }
 
-// ✅ DELETE — Supprimer une entreprise
+// DELETE /api/entreprises/[id] — Supprimer (SuperAdmin uniquement)
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const userRole = session.user.role;
+
+    // Seul SuperAdmin peut supprimer
+    if (userRole !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Non autorisé - Seul SuperAdmin peut supprimer" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = params;
+
+    // Vérifier que l'entreprise existe
     const existing = await prisma.entreprise.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existing) {
@@ -80,14 +144,14 @@ export async function DELETE(
     }
 
     await prisma.entreprise.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
-    return NextResponse.json({ success: true, message: "Entreprise supprimée" });
-  } catch (error: any) {
-    console.error("Erreur suppression entreprise:", error);
+    return NextResponse.json({ message: "Entreprise supprimée" });
+  } catch (error) {
+    console.error("[ENTREPRISE_DELETE]", error);
     return NextResponse.json(
-      { error: "Erreur lors de la suppression" },
+      { error: "Erreur lors de la suppression de l'entreprise" },
       { status: 500 }
     );
   }
