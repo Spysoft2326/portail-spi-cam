@@ -76,9 +76,10 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    if (!body.entrepriseId || !body.annee || !body.trimestre) {
+    // Validation
+    if (!body.entrepriseId || !body.annee || !body.trimestre || !body.produit) {
       return NextResponse.json(
-        { error: "entrepriseId, annee et trimestre sont obligatoires" },
+        { error: "entrepriseId, annee, trimestre et produit sont obligatoires" },
         { status: 400 }
       );
     }
@@ -88,11 +89,15 @@ export async function POST(request: Request) {
         entrepriseId: body.entrepriseId,
         annee: parseInt(body.annee),
         trimestre: parseInt(body.trimestre),
+        produit: body.produit.trim(),
+        quantite: body.quantite ? parseFloat(body.quantite) : null,
+        unite: body.unite?.trim() || null,
+        periode: body.periode?.trim() || null,
         productionPhysique: body.productionPhysique ? parseFloat(body.productionPhysique) : null,
         chiffreAffaires: body.chiffreAffaires ? parseFloat(body.chiffreAffaires) : null,
         effectifs: body.effectifs ? parseInt(body.effectifs) : null,
         investissements: body.investissements ? parseFloat(body.investissements) : null,
-        commentaire: body.commentaire || null,
+        commentaire: body.commentaire?.trim() || null,
         statut: "EN_ATTENTE",
         saisiePar: session.user.id || session.user.email || "unknown",
       },
