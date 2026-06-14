@@ -42,20 +42,35 @@ interface Entreprise {
   statut: string;
 }
 
-const SECTEURS = [
-  { value: "AGRICULTURE", label: "Agriculture", icon: TreePine, color: "bg-green-100 text-green-700" },
-  { value: "INDUSTRIE", label: "Industrie", icon: Factory, color: "bg-blue-100 text-blue-700" },
-  { value: "SERVICES", label: "Services", icon: Briefcase, color: "bg-purple-100 text-purple-700" },
-  { value: "COMMERCE", label: "Commerce", icon: Store, color: "bg-amber-100 text-amber-700" },
-  { value: "CONSTRUCTION", label: "Construction", icon: HardHat, color: "bg-orange-100 text-orange-700" },
-  { value: "TECHNOLOGIE", label: "Technologie", icon: Cpu, color: "bg-cyan-100 text-cyan-700" },
-  { value: "TRANSPORT", label: "Transport", icon: Truck, color: "bg-rose-100 text-rose-700" },
-  { value: "TOURISME", label: "Tourisme", icon: Plane, color: "bg-pink-100 text-pink-700" },
-  { value: "SANTE", label: "Santé", icon: Stethoscope, color: "bg-red-100 text-red-700" },
-  { value: "EDUCATION", label: "Éducation", icon: GraduationCap, color: "bg-indigo-100 text-indigo-700" },
-  { value: "FINANCE", label: "Finance", icon: Landmark, color: "bg-emerald-100 text-emerald-700" },
-  { value: "AUTRE", label: "Autre", icon: MoreHorizontal, color: "bg-gray-100 text-gray-700" },
-];
+const SECTEURS_ICONS: Record<string, any> = {
+  "AGRICULTURE": TreePine,
+  "INDUSTRIE": Factory,
+  "SERVICES": Briefcase,
+  "COMMERCE": Store,
+  "CONSTRUCTION": HardHat,
+  "TECHNOLOGIE": Cpu,
+  "TRANSPORT": Truck,
+  "TOURISME": Plane,
+  "SANTE": Stethoscope,
+  "EDUCATION": GraduationCap,
+  "FINANCE": Landmark,
+  "AUTRE": MoreHorizontal,
+};
+
+const SECTEURS_COLORS: Record<string, string> = {
+  "AGRICULTURE": "bg-green-100 text-green-700",
+  "INDUSTRIE": "bg-blue-100 text-blue-700",
+  "SERVICES": "bg-purple-100 text-purple-700",
+  "COMMERCE": "bg-amber-100 text-amber-700",
+  "CONSTRUCTION": "bg-orange-100 text-orange-700",
+  "TECHNOLOGIE": "bg-cyan-100 text-cyan-700",
+  "TRANSPORT": "bg-rose-100 text-rose-700",
+  "TOURISME": "bg-pink-100 text-pink-700",
+  "SANTE": "bg-red-100 text-red-700",
+  "EDUCATION": "bg-indigo-100 text-indigo-700",
+  "FINANCE": "bg-emerald-100 text-emerald-700",
+  "AUTRE": "bg-gray-100 text-gray-700",
+};
 
 export default function EntreprisesPage() {
   const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
@@ -80,12 +95,17 @@ export default function EntreprisesPage() {
   }, []);
 
   const getSecteurInfo = (secteur: string) => {
-    return SECTEURS.find((s) => s.value === secteur) || SECTEURS[SECTEURS.length - 1];
+    const icon = SECTEURS_ICONS[secteur] || MoreHorizontal;
+    const color = SECTEURS_COLORS[secteur] || "bg-gray-100 text-gray-700";
+    return { icon, color, label: secteur };
   };
 
   const getSecteurCount = (secteur: string) => {
     return entreprises.filter((e) => e.secteurActivite === secteur).length;
   };
+
+  // Secteurs uniques présents dans la base
+  const secteursUniques = Array.from(new Set(entreprises.map((e) => e.secteurActivite))).sort();
 
   const filteredEntreprises = entreprises.filter((e) => {
     const searchLower = searchTerm.toLowerCase();
@@ -152,24 +172,25 @@ export default function EntreprisesPage() {
               📊 RÉPARTITION PAR SECTEUR
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {SECTEURS.map((secteur) => {
-                const count = getSecteurCount(secteur.value);
-                const Icon = secteur.icon;
+              {secteursUniques.map((secteur) => {
+                const count = getSecteurCount(secteur);
+                const info = getSecteurInfo(secteur);
+                const Icon = info.icon;
                 return (
                   <div
-                    key={secteur.value}
+                    key={secteur}
                     className={`bg-white rounded-lg border border-gray-200 p-4 text-center cursor-pointer transition-all hover:shadow-md ${
-                      filterSecteur === secteur.value ? "ring-2 ring-blue-500" : ""
+                      filterSecteur === secteur ? "ring-2 ring-blue-500" : ""
                     }`}
                     onClick={() =>
-                      setFilterSecteur(filterSecteur === secteur.value ? "" : secteur.value)
+                      setFilterSecteur(filterSecteur === secteur ? "" : secteur)
                     }
                   >
-                    <div className={`p-2 rounded-lg mb-2 inline-block ${secteur.color}`}>
+                    <div className={`p-2 rounded-lg mb-2 inline-block ${info.color}`}>
                       <Icon className="h-5 w-5" />
                     </div>
                     <p className="text-2xl font-bold">{count}</p>
-                    <p className="text-xs text-gray-500">{secteur.label}</p>
+                    <p className="text-xs text-gray-500">{info.label}</p>
                   </div>
                 );
               })}
@@ -200,9 +221,9 @@ export default function EntreprisesPage() {
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
             >
               <option value="">Tous les secteurs</option>
-              {SECTEURS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
+              {secteursUniques.map((s) => (
+                <option key={s} value={s}>
+                  {s}
                 </option>
               ))}
             </select>
