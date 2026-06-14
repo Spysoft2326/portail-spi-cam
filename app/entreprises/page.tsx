@@ -49,7 +49,7 @@ export default function EntreprisesPage() {
     return matchSearch && matchSecteur;
   });
 
-  const secteurs = [...new Set(entreprises.map((e) => e.secteurActivite))];
+  const secteurs = Array.from(new Set(entreprises.map((e) => e.secteurActivite)));
 
   if (loading) {
     return (
