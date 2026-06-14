@@ -3,15 +3,41 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// ✅ GET — Liste publique des entreprises (filtrée par statut et recherche)
+// ✅ GET — Liste des entreprises (filtrée par statut, recherche, rôle)
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const secteur = searchParams.get("secteur") || "";
-    const statut = searchParams.get("statut") || "ACTIF";
+    const statutParam = searchParams.get("statut");
 
-    const where: any = { statut };
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+
+    // Déterminer le statut selon le rôle
+    let statutFilter = "ACTIF";
+    if (!userRole) {
+      // Public : voir uniquement ACTIF
+      statutFilter = "ACTIF";
+    } else if (userRole === "AGENT_SAISIE") {
+      // Agent : voir ACTIF + ses propres EN_ATTENTE
+      statutFilter = statutParam || "ACTIF";
+    } else if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+      // Admin/SuperAdmin : voir tout selon paramètre
+      statutFilter = statutParam || "ACTIF";
+    }
+
+    const where: any = {};
+
+    if (statutFilter !== "ALL") {
+      where.statut = statutFilter;
+    }
+
+    // Agent ne voit que ses propres EN_ATTENTE + toutes les ACTIF
+    if (userRole === "AGENT_SAISIE" && statutFilter === "EN_ATTENTE") {
+      where.agentId = userId;
+    }
 
     if (search) {
       where.OR = [
@@ -45,7 +71,7 @@ export async function GET(request: Request) {
   }
 }
 
-// ✅ POST — Créer une nouvelle entreprise (AVEC WORKFLOW)
+// ✅ POST — Créer une entreprise (Agent/Admin/SuperAdmin)
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -68,6 +94,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
+    // Déterminer le statut selon le rôle
     let statut = "EN_ATTENTE";
     if (userRole === "SUPER_ADMIN") {
       statut = "ACTIF";
@@ -96,6 +123,7 @@ export async function POST(request: Request) {
         estExportateur: body.estExportateur || false,
         estDansZoneIndustrielle: body.estDansZoneIndustrielle || false,
         nomZoneIndustrielle: body.nomZoneIndustrielle?.trim() || null,
+        // === LIEN AVEC L'AGENT ===
         agentId: userRole === "AGENT_SAISIE" ? userId : null,
       },
     });
