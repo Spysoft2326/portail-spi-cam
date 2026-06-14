@@ -27,12 +27,6 @@ export async function GET(request: Request) {
 
     const entreprises = await prisma.entreprise.findMany({
       where,
-      orderBy: [{ nom: "asc" }],
-      include: {
-        _count: {
-          select: { productions: true },
-        },
-      },
     });
 
     return NextResponse.json(entreprises);
