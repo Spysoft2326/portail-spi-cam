@@ -40,27 +40,40 @@ export default function ProductionPage() {
   });
 
   useEffect(() => {
-    fetchData();
+    fetchAllData();
   }, []);
 
-  const fetchData = async () => {
+  // ✅ CORRECTION : Charger TOUTES les entreprises (pas seulement 20)
+  const fetchAllData = async () => {
     try {
       setLoading(true);
-      const [entRes, prodRes] = await Promise.all([
-        fetch("/api/entreprises"),
-        fetch("/api/production")
-      ]);
 
-      if (entRes.ok) {
-        const entData = await entRes.json();
-        // ✅ CORRECTION : L'API retourne "entreprises" (français)
-        const entList = entData.entreprises || entData;
-        setEnterprises(Array.isArray(entList) ? entList : []);
+      // Charger toutes les entreprises avec pagination
+      let allEnterprises: Enterprise[] = [];
+      let page = 1;
+      let hasMore = true;
+      const limit = 100;
+
+      while (hasMore) {
+        const entRes = await fetch(`/api/entreprises?page=${page}&limit=${limit}`);
+        if (entRes.ok) {
+          const entData = await entRes.json();
+          const entList = entData.entreprises || [];
+          allEnterprises = [...allEnterprises, ...entList];
+          hasMore = entList.length === limit && page < (entData.totalPages || 1);
+          page++;
+          if (page > 10) hasMore = false;
+        } else {
+          hasMore = false;
+        }
       }
 
+      setEnterprises(Array.isArray(allEnterprises) ? allEnterprises : []);
+
+      // Charger les productions (une seule requête)
+      const prodRes = await fetch("/api/production");
       if (prodRes.ok) {
         const prodData = await prodRes.json();
-        // ✅ CORRECTION : L'API retourne "productions"
         const prodList = prodData.productions || prodData;
         setProductions(Array.isArray(prodList) ? prodList : []);
       }
@@ -101,7 +114,7 @@ export default function ProductionPage() {
           entrepriseId: "", annee: "2026", trimestre: "T1",
           productionPhysique: "", chiffreAffaires: "", nombreEmployes: "", commentaire: "",
         });
-        fetchData();
+        fetchAllData();
       } else {
         const err = await res.json().catch(() => ({}));
         alert("Erreur : " + (err.error || "Erreur lors de l'enregistrement"));
@@ -119,7 +132,7 @@ export default function ProductionPage() {
       const res = await fetch(`/api/production/${id}`, { method: "DELETE" });
       if (res.ok) {
         alert("Production supprimée");
-        fetchData();
+        fetchAllData();
       } else {
         alert("Erreur");
       }
@@ -128,14 +141,14 @@ export default function ProductionPage() {
     }
   };
 
-  // ✅ CORRECTION : Fonction sécurisée avec vérification Array.isArray
+  // ✅ Fonction sécurisée avec vérification Array.isArray
   const getEnterpriseName = (id: string) => {
     if (!Array.isArray(enterprises)) return "Entreprise inconnue";
     const ent = enterprises.find((e) => e.id === id);
     return ent ? `${ent.denomination}${ent.sigle ? ` (${ent.sigle})` : ""}` : "Entreprise inconnue";
   };
 
-  // ✅ CORRECTION : Fonction sécurisée pour le secteur
+  // ✅ Fonction sécurisée pour le secteur
   const getEnterpriseSecteur = (id: string) => {
     if (!Array.isArray(enterprises)) return "N/A";
     const ent = enterprises.find((e) => e.id === id);
