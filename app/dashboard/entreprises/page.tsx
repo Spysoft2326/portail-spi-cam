@@ -17,7 +17,6 @@ interface Enterprise {
 }
 
 // ✅ MAPPING COMPLET : Secteurs réels du Cameroun → Catégories du frontend
-// ⚠️ AUCUN DOUBLON de clé autorisé !
 const SECTEUR_MAPPING: Record<string, string> = {
   // === AGRICULTURE 🌾 ===
   "AGRICULTURE": "AGRICULTURE",
@@ -163,18 +162,13 @@ const REGIONS = [
   "Nord", "Nord-Ouest", "Ouest", "Sud", "Sud-Ouest"
 ];
 
-// ✅ Fonction de normalisation du secteur (insensible à la casse, aux espaces, aux slashes)
+// ✅ Fonction de normalisation du secteur
 function normalizeSecteur(secteur: string | null): string {
   if (!secteur) return "AUTRE";
-
-  // Normaliser : majuscules, trim, remplacer les espaces multiples par un seul
   const normalized = secteur.toUpperCase().trim().replace(/\s+/g, " ");
-
-  // Chercher dans le mapping
   const mapped = SECTEUR_MAPPING[normalized];
   if (mapped) return mapped;
 
-  // Si pas trouvé exactement, essayer sans accents
   const sansAccents = normalized
     .replace(/[ÉÈÊË]/g, "E")
     .replace(/[ÀÂÄ]/g, "A")
@@ -186,7 +180,6 @@ function normalizeSecteur(secteur: string | null): string {
   const mappedSansAccents = SECTEUR_MAPPING[sansAccents];
   if (mappedSansAccents) return mappedSansAccents;
 
-  // Dernière tentative : chercher si le secteur contient un mot-clé connu
   if (sansAccents.includes("AGRICULTURE") || sansAccents.includes("AGRO")) return "AGRICULTURE";
   if (sansAccents.includes("BTP") || sansAccents.includes("BATIMENT") || sansAccents.includes("MATERIAUX")) return "CONSTRUCTION";
   if (sansAccents.includes("FINANCE") || sansAccents.includes("BANQUE")) return "FINANCE";
@@ -217,18 +210,37 @@ export default function EntreprisesPage() {
   });
 
   useEffect(() => {
-    fetchData();
+    fetchAllData();
   }, []);
 
-  const fetchData = async () => {
+  // ✅ CORRECTION : Charger TOUTES les pages (pas seulement la première)
+  const fetchAllData = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/entreprises");
-      if (res.ok) {
-        const data = await res.json();
-        const list = data.entreprises || data;
-        setEnterprises(Array.isArray(list) ? list : []);
+      let allEnterprises: Enterprise[] = [];
+      let page = 1;
+      let hasMore = true;
+      const limit = 100; // 100 par page pour minimiser les requêtes
+
+      while (hasMore) {
+        const res = await fetch(`/api/entreprises?page=${page}&limit=${limit}`);
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.entreprises || [];
+          allEnterprises = [...allEnterprises, ...list];
+
+          // Vérifier s'il y a encore des pages
+          hasMore = list.length === limit && page < (data.totalPages || 1);
+          page++;
+
+          // Sécurité : max 10 pages (1000 entreprises)
+          if (page > 10) hasMore = false;
+        } else {
+          hasMore = false;
+        }
       }
+
+      setEnterprises(allEnterprises);
     } catch (error) {
       console.error("Erreur:", error);
     } finally {
@@ -258,7 +270,7 @@ export default function EntreprisesPage() {
           denomination: "", sigle: "", description: "", secteurActivite: "AUTRE",
           ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
         });
-        fetchData();
+        fetchAllData();
       } else {
         alert("Erreur lors de l'ajout");
       }
@@ -275,7 +287,7 @@ export default function EntreprisesPage() {
       const res = await fetch(`/api/entreprises/${id}`, { method: "DELETE" });
       if (res.ok) {
         alert("Entreprise supprimée");
-        fetchData();
+        fetchAllData();
       } else {
         alert("Erreur");
       }
@@ -288,13 +300,11 @@ export default function EntreprisesPage() {
     return SECTEURS.find((s) => s.value === secteur) || SECTEURS[SECTEURS.length - 1];
   };
 
-  // ✅ CORRECTION : Compteurs avec normalisation complète
   const getSecteurCount = (secteurCategorie: string) => {
     if (!Array.isArray(enterprises)) return 0;
     return enterprises.filter((e) => normalizeSecteur(e.secteurActivite) === secteurCategorie).length;
   };
 
-  // ✅ CORRECTION : Filtrage avec normalisation
   const filteredEnterprises = Array.isArray(enterprises) 
     ? enterprises.filter((e) => {
         const searchLower = searchTerm.toLowerCase();
@@ -313,7 +323,7 @@ export default function EntreprisesPage() {
       <div style={{ padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "20px", height: "20px", border: "3px solid #e5e7eb", borderTop: "3px solid #059669", borderRadius: "50%", animation: "spin 1s linear infinite" }}></div>
-          <span>Chargement...</span>
+          <span>Chargement de toutes les entreprises...</span>
         </div>
       </div>
     );
