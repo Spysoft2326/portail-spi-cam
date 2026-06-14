@@ -15,8 +15,8 @@ export async function GET(request: Request) {
 
     if (search) {
       where.OR = [
-        { nom: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
+        { denomination: { contains: search, mode: "insensitive" } },
+        { sigle: { contains: search, mode: "insensitive" } },
         { ville: { contains: search, mode: "insensitive" } },
       ];
     }
@@ -27,6 +27,12 @@ export async function GET(request: Request) {
 
     const entreprises = await prisma.entreprise.findMany({
       where,
+      orderBy: { denomination: "asc" },
+      include: {
+        _count: {
+          select: { productions: true },
+        },
+      },
     });
 
     return NextResponse.json(entreprises);
@@ -69,15 +75,27 @@ export async function POST(request: Request) {
 
     const entreprise = await prisma.entreprise.create({
       data: {
-        nom: body.nom?.trim(),
-        description: body.description?.trim() || null,
+        referenceSPI: body.referenceSPI?.trim() || `SPI-${Date.now()}`,
+        denomination: body.denomination?.trim(),
+        sigle: body.sigle?.trim() || null,
+        formeJuridique: body.formeJuridique?.trim() || null,
+        capitalSocial: body.capitalSocial ? parseFloat(body.capitalSocial) : null,
+        adresse: body.adresse?.trim() || null,
         ville: body.ville?.trim() || null,
-        secteurActivite: body.secteurActivite || "AUTRE",
-        statut: statut,
+        departement: body.departement?.trim() || null,
+        region: body.region?.trim() || "Inconnu",
         telephone: body.telephone?.trim() || null,
         email: body.email?.trim() || null,
         nomContact: body.nomContact?.trim() || null,
-        adresse: body.adresse?.trim() || null,
+        siteWeb: body.siteWeb?.trim() || null,
+        numContribuable: body.numContribuable?.trim() || null,
+        secteurActivite: body.secteurActivite || "AUTRE",
+        sousSecteur: body.sousSecteur?.trim() || null,
+        produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
+        statut: statut,
+        estExportateur: body.estExportateur || false,
+        estDansZoneIndustrielle: body.estDansZoneIndustrielle || false,
+        nomZoneIndustrielle: body.nomZoneIndustrielle?.trim() || null,
         agentId: userRole === "AGENT_SAISIE" ? userId : null,
       },
     });
