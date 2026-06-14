@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         region: entreprise.region,
         telephone: entreprise.telephone,
         email: entreprise.email,
-        nomContact: entreprise.nomContact,  // ← AJOUTÉ : Nom du contact
+        nomContact: entreprise.nomContact,
         siteWeb: entreprise.siteWeb,
         numContribuable: entreprise.numContribuable,
         secteurActivite: entreprise.secteurActivite,
@@ -61,12 +61,10 @@ export async function GET(request: NextRequest) {
       productions: entreprise.productions.map((p) => ({
         id: p.id,
         annee: p.annee,
-        trimestre: p.trimestre,
-        productionPhysique: p.productionPhysique,
-        chiffreAffaires: p.chiffreAffaires,
-        effectifs: p.effectifs,
-        investissements: p.investissements,
-        statut: p.statut,
+        periode: p.periode,
+        produit: p.produit,
+        quantite: p.quantite,
+        unite: p.unite,
       })),
     });
   } catch (error) {
