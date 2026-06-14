@@ -18,7 +18,6 @@ interface Production {
   chiffreAffaires: number;
   effectifs: number;
   commentaire?: string | null;
-  commentaireValidation?: string | null;
   statut?: string;
   saisiePar?: string;
   validePar?: string | null;
@@ -34,7 +33,6 @@ export default function ProductionPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [userRole, setUserRole] = useState<string>("");
   const [validatingId, setValidatingId] = useState<string | null>(null);
-  const [validationComment, setValidationComment] = useState("");
 
   const [formData, setFormData] = useState({
     entrepriseId: "",
@@ -50,7 +48,7 @@ export default function ProductionPage() {
     fetchAllData();
   }, []);
 
-  // ✅ Charger toutes les entreprises avec pagination + productions + rôle utilisateur
+  // Charger toutes les entreprises avec pagination + productions + rôle utilisateur
   const fetchAllData = async () => {
     try {
       setLoading(true);
@@ -155,22 +153,18 @@ export default function ProductionPage() {
     }
   };
 
-  // ✅ NOUVEAU : Valider une production
+  // Valider/Rejeter une production
   const handleValidate = async (id: string, statut: "VALIDE" | "REJETE") => {
     try {
       const res = await fetch(`/api/production/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          statut,
-          commentaireValidation: validationComment,
-        }),
+        body: JSON.stringify({ statut }),
       });
 
       if (res.ok) {
         alert(statut === "VALIDE" ? "Production validée !" : "Production rejetée.");
         setValidatingId(null);
-        setValidationComment("");
         fetchAllData();
       } else {
         const err = await res.json().catch(() => ({}));
@@ -245,7 +239,6 @@ export default function ProductionPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Section Entreprise */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               🏢 Entreprise
@@ -277,7 +270,6 @@ export default function ProductionPage() {
 
           <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
 
-          {/* Section Période */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               📅 Période
@@ -318,7 +310,6 @@ export default function ProductionPage() {
 
           <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
 
-          {/* Section Données */}
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               📊 Données de production
@@ -368,7 +359,6 @@ export default function ProductionPage() {
             </div>
           </div>
 
-          {/* Commentaire */}
           <div style={{ marginBottom: "32px" }}>
             <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
               💬 Commentaire (optionnel)
@@ -455,7 +445,7 @@ export default function ProductionPage() {
         </div>
       </div>
 
-      {/* ✅ NOUVEAU : Compteurs par statut (visible pour Admin) */}
+      {/* Compteurs par statut (visible Admin uniquement) */}
       {isAdmin && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
@@ -571,11 +561,6 @@ export default function ProductionPage() {
                           💬 {p.commentaire}
                         </p>
                       )}
-                      {p.commentaireValidation && (
-                        <p style={{ fontSize: "12px", color: "#dc2626", margin: "4px 0 0 0", fontStyle: "italic" }}>
-                          📝 Commentaire validation: {p.commentaireValidation}
-                        </p>
-                      )}
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -585,38 +570,29 @@ export default function ProductionPage() {
                       <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employés</p>
                     </div>
 
-                    {/* ✅ NOUVEAU : Boutons Valider/Rejeter pour Admin */}
+                    {/* Boutons Valider/Rejeter pour Admin */}
                     {isAdmin && p.statut === "EN_ATTENTE" && (
                       <div style={{ display: "flex", gap: "4px" }}>
                         {validatingId === p.id ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <input
-                              type="text"
-                              placeholder="Commentaire (optionnel)"
-                              value={validationComment}
-                              onChange={(e) => setValidationComment(e.target.value)}
-                              style={{ padding: "4px 8px", border: "1px solid #d1d5db", borderRadius: "4px", fontSize: "12px", width: "150px" }}
-                            />
-                            <div style={{ display: "flex", gap: "4px" }}>
-                              <button
-                                onClick={() => handleValidate(p.id, "VALIDE")}
-                                style={{ padding: "4px 8px", border: "none", borderRadius: "4px", background: "#059669", color: "white", cursor: "pointer", fontSize: "11px" }}
-                              >
-                                ✅ Valider
-                              </button>
-                              <button
-                                onClick={() => handleValidate(p.id, "REJETE")}
-                                style={{ padding: "4px 8px", border: "none", borderRadius: "4px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "11px" }}
-                              >
-                                ❌ Rejeter
-                              </button>
-                              <button
-                                onClick={() => { setValidatingId(null); setValidationComment(""); }}
-                                style={{ padding: "4px 8px", border: "1px solid #d1d5db", borderRadius: "4px", background: "white", cursor: "pointer", fontSize: "11px" }}
-                              >
-                                Annuler
-                              </button>
-                            </div>
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            <button
+                              onClick={() => handleValidate(p.id, "VALIDE")}
+                              style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px" }}
+                            >
+                              ✅ Valider
+                            </button>
+                            <button
+                              onClick={() => handleValidate(p.id, "REJETE")}
+                              style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px" }}
+                            >
+                              ❌ Rejeter
+                            </button>
+                            <button
+                              onClick={() => setValidatingId(null)}
+                              style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px" }}
+                            >
+                              Annuler
+                            </button>
                           </div>
                         ) : (
                           <button

@@ -24,7 +24,7 @@ export async function PATCH(
 
     const { id } = params;
     const body = await request.json();
-    const { statut, commentaireValidation } = body;
+    const { statut } = body;
 
     // Validation du statut
     if (!statut || !["VALIDE", "REJETE"].includes(statut)) {
@@ -51,7 +51,6 @@ export async function PATCH(
       where: { id },
       data: {
         statut,
-        commentaireValidation: commentaireValidation || null,
         validePar: session.user.id,
         dateValidation: new Date(),
       },
