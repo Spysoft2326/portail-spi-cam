@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Shield, UserCheck, Search, Plus, Pencil, Trash2, X, Save, Eye, EyeOff } from "lucide-react";
+import { Users, Shield, UserCheck, Search, Plus, Pencil, Trash2, X, Save } from "lucide-react";
 
 interface User {
   id: string;
@@ -22,17 +22,14 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [generatedPassword, setGeneratedPassword] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     role: "AGENT_SAISIE",
     isActive: true,
-    password: "",
   });
 
-  // SYNCHRONISATION: Mettre a jour le state quand les props changent
+  // SYNCHRONISATION: Mettre à jour le state quand les props changent
   useEffect(() => {
     setUsers(initialUsers);
   }, [initialUsers]);
@@ -62,64 +59,48 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
       email: user.email,
       role: user.role,
       isActive: user.isActive,
-      password: "",
     });
-    setGeneratedPassword("");
     setShowModal(true);
   };
 
   const handleAdd = () => {
     setEditingUser(null);
-    setFormData({ name: "", email: "", role: "AGENT_SAISIE", isActive: true, password: "" });
-    setGeneratedPassword("");
+    setFormData({ name: "", email: "", role: "AGENT_SAISIE", isActive: true });
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    try {
-      if (editingUser) {
-        // Modifier
-        const res = await fetch(`/api/admin/users/${editingUser.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-        if (!res.ok) throw new Error("Erreur de modification");
-        const updatedUser = await res.json();
-        setUsers(users.map((u) => (u.id === editingUser.id ? updatedUser : u)));
-      } else {
-        // Ajouter
-        const res = await fetch("/api/admin/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-        if (!res.ok) throw new Error("Erreur de creation");
-        const newUser = await res.json();
-        setUsers([...users, newUser]);
-
-        // Afficher le mot de passe genere si l'API en a retourne un
-        if (newUser.generatedPassword) {
-          setGeneratedPassword(newUser.generatedPassword);
-        }
-      }
-      setShowModal(false);
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert("Erreur lors de l'enregistrement de l'utilisateur");
+    if (editingUser) {
+      // Modifier
+      setUsers(
+        users.map((u) =>
+          u.id === editingUser.id
+            ? { ...u, name: formData.name, email: formData.email, role: formData.role, isActive: formData.isActive }
+            : u
+        )
+      );
+      // await fetch(`/api/admin/users/${editingUser.id}`, { method: "PUT", body: JSON.stringify(formData) });
+    } else {
+      // Ajouter
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        isActive: formData.isActive,
+        createdAt: new Date(),
+        emailVerified: null,
+      };
+      setUsers([...users, newUser]);
+      // await fetch("/api/admin/users", { method: "POST", body: JSON.stringify(formData) });
     }
+    setShowModal(false);
   };
 
   const handleDelete = async (userId: string) => {
-    if (confirm("Etes-vous sur de vouloir supprimer cet utilisateur ?")) {
-      try {
-        const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Erreur de suppression");
-        setUsers(users.filter((u) => u.id !== userId));
-      } catch (error) {
-        console.error("Erreur:", error);
-        alert("Erreur lors de la suppression de l'utilisateur");
-      }
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+      setUsers(users.filter((u) => u.id !== userId));
+      // await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
     }
   };
 
@@ -195,10 +176,10 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inscription</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email verifie</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email vérifié</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -206,7 +187,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
             {filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  Aucun utilisateur trouve.
+                  Aucun utilisateur trouvé.
                 </td>
               </tr>
             ) : (
@@ -295,36 +276,8 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
-              {!editingUser && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mot de passe {generatedPassword && "(genere automatiquement)"}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder={generatedPassword ? generatedPassword : "Laisser vide pour generer auto"}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {generatedPassword && (
-                    <p className="text-sm text-green-600 mt-1">
-                      [OK] Mot de passe genere : <strong>{generatedPassword}</strong>
-                    </p>
-                  )}
-                </div>
-              )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
