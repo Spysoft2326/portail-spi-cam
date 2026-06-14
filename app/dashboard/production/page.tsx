@@ -18,7 +18,11 @@ interface Production {
   chiffreAffaires: number;
   effectifs: number;
   commentaire?: string | null;
+  commentaireValidation?: string | null;
   statut?: string;
+  saisiePar?: string;
+  validePar?: string | null;
+  dateValidation?: string | null;
 }
 
 export default function ProductionPage() {
@@ -28,6 +32,9 @@ export default function ProductionPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [userRole, setUserRole] = useState<string>("");
+  const [validatingId, setValidatingId] = useState<string | null>(null);
+  const [validationComment, setValidationComment] = useState("");
 
   const [formData, setFormData] = useState({
     entrepriseId: "",
@@ -43,7 +50,7 @@ export default function ProductionPage() {
     fetchAllData();
   }, []);
 
-  // ✅ CORRECTION : Charger TOUTES les entreprises (pas seulement 20)
+  // ✅ Charger toutes les entreprises avec pagination + productions + rôle utilisateur
   const fetchAllData = async () => {
     try {
       setLoading(true);
@@ -70,12 +77,19 @@ export default function ProductionPage() {
 
       setEnterprises(Array.isArray(allEnterprises) ? allEnterprises : []);
 
-      // Charger les productions (une seule requête)
+      // Charger les productions
       const prodRes = await fetch("/api/production");
       if (prodRes.ok) {
         const prodData = await prodRes.json();
         const prodList = prodData.productions || prodData;
         setProductions(Array.isArray(prodList) ? prodList : []);
+      }
+
+      // Récupérer le rôle de l'utilisateur
+      const sessionRes = await fetch("/api/auth/session");
+      if (sessionRes.ok) {
+        const sessionData = await sessionRes.json();
+        setUserRole(sessionData?.user?.role || "");
       }
     } catch (error) {
       console.error("Erreur:", error);
@@ -141,14 +155,38 @@ export default function ProductionPage() {
     }
   };
 
-  // ✅ Fonction sécurisée avec vérification Array.isArray
+  // ✅ NOUVEAU : Valider une production
+  const handleValidate = async (id: string, statut: "VALIDE" | "REJETE") => {
+    try {
+      const res = await fetch(`/api/production/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          statut,
+          commentaireValidation: validationComment,
+        }),
+      });
+
+      if (res.ok) {
+        alert(statut === "VALIDE" ? "Production validée !" : "Production rejetée.");
+        setValidatingId(null);
+        setValidationComment("");
+        fetchAllData();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert("Erreur : " + (err.error || "Erreur lors de la validation"));
+      }
+    } catch (error) {
+      alert("Erreur de connexion");
+    }
+  };
+
   const getEnterpriseName = (id: string) => {
     if (!Array.isArray(enterprises)) return "Entreprise inconnue";
     const ent = enterprises.find((e) => e.id === id);
     return ent ? `${ent.denomination}${ent.sigle ? ` (${ent.sigle})` : ""}` : "Entreprise inconnue";
   };
 
-  // ✅ Fonction sécurisée pour le secteur
   const getEnterpriseSecteur = (id: string) => {
     if (!Array.isArray(enterprises)) return "N/A";
     const ent = enterprises.find((e) => e.id === id);
@@ -168,6 +206,13 @@ export default function ProductionPage() {
   const totalProduction = filteredProductions.reduce((sum, p) => sum + (p.productionPhysique || 0), 0);
   const totalCA = filteredProductions.reduce((sum, p) => sum + (p.chiffreAffaires || 0), 0);
   const totalEmployes = filteredProductions.reduce((sum, p) => sum + (p.effectifs || 0), 0);
+
+  // Compteurs par statut
+  const enAttenteCount = productions.filter(p => p.statut === "EN_ATTENTE").length;
+  const valideCount = productions.filter(p => p.statut === "VALIDE").length;
+  const rejeteCount = productions.filter(p => p.statut === "REJETE").length;
+
+  const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
 
   if (loading) {
     return (
@@ -386,10 +431,10 @@ export default function ProductionPage() {
           <button
             onClick={() => {
               const csv = [
-                ["Entreprise", "Année", "Trimestre", "Production", "CA (FCFA)", "Employés"].join(","),
+                ["Entreprise", "Année", "Trimestre", "Production", "CA (FCFA)", "Employés", "Statut"].join(","),
                 ...filteredProductions.map((p) => [
                   getEnterpriseName(p.entrepriseId), p.annee, p.trimestre,
-                  p.productionPhysique, p.chiffreAffaires, p.effectifs
+                  p.productionPhysique, p.chiffreAffaires, p.effectifs, p.statut || "EN_ATTENTE"
                 ].join(","))
               ].join("\n");
               const blob = new Blob([csv], { type: "text/csv" });
@@ -410,7 +455,25 @@ export default function ProductionPage() {
         </div>
       </div>
 
-      {/* Compteurs */}
+      {/* ✅ NOUVEAU : Compteurs par statut (visible pour Admin) */}
+      {isAdmin && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
+          <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
+            <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#d97706" }}>{enAttenteCount}</p>
+            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0" }}>⏳ En attente</p>
+          </div>
+          <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #d1fae5", background: "#d1fae5", textAlign: "center" }}>
+            <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#059669" }}>{valideCount}</p>
+            <p style={{ fontSize: "12px", color: "#065f46", margin: "4px 0 0 0" }}>✅ Validés</p>
+          </div>
+          <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fee2e2", background: "#fee2e2", textAlign: "center" }}>
+            <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#dc2626" }}>{rejeteCount}</p>
+            <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0" }}>❌ Rejetés</p>
+          </div>
+        </div>
+      )}
+
+      {/* Compteurs généraux */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
         {[
           { label: "Total productions", value: filteredProductions.length, sub: "saisies enregistrées", color: "#059669", bg: "#d1fae5" },
@@ -480,11 +543,11 @@ export default function ProductionPage() {
                     borderRadius: "8px",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
                     <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "6px", fontSize: "18px" }}>🏭</div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{getEnterpriseName(p.entrepriseId)}</p>
-                      <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                      <div style={{ display: "flex", gap: "8px", marginTop: "4px", flexWrap: "wrap" }}>
                         <span style={{ padding: "2px 8px", border: "1px solid #e5e7eb", borderRadius: "4px", fontSize: "12px" }}>
                           {p.annee} - {p.trimestre}
                         </span>
@@ -508,14 +571,64 @@ export default function ProductionPage() {
                           💬 {p.commentaire}
                         </p>
                       )}
+                      {p.commentaireValidation && (
+                        <p style={{ fontSize: "12px", color: "#dc2626", margin: "4px 0 0 0", fontStyle: "italic" }}>
+                          📝 Commentaire validation: {p.commentaireValidation}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                    <div style={{ textAlign: "right" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ textAlign: "right", marginRight: "8px" }}>
                       <p style={{ fontWeight: "600", margin: 0, fontSize: "14px" }}>{(p.productionPhysique || 0).toLocaleString()} unités</p>
                       <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{(p.chiffreAffaires || 0).toLocaleString()} FCFA</p>
                       <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employés</p>
                     </div>
+
+                    {/* ✅ NOUVEAU : Boutons Valider/Rejeter pour Admin */}
+                    {isAdmin && p.statut === "EN_ATTENTE" && (
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        {validatingId === p.id ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                            <input
+                              type="text"
+                              placeholder="Commentaire (optionnel)"
+                              value={validationComment}
+                              onChange={(e) => setValidationComment(e.target.value)}
+                              style={{ padding: "4px 8px", border: "1px solid #d1d5db", borderRadius: "4px", fontSize: "12px", width: "150px" }}
+                            />
+                            <div style={{ display: "flex", gap: "4px" }}>
+                              <button
+                                onClick={() => handleValidate(p.id, "VALIDE")}
+                                style={{ padding: "4px 8px", border: "none", borderRadius: "4px", background: "#059669", color: "white", cursor: "pointer", fontSize: "11px" }}
+                              >
+                                ✅ Valider
+                              </button>
+                              <button
+                                onClick={() => handleValidate(p.id, "REJETE")}
+                                style={{ padding: "4px 8px", border: "none", borderRadius: "4px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "11px" }}
+                              >
+                                ❌ Rejeter
+                              </button>
+                              <button
+                                onClick={() => { setValidatingId(null); setValidationComment(""); }}
+                                style={{ padding: "4px 8px", border: "1px solid #d1d5db", borderRadius: "4px", background: "white", cursor: "pointer", fontSize: "11px" }}
+                              >
+                                Annuler
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setValidatingId(p.id)}
+                            style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151" }}
+                          >
+                            ⚙️ Valider
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     <button
                       onClick={() => handleDelete(p.id)}
                       style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444", fontSize: "16px" }}
