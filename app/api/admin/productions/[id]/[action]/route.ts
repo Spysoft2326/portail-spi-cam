@@ -17,14 +17,14 @@ export async function POST(
 
     const { id, action } = params;
 
-    const newStatus = action === "validate" ? "VALIDEE" : "REJETEE";
+    // NOTE: Le champ "statut" n'existe pas dans le modèle Production.
+    // Cette API est désactivée temporairement pour éviter les erreurs de build.
+    // Pour réactiver, ajouter "statut" au schéma Prisma puis faire "npx prisma db push".
 
-    await prisma.production.update({
-      where: { id },
-      data: { statut: newStatus },
+    return NextResponse.json({ 
+      success: false, 
+      message: "Validation des productions non implémentée - champ statut inexistant dans le schéma" 
     });
-
-    return NextResponse.json({ success: true, status: newStatus });
   } catch (error) {
     console.error("Erreur API validate production:", error);
     return NextResponse.json(
