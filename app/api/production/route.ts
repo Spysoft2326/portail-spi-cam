@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     const where: any = {};
 
-    // Filtre par rôle
+    // Filtre par rôle : Agent ne voit que ses productions
     if (session.user.role === "AGENT_SAISIE") {
       where.saisiePar = session.user.id;
     }
@@ -82,13 +82,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ CORRECTION : Convertir trimestre string ("T1") → int (1)
+    let trimestreNum: number;
+    if (typeof trimestre === "string" && trimestre.startsWith("T")) {
+      trimestreNum = parseInt(trimestre.replace("T", ""));
+    } else {
+      trimestreNum = parseInt(trimestre);
+    }
+
+    if (isNaN(trimestreNum) || trimestreNum < 1 || trimestreNum > 4) {
+      return NextResponse.json(
+        { error: "Trimestre invalide. Utilisez T1, T2, T3 ou T4" },
+        { status: 400 }
+      );
+    }
+
     // Vérifier si production existe déjà
     const existing = await prisma.production.findUnique({
       where: {
         entrepriseId_annee_trimestre: {
           entrepriseId,
           annee: parseInt(annee),
-          trimestre: parseInt(trimestre),
+          trimestre: trimestreNum,
         },
       },
     });
@@ -104,7 +119,7 @@ export async function POST(request: NextRequest) {
       data: {
         entrepriseId,
         annee: parseInt(annee),
-        trimestre: parseInt(trimestre),
+        trimestre: trimestreNum,
         productionPhysique: productionPhysique ? parseFloat(productionPhysique) : null,
         chiffreAffaires: chiffreAffaires ? parseFloat(chiffreAffaires) : null,
         effectifs: effectifs ? parseInt(effectifs) : null,

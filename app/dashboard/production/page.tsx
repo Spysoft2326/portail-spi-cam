@@ -13,7 +13,7 @@ interface Production {
   id: string;
   entrepriseId: string;
   annee: number;
-  trimestre: string;
+  trimestre: number; // Int en base (1, 2, 3, 4)
   productionPhysique: number;
   chiffreAffaires: number;
   effectifs: number;
@@ -22,6 +22,12 @@ interface Production {
   saisiePar?: string;
   validePar?: string | null;
   dateValidation?: string | null;
+}
+
+// ✅ Convertir trimestre int → string pour affichage
+function formatTrimestre(t: number): string {
+  const map: Record<number, string> = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
+  return map[t] || `T${t}`;
 }
 
 export default function ProductionPage() {
@@ -48,12 +54,10 @@ export default function ProductionPage() {
     fetchAllData();
   }, []);
 
-  // Charger toutes les entreprises avec pagination + productions + rôle utilisateur
   const fetchAllData = async () => {
     try {
       setLoading(true);
 
-      // Charger toutes les entreprises avec pagination
       let allEnterprises: Enterprise[] = [];
       let page = 1;
       let hasMore = true;
@@ -75,7 +79,6 @@ export default function ProductionPage() {
 
       setEnterprises(Array.isArray(allEnterprises) ? allEnterprises : []);
 
-      // Charger les productions
       const prodRes = await fetch("/api/production");
       if (prodRes.ok) {
         const prodData = await prodRes.json();
@@ -83,7 +86,6 @@ export default function ProductionPage() {
         setProductions(Array.isArray(prodList) ? prodList : []);
       }
 
-      // Récupérer le rôle de l'utilisateur
       const sessionRes = await fetch("/api/auth/session");
       if (sessionRes.ok) {
         const sessionData = await sessionRes.json();
@@ -111,7 +113,7 @@ export default function ProductionPage() {
         body: JSON.stringify({
           entrepriseId: formData.entrepriseId,
           annee: parseInt(formData.annee),
-          trimestre: formData.trimestre,
+          trimestre: formData.trimestre, // "T1" - l'API convertira
           productionPhysique: parseFloat(formData.productionPhysique) || 0,
           chiffreAffaires: parseFloat(formData.chiffreAffaires) || 0,
           effectifs: parseInt(formData.nombreEmployes) || 0,
@@ -153,7 +155,6 @@ export default function ProductionPage() {
     }
   };
 
-  // Valider/Rejeter une production
   const handleValidate = async (id: string, statut: "VALIDE" | "REJETE") => {
     try {
       const res = await fetch(`/api/production/${id}`, {
@@ -192,7 +193,7 @@ export default function ProductionPage() {
         if (!searchTerm) return true;
         const searchLower = searchTerm.toLowerCase();
         return getEnterpriseName(p.entrepriseId).toLowerCase().includes(searchLower) ||
-          p.trimestre.toLowerCase().includes(searchLower) ||
+          formatTrimestre(p.trimestre).toLowerCase().includes(searchLower) ||
           p.annee.toString().includes(searchLower);
       })
     : [];
@@ -201,7 +202,6 @@ export default function ProductionPage() {
   const totalCA = filteredProductions.reduce((sum, p) => sum + (p.chiffreAffaires || 0), 0);
   const totalEmployes = filteredProductions.reduce((sum, p) => sum + (p.effectifs || 0), 0);
 
-  // Compteurs par statut
   const enAttenteCount = productions.filter(p => p.statut === "EN_ATTENTE").length;
   const valideCount = productions.filter(p => p.statut === "VALIDE").length;
   const rejeteCount = productions.filter(p => p.statut === "REJETE").length;
@@ -219,7 +219,6 @@ export default function ProductionPage() {
     );
   }
 
-  // Formulaire
   if (showForm) {
     return (
       <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
@@ -405,10 +404,8 @@ export default function ProductionPage() {
     );
   }
 
-  // Liste
   return (
     <div style={{ padding: "24px" }}>
-      {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>🏭</div>
@@ -423,7 +420,7 @@ export default function ProductionPage() {
               const csv = [
                 ["Entreprise", "Année", "Trimestre", "Production", "CA (FCFA)", "Employés", "Statut"].join(","),
                 ...filteredProductions.map((p) => [
-                  getEnterpriseName(p.entrepriseId), p.annee, p.trimestre,
+                  getEnterpriseName(p.entrepriseId), p.annee, formatTrimestre(p.trimestre),
                   p.productionPhysique, p.chiffreAffaires, p.effectifs, p.statut || "EN_ATTENTE"
                 ].join(","))
               ].join("\n");
@@ -445,7 +442,6 @@ export default function ProductionPage() {
         </div>
       </div>
 
-      {/* Compteurs par statut (visible Admin uniquement) */}
       {isAdmin && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
@@ -463,7 +459,6 @@ export default function ProductionPage() {
         </div>
       )}
 
-      {/* Compteurs généraux */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
         {[
           { label: "Total productions", value: filteredProductions.length, sub: "saisies enregistrées", color: "#059669", bg: "#d1fae5" },
@@ -479,7 +474,6 @@ export default function ProductionPage() {
         ))}
       </div>
 
-      {/* Filtres */}
       <div style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", marginBottom: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", fontWeight: "600", fontSize: "14px" }}>
           🔍 Filtres
@@ -498,7 +492,6 @@ export default function ProductionPage() {
         </div>
       </div>
 
-      {/* Liste */}
       <div style={{ borderRadius: "8px", border: "1px solid #e5e7eb", background: "white" }}>
         <div style={{ padding: "16px", borderBottom: "1px solid #e5e7eb" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600" }}>
@@ -539,7 +532,7 @@ export default function ProductionPage() {
                       <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{getEnterpriseName(p.entrepriseId)}</p>
                       <div style={{ display: "flex", gap: "8px", marginTop: "4px", flexWrap: "wrap" }}>
                         <span style={{ padding: "2px 8px", border: "1px solid #e5e7eb", borderRadius: "4px", fontSize: "12px" }}>
-                          {p.annee} - {p.trimestre}
+                          {p.annee} - {formatTrimestre(p.trimestre)}
                         </span>
                         <span style={{ padding: "2px 8px", background: "#f3f4f6", borderRadius: "4px", fontSize: "12px" }}>
                           {getEnterpriseSecteur(p.entrepriseId)}
@@ -570,7 +563,7 @@ export default function ProductionPage() {
                       <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employés</p>
                     </div>
 
-                    {/* Boutons Valider/Rejeter pour Admin */}
+                    {/* ✅ Boutons Valider/Rejeter pour Admin - CORRIGÉ */}
                     {isAdmin && p.statut === "EN_ATTENTE" && (
                       <div style={{ display: "flex", gap: "4px" }}>
                         {validatingId === p.id ? (
