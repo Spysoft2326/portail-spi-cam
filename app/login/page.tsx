@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -13,13 +14,13 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // 1. Se connecter sans redirection automatique
       const result = await signIn("credentials", {
         email,
         password,
@@ -32,12 +33,10 @@ function LoginForm() {
         return;
       }
 
-      // 2. Récupérer la session pour connaître le rôle
       const session = await getSession();
       const role = session?.user?.role;
 
-      // 3. Rediriger selon le rôle
-      let redirectUrl = "/dashboard/agent-saisie"; // Par défaut
+      let redirectUrl = "/dashboard/agent-saisie";
 
       if (role === "SUPER_ADMIN" || role === "ADMIN") {
         redirectUrl = "/dashboard/admin";
@@ -45,7 +44,6 @@ function LoginForm() {
         redirectUrl = "/dashboard/agent-saisie";
       }
 
-      // Si un callbackUrl est fourni dans l'URL, l'utiliser (sauf si c'est la page de login)
       if (callbackUrl && callbackUrl !== "/login") {
         redirectUrl = callbackUrl;
       }
@@ -84,13 +82,27 @@ function LoginForm() {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Mot de passe</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
           <button
             type="submit"
