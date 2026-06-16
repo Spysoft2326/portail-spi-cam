@@ -40,32 +40,25 @@ export async function GET(request: Request) {
       take: 100, // Limiter à 100 résultats
     });
 
-    // Calculer les stats
+    // Calculer les stats basiques (sans chiffreAffaires, effectifs, investissements)
     const totalProductions = productions.length;
-    const totalCA = productions.reduce((sum, p) => sum + (p.chiffreAffaires || 0), 0);
-    const totalEmplois = productions.reduce((sum, p) => sum + (p.effectifs || 0), 0);
-    const totalInvestissements = productions.reduce((sum, p) => sum + (p.investissements || 0), 0);
 
     // Regrouper par secteur
     const secteurMap = new Map<string, number>();
     productions.forEach(p => {
-      const s = p.entreprise.secteurActivite;
+      const s = p.entreprise?.secteurActivite || "Inconnu";
       secteurMap.set(s, (secteurMap.get(s) || 0) + 1);
     });
     const productionsParSecteur = Array.from(secteurMap.entries()).map(([name, value]) => ({ name, value }));
 
     // Regrouper par trimestre
-    const trimestreMap = new Map<string, { productions: number; ca: number }>();
+    const trimestreMap = new Map<string, number>();
     productions.forEach(p => {
-      const key = `${p.annee}T${p.trimestre}`;
-      const current = trimestreMap.get(key) || { productions: 0, ca: 0 };
-      trimestreMap.set(key, {
-        productions: current.productions + 1,
-        ca: current.ca + (p.chiffreAffaires || 0)
-      });
+      const key = `${p.annee || "N/A"}T${p.trimestre || "N/A"}`;
+      trimestreMap.set(key, (trimestreMap.get(key) || 0) + 1);
     });
     const productionsParTrimestre = Array.from(trimestreMap.entries())
-      .map(([name, data]) => ({ name, ...data }))
+      .map(([name, productions]) => ({ name, productions }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     // Récupérer les années et secteurs disponibles
@@ -74,7 +67,7 @@ export async function GET(request: Request) {
       distinct: ["annee"],
       orderBy: { annee: "desc" },
     });
-    const annees = allProductions.map(p => p.annee);
+    const annees = allProductions.map(p => p.annee).filter((a): a is number => a !== null);
 
     const allEntreprises = await prisma.entreprise.findMany({
       select: { secteurActivite: true },
@@ -86,9 +79,6 @@ export async function GET(request: Request) {
       productions,
       stats: {
         totalProductions,
-        totalCA,
-        totalEmplois,
-        totalInvestissements,
         productionsParSecteur,
         productionsParTrimestre,
       },
