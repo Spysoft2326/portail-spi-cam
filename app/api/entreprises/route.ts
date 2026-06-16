@@ -118,7 +118,6 @@ export async function POST(request: Request) {
         referenceSPI: body.referenceSPI?.trim() || `SPI-${Date.now()}`,
         denomination: body.denomination?.trim(),
         sigle: body.sigle?.trim() || null,
-        // ❌ REMOVED: description n'existe pas dans le modèle Prisma
         formeJuridique: body.formeJuridique?.trim() || null,
         capitalSocial: body.capitalSocial ? parseFloat(body.capitalSocial) : null,
         adresse: body.adresse?.trim() || null,
@@ -133,6 +132,7 @@ export async function POST(request: Request) {
         secteurActivite: body.secteurActivite || "AUTRE",
         sousSecteur: body.sousSecteur?.trim() || null,
         produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
+        anneeCreation: body.anneeCreation ? parseInt(body.anneeCreation) : null, // ✅ NOUVEAU
         statut: statut,
         estExportateur: body.estExportateur || false,
         estDansZoneIndustrielle: body.estDansZoneIndustrielle || false,

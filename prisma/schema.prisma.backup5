@@ -40,14 +40,16 @@ model Session {
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
-  role          String    @default("USER")
+  password      String?
+  role          String    @default("AGENT_SAISIE")
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
   accounts      Account[]
   sessions      Session[]
-  entreprises   Entreprise[] @relation("AgentEntreprises")
-  auditLogs     AuditLog[]
+  entreprisesCreees Entreprise[] @relation("AgentEntreprises")
 }
 
 model VerificationToken {
@@ -77,7 +79,6 @@ model Entreprise {
   secteurActivite         String       @default("AUTRE")
   sousSecteur             String?
   produitsPrincipaux      String?
-  anneeCreation           Int?         // ✅ NOUVEAU: Année de création de l'entreprise
   statut                  String       @default("ACTIF")
   estExportateur          Boolean      @default(false)
   estDansZoneIndustrielle Boolean      @default(false)
@@ -100,23 +101,14 @@ model Production {
   annee             Int?
   trimestre         Int?
   productionPhysique Float?
+  chiffreAffaires   Float?
+  effectifs         Int?
+  investissements   Float?
+  commentaire       String?
+  statut            String     @default("EN_ATTENTE")
+  saisiePar         String?
+  validePar         String?
+  dateValidation    DateTime?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
-}
-
-model AuditLog {
-  id        String   @id @default(uuid())
-  action    String
-  entity    String
-  entityId  String
-  details   String?
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-}
-
-model ConfigSystem {
-  id    String @id @default(cuid())
-  key   String @unique
-  value String
 }

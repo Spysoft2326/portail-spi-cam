@@ -7,7 +7,6 @@ interface Enterprise {
   referenceSPI: string;
   denomination: string;
   sigle: string | null;
-  description: string | null;
   secteurActivite: string;
   ville: string | null;
   region: string | null;
@@ -18,18 +17,69 @@ interface Enterprise {
   statut: string;
 }
 
+// ✅ TOUS LES SECTEURS complets (alignés avec le mapping et les données réelles)
 const SECTEURS = [
   { value: "AGRICULTURE", label: "Agriculture" },
+  { value: "AGRO-INDUSTRIE", label: "Agro-industrie" },
+  { value: "ELEVAGE", label: "Élevage" },
+  { value: "PECHE", label: "Pêche" },
+  { value: "FORESTERIE", label: "Foresterie" },
   { value: "INDUSTRIE", label: "Industrie" },
+  { value: "INDUSTRIE_LEGERE", label: "Industrie légère" },
+  { value: "PHARMACEUTIQUE", label: "Pharmaceutique" },
+  { value: "CHIMIE", label: "Chimie" },
+  { value: "CHIMIE_PLASTIQUE", label: "Chimie / Plastique" },
+  { value: "PLASTIQUE", label: "Plastique" },
+  { value: "TEXTILE", label: "Textile" },
+  { value: "TEXTILE_HABILLEMENT", label: "Textile / Habillement" },
+  { value: "HABILLEMENT", label: "Habillement" },
+  { value: "METALLURGIE", label: "Métallurgie" },
+  { value: "BOIS", label: "Bois" },
+  { value: "FORET_BOIS", label: "Forêt / Bois" },
+  { value: "CIMENT", label: "Ciment" },
+  { value: "ENERGIE", label: "Énergie" },
+  { value: "MINES", label: "Mines" },
   { value: "SERVICES", label: "Services" },
+  { value: "CONSULTING", label: "Consulting" },
+  { value: "INFORMATIQUE", label: "Informatique" },
+  { value: "TELECOMMUNICATIONS", label: "Télécommunications" },
+  { value: "TELECOMMUNICATIONS_IT", label: "Télécommunications / IT" },
+  { value: "TELECOM", label: "Télécom" },
   { value: "COMMERCE", label: "Commerce" },
+  { value: "DISTRIBUTION", label: "Distribution" },
+  { value: "IMPORT_EXPORT", label: "Import-Export" },
   { value: "CONSTRUCTION", label: "Construction" },
+  { value: "BATIMENT", label: "Bâtiment" },
+  { value: "TRAVAUX_PUBLICS", label: "Travaux publics" },
+  { value: "BTP", label: "BTP" },
+  { value: "BTP_MATERIAUX", label: "BTP / Matériaux" },
+  { value: "MATERIAUX", label: "Matériaux" },
   { value: "TECHNOLOGIE", label: "Technologie" },
+  { value: "TECH", label: "Tech" },
+  { value: "NUMERIQUE", label: "Numérique" },
+  { value: "DIGITAL", label: "Digital" },
+  { value: "IT", label: "IT" },
   { value: "TRANSPORT", label: "Transport" },
+  { value: "LOGISTIQUE", label: "Logistique" },
+  { value: "TRANSPORT_LOGISTIQUE", label: "Transport / Logistique" },
   { value: "TOURISME", label: "Tourisme" },
+  { value: "HOTELLERIE", label: "Hôtellerie" },
+  { value: "RESTAURATION", label: "Restauration" },
+  { value: "TOURISME_HOTELLERIE", label: "Tourisme / Hôtellerie" },
   { value: "SANTE", label: "Santé" },
+  { value: "PHARMACIE", label: "Pharmacie" },
+  { value: "MEDICAL", label: "Médical" },
   { value: "EDUCATION", label: "Éducation" },
+  { value: "FORMATION", label: "Formation" },
+  { value: "ENSEIGNEMENT", label: "Enseignement" },
   { value: "FINANCE", label: "Finance" },
+  { value: "BANQUE", label: "Banque" },
+  { value: "ASSURANCE", label: "Assurance" },
+  { value: "MICROFINANCE", label: "Microfinance" },
+  { value: "SECURITE_DEFENSE", label: "Sécurité / Défense" },
+  { value: "ENVIRONNEMENT", label: "Environnement" },
+  { value: "ENVIRONNEMENT_DECHETS", label: "Environnement / Déchets" },
+  { value: "DECHETS", label: "Déchets" },
   { value: "AUTRE", label: "Autre" },
 ];
 
@@ -52,8 +102,9 @@ export default function EntreprisesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    denomination: "", sigle: "", description: "", secteurActivite: "AUTRE",
+    denomination: "", sigle: "", secteurActivite: "AUTRE",
     ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
+    anneeCreation: "", // ✅ NOUVEAU: Année de création
   });
 
   useEffect(() => {
@@ -79,7 +130,6 @@ export default function EntreprisesPage() {
       const res = await fetch("/api/entreprises");
       if (res.ok) {
         const data = await res.json();
-        // L'API renvoie un tableau direct []
         setEnterprises(Array.isArray(data) ? data : []);
       } else {
         setEnterprises([]);
@@ -94,8 +144,9 @@ export default function EntreprisesPage() {
 
   const resetForm = () => {
     setFormData({
-      denomination: "", sigle: "", description: "", secteurActivite: "AUTRE",
+      denomination: "", sigle: "", secteurActivite: "AUTRE",
       ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
+      anneeCreation: "",
     });
     setEditingId(null);
     setShowForm(false);
@@ -105,7 +156,6 @@ export default function EntreprisesPage() {
     setFormData({
       denomination: enterprise.denomination,
       sigle: enterprise.sigle || "",
-      description: enterprise.description || "",
       secteurActivite: enterprise.secteurActivite,
       ville: enterprise.ville || "",
       region: enterprise.region || "",
@@ -113,6 +163,7 @@ export default function EntreprisesPage() {
       telephone: enterprise.telephone || "",
       email: enterprise.email || "",
       nomContact: enterprise.nomContact || "",
+      anneeCreation: "", // Pas encore dans le modèle, à récupérer si ajouté
     });
     setEditingId(enterprise.id);
     setShowForm(true);
@@ -201,7 +252,6 @@ export default function EntreprisesPage() {
     const matchSearch = !searchLower ||
       e.denomination.toLowerCase().includes(searchLower) ||
       (e.sigle && e.sigle.toLowerCase().includes(searchLower)) ||
-      (e.description && e.description.toLowerCase().includes(searchLower)) ||
       (e.ville && e.ville.toLowerCase().includes(searchLower)) ||
       (e.region && e.region.toLowerCase().includes(searchLower)) ||
       (e.adresse && e.adresse.toLowerCase().includes(searchLower)) ||
@@ -209,7 +259,7 @@ export default function EntreprisesPage() {
       (e.telephone && e.telephone.includes(searchLower)) ||
       (e.email && e.email.toLowerCase().includes(searchLower));
 
-    const matchSecteur = !filterSecteur || 
+    const matchSecteur = !filterSecteur ||
       e.secteurActivite.toUpperCase() === filterSecteur;
     const matchRegion = !filterRegion || e.region === filterRegion;
     const matchVille = !filterVille || e.ville === filterVille;
@@ -283,7 +333,9 @@ export default function EntreprisesPage() {
                 />
               </div>
               <div>
-                <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>Secteur d'activité <span style={{ color: "#ef4444" }}>*</span></label>
+                <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
+                  Secteur d'activité <span style={{ color: "#ef4444" }}>*</span>
+                </label>
                 <select
                   value={formData.secteurActivite}
                   onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })}
@@ -292,16 +344,20 @@ export default function EntreprisesPage() {
                   {SECTEURS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
-            </div>
-            <div style={{ marginTop: "16px" }}>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>Description</label>
-              <textarea
-                placeholder="Description de l'activité..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", resize: "vertical" }}
-              />
+              <div>
+                <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
+                  📅 Année de création
+                </label>
+                <input
+                  type="number"
+                  min="1900"
+                  max={new Date().getFullYear()}
+                  placeholder="Ex: 2010"
+                  value={formData.anneeCreation}
+                  onChange={(e) => setFormData({ ...formData, anneeCreation: e.target.value })}
+                  style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
+                />
+              </div>
             </div>
           </div>
 

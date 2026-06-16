@@ -37,7 +37,7 @@ export async function GET(
   }
 }
 
-// ✅ PATCH — Modifier une entreprise (Admin/SuperAdmin) ou valider (Admin/SuperAdmin)
+// ✅ PATCH — Modifier une entreprise (Admin/SuperAdmin/Agent) ou valider (Admin/SuperAdmin)
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
@@ -51,7 +51,7 @@ export async function PATCH(
 
     const userRole = session.user.role;
 
-    // ✅ FIX: Vérifier que userRole est défini avant includes()
+    // ✅ FIX: Vérifier que userRole est défini
     if (!userRole) {
       return NextResponse.json({ error: "Rôle non défini" }, { status: 403 });
     }
@@ -89,7 +89,6 @@ export async function PATCH(
     // Si c'est une modification complète
     if (body.denomination !== undefined) updateData.denomination = body.denomination?.trim();
     if (body.sigle !== undefined) updateData.sigle = body.sigle?.trim() || null;
-    if (body.description !== undefined) updateData.description = body.description?.trim() || null;
     if (body.secteurActivite !== undefined) updateData.secteurActivite = body.secteurActivite;
     if (body.ville !== undefined) updateData.ville = body.ville?.trim() || null;
     if (body.region !== undefined) updateData.region = body.region?.trim() || null;
@@ -104,6 +103,7 @@ export async function PATCH(
     if (body.numContribuable !== undefined) updateData.numContribuable = body.numContribuable?.trim() || null;
     if (body.sousSecteur !== undefined) updateData.sousSecteur = body.sousSecteur?.trim() || null;
     if (body.produitsPrincipaux !== undefined) updateData.produitsPrincipaux = body.produitsPrincipaux?.trim() || null;
+    if (body.anneeCreation !== undefined) updateData.anneeCreation = body.anneeCreation ? parseInt(body.anneeCreation) : null; // ✅ NOUVEAU
     if (body.estExportateur !== undefined) updateData.estExportateur = body.estExportateur;
     if (body.estDansZoneIndustrielle !== undefined) updateData.estDansZoneIndustrielle = body.estDansZoneIndustrielle;
     if (body.nomZoneIndustrielle !== undefined) updateData.nomZoneIndustrielle = body.nomZoneIndustrielle?.trim() || null;
