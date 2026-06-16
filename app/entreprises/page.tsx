@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+
 import {
   Search,
   Building2,
@@ -89,8 +89,14 @@ function getSectorColor(sector: string | null): string {
 // COMPOSANT PRINCIPAL
 // ============================================================
 export default function AnnuairePage() {
-  const searchParams = useSearchParams();
-  const sectorParam = searchParams.get("sector");
+  const [sectorParam, setSectorParam] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      setSectorParam(params.get("sector") || "");
+    }
+  }, []);
 
   const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
   const [loading, setLoading] = useState(true);
