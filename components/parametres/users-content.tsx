@@ -6,9 +6,8 @@ import { Users, Shield, UserCheck, Search, Plus, Pencil, Trash2, X, Save, Eye, E
 interface User {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;  // ✅ FIX: Prisma retourne string | null
   role: string;
-  // ❌ REMOVED: isActive n'existe pas dans le modèle Prisma User
   createdAt?: Date | string | null;
   emailVerified: Date | null;
 }
@@ -28,11 +27,9 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
     name: "",
     email: "",
     role: "AGENT_SAISIE",
-    // ❌ REMOVED: isActive n'existe pas dans Prisma
     password: "",
   });
 
-  // SYNCHRONISATION: Mettre a jour le state quand les props changent
   useEffect(() => {
     setUsers(initialUsers);
   }, [initialUsers]);
@@ -40,7 +37,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
   const filteredUsers = users.filter(
     (user) =>
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const roleLabels: Record<string, string> = {
@@ -59,9 +56,8 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
     setEditingUser(user);
     setFormData({
       name: user.name || "",
-      email: user.email,
+      email: user.email || "",
       role: user.role,
-      // ❌ REMOVED: isActive
       password: "",
     });
     setGeneratedPassword("");
@@ -75,11 +71,9 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
     setShowModal(true);
   };
 
-  // ==================== CORRECTION 1: PUT ====================
   const handleSave = async () => {
     try {
       if (editingUser) {
-        // Modifier - CORRECTION: endpoint sans ID dans l'URL, id dans le body
         const res = await fetch(`/api/admin/users`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -92,7 +86,6 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
         const updatedUser = await res.json();
         setUsers(users.map((u) => (u.id === editingUser.id ? updatedUser : u)));
       } else {
-        // Ajouter
         const res = await fetch("/api/admin/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -104,8 +97,6 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
         }
         const newUser = await res.json();
         setUsers([...users, newUser]);
-
-        // Afficher le mot de passe genere si l'API en a retourne un
         if (newUser.generatedPassword) {
           setGeneratedPassword(newUser.generatedPassword);
         }
@@ -116,13 +107,10 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
       alert(error.message || "Erreur lors de l'enregistrement de l'utilisateur");
     }
   };
-  // ==========================================================
 
-  // ==================== CORRECTION 2: DELETE ====================
   const handleDelete = async (userId: string) => {
     if (confirm("Etes-vous sur de vouloir supprimer cet utilisateur ?")) {
       try {
-        // CORRECTION: utiliser ?id= en query param au lieu de /id
         const res = await fetch(`/api/admin/users?id=${userId}`, { method: "DELETE" });
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
@@ -135,9 +123,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
       }
     }
   };
-  // =============================================================
 
-  // Helper pour formater la date
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return "N/A";
     const d = typeof date === "string" ? new Date(date) : date;
@@ -217,7 +203,6 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-              {/* ❌ REMOVED: Colonne Statut (isActive) */}
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inscription</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email verifie</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -240,7 +225,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{user.name || "Sans nom"}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <p className="text-sm text-gray-500">{user.email || "-"}</p>
                       </div>
                     </div>
                   </td>
@@ -249,7 +234,6 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
                       {roleLabels[user.role] || user.role}
                     </span>
                   </td>
-                  {/* ❌ REMOVED: Colonne Statut (isActive) */}
                   <td className="px-4 py-3 text-sm text-gray-500">
                     {formatDate(user.createdAt)}
                   </td>
@@ -352,7 +336,6 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
                   <option value="SUPER_ADMIN">Super Administrateur</option>
                 </select>
               </div>
-              {/* ❌ REMOVED: Checkbox isActive */}
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button
