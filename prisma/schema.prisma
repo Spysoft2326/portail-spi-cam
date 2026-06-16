@@ -77,7 +77,7 @@ model Entreprise {
   secteurActivite         String       @default("AUTRE")
   sousSecteur             String?
   produitsPrincipaux      String?
-  anneeCreation           Int?         // ✅ NOUVEAU: Année de création de l'entreprise
+  // ❌ REMOVED: anneeCreation - n'existe pas dans la DB PostgreSQL existante
   statut                  String       @default("ACTIF")
   estExportateur          Boolean      @default(false)
   estDansZoneIndustrielle Boolean      @default(false)
