@@ -25,12 +25,13 @@ export default async function DashboardLayout({
         {/* Header harmonisé */}
         <div className="bg-white border-b px-8 py-6">
           <div className="max-w-7xl mx-auto">
+            {/* CORRECTION: Lien vers Paramètres au lieu de la page publique */}
             <Link
-              href="/"
+              href="/dashboard/parametres"
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm"
             >
               <ArrowLeft className="w-4 h-4" />
-              Retour au site
+              Retour aux paramètres
             </Link>
 
             <div className="flex items-center justify-between">
@@ -40,7 +41,7 @@ export default async function DashboardLayout({
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {role === "SUPER_ADMIN" ? "Tableau de bord SuperAdmin" : 
+                    {role === "SUPER_ADMIN" ? "Tableau de bord SuperAdmin" :
                      role === "ADMIN" ? "Tableau de bord Admin" :
                      role === "AGENT_SAISIE" ? "Espace Agent" : "Portail SPI-CAM"}
                   </h1>
