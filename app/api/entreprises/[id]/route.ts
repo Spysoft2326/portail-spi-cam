@@ -50,8 +50,13 @@ export async function PATCH(
     }
 
     const userRole = session.user.role;
-    const allowedRoles = ["ADMIN", "SUPER_ADMIN", "AGENT_SAISIE"];
 
+    // ✅ FIX: Vérifier que userRole est défini avant includes()
+    if (!userRole) {
+      return NextResponse.json({ error: "Rôle non défini" }, { status: 403 });
+    }
+
+    const allowedRoles = ["ADMIN", "SUPER_ADMIN", "AGENT_SAISIE"];
     if (!allowedRoles.includes(userRole)) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
@@ -131,6 +136,11 @@ export async function DELETE(
     }
 
     const userRole = session.user.role;
+
+    // ✅ FIX: Vérifier que userRole est défini
+    if (!userRole) {
+      return NextResponse.json({ error: "Rôle non défini" }, { status: 403 });
+    }
 
     if (userRole !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Seul le SuperAdmin peut supprimer" }, { status: 403 });
