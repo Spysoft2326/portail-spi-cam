@@ -105,6 +105,13 @@ export default function AnnuairePage() {
   // Filtres
   const [searchText, setSearchText] = useState("");
   const [selectedSector, setSelectedSector] = useState(sectorParam || "");
+
+  // Synchroniser selectedSector quand sectorParam change (depuis URL)
+  useEffect(() => {
+    if (sectorParam) {
+      setSelectedSector(sectorParam);
+    }
+  }, [sectorParam]);
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedVille, setSelectedVille] = useState("");
   const [regionText, setRegionText] = useState("");   // saisie libre région
@@ -716,3 +723,4 @@ export default function AnnuairePage() {
     </div>
   );
 }
+
