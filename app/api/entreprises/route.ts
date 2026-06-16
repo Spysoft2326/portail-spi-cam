@@ -39,13 +39,12 @@ export async function GET(request: Request) {
       where.agentId = userId;
     }
 
-    // Recherche textuelle (nom, sigle, ville, description, contact, téléphone, email)
+    // Recherche textuelle (nom, sigle, ville, contact, téléphone, email)
     if (search) {
       where.OR = [
         { denomination: { contains: search, mode: "insensitive" } },
         { sigle: { contains: search, mode: "insensitive" } },
         { ville: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
         { nomContact: { contains: search, mode: "insensitive" } },
         { telephone: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
@@ -95,8 +94,8 @@ export async function POST(request: Request) {
     }
 
     const userRole = session.user.role;
-    const userId = session.user.id;
 
+    // ✅ FIX: Vérifier que userRole est défini
     if (!userRole) {
       return NextResponse.json({ error: "Rôle non défini" }, { status: 403 });
     }
@@ -119,7 +118,7 @@ export async function POST(request: Request) {
         referenceSPI: body.referenceSPI?.trim() || `SPI-${Date.now()}`,
         denomination: body.denomination?.trim(),
         sigle: body.sigle?.trim() || null,
-        description: body.description?.trim() || null,
+        // ❌ REMOVED: description n'existe pas dans le modèle Prisma
         formeJuridique: body.formeJuridique?.trim() || null,
         capitalSocial: body.capitalSocial ? parseFloat(body.capitalSocial) : null,
         adresse: body.adresse?.trim() || null,
@@ -138,7 +137,7 @@ export async function POST(request: Request) {
         estExportateur: body.estExportateur || false,
         estDansZoneIndustrielle: body.estDansZoneIndustrielle || false,
         nomZoneIndustrielle: body.nomZoneIndustrielle?.trim() || null,
-        agentId: userRole === "AGENT_SAISIE" ? userId : null,
+        agentId: userRole === "AGENT_SAISIE" ? session.user.id : null,
       },
     });
 
