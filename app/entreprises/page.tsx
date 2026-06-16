@@ -519,9 +519,10 @@ export default function AnnuairePage() {
                 {viewMode === "list" && (
                   <div className="space-y-4">
                     {filtered.map((entreprise) => (
-                      <div
+                      <Link
+                        href={`/entreprises/${entreprise.id}`}
                         key={entreprise.id}
-                        className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-[#007A3D]/30 transition-all duration-300"
+                        className="block bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-[#007A3D]/30 transition-all duration-300 cursor-pointer"
                       >
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                           <div className="flex-1">
@@ -603,7 +604,7 @@ export default function AnnuairePage() {
                             </span>
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -612,9 +613,10 @@ export default function AnnuairePage() {
                 {viewMode === "grid" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filtered.map((entreprise) => (
-                      <div
+                      <Link
+                        href={`/entreprises/${entreprise.id}`}
                         key={entreprise.id}
-                        className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:border-[#007A3D]/30 transition-all duration-300"
+                        className="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:border-[#007A3D]/30 transition-all duration-300 cursor-pointer"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="w-12 h-12 bg-[#007A3D]/10 rounded-xl flex items-center justify-center">
@@ -689,7 +691,7 @@ export default function AnnuairePage() {
                             </span>
                           )}
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}
