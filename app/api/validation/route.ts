@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Seuls admin et super-admin peuvent valider
-    if (!["ADMIN", "SUPER_ADMIN"].includes(session.user.role || "")) {
+    const userRole = session.user.role;
+    if (!userRole || !["ADMIN", "SUPER_ADMIN"].includes(userRole)) {
       return NextResponse.json(
         { error: "Accès refusé - Rôle insuffisant" },
         { status: 403 }
@@ -36,16 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const production = await prisma.production.update({
+    // Vérifier que la production existe
+    const existingProduction = await prisma.production.findUnique({
       where: { id: productionId },
-      data: {
-        statut: action,
-        validePar: session.user.id,
-        dateValidation: new Date(),
-        commentaire: commentaireValidation
-          ? `${action === "VALIDEE" ? "✅ Validée" : "❌ Rejetée"}: ${commentaireValidation}`
-          : undefined,
-      },
       include: {
         entreprise: {
           select: {
@@ -57,7 +51,32 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ production });
+    if (!existingProduction) {
+      return NextResponse.json(
+        { error: "Production non trouvée" },
+        { status: 404 }
+      );
+    }
+
+    // ✅ Production n'a pas de champ statut, validePar, dateValidation, commentaire
+    // On crée un audit log pour tracer la validation
+    await prisma.auditLog.create({
+      data: {
+        action: `VALIDATION_${action}`,
+        entity: "Production",
+        entityId: productionId,
+        details: commentaireValidation
+          ? `${action === "VALIDEE" ? "✅ Validée" : "❌ Rejetée"}: ${commentaireValidation}`
+          : `Production ${action === "VALIDEE" ? "validée" : "rejetée"} par ${session.user.email || session.user.name}`,
+        userId: session.user.id,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Production ${action === "VALIDEE" ? "validée" : "rejetée"} avec succès`,
+      production: existingProduction,
+    });
   } catch (error) {
     console.error("[VALIDATION_POST]", error);
     return NextResponse.json(
