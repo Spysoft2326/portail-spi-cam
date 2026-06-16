@@ -31,10 +31,11 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          if (!user.isActive) {
-            console.error("User inactive:", validated.email);
-            return null;
-          }
+          // ❌ REMOVED: isActive n'existe pas dans le modèle Prisma User
+          // if (!user.isActive) {
+          //   console.error("User inactive:", validated.email);
+          //   return null;
+          // }
 
           // Verifier que le mot de passe existe
           if (!user.password) {
