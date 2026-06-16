@@ -20,10 +20,10 @@ export default async function UsersPage() {
       email: true,
       role: true,
       // ❌ REMOVED: isActive n'existe pas dans le modèle Prisma User
-      createdAt: true,
+      // ❌ REMOVED: createdAt n'existe pas dans le modèle Prisma User
       emailVerified: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { id: "desc" },
   });
 
   return (
