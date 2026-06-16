@@ -1,11 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Settings, Users, Bell, Shield, Database, Save, Check } from "lucide-react";
+import UsersContent from "./users-content";
+
+interface User {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt?: Date | string | null;
+  emailVerified: Date | null;
+}
 
 export default function ParametresContent() {
   const [activeTab, setActiveTab] = useState("general");
   const [saved, setSaved] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   const tabs = [
     { id: "general", label: "Général", icon: Settings },
@@ -14,6 +27,25 @@ export default function ParametresContent() {
     { id: "securite", label: "Sécurité", icon: Shield },
     { id: "donnees", label: "Données", icon: Database },
   ];
+
+  // Charger les utilisateurs quand on clique sur l'onglet Utilisateurs
+  useEffect(() => {
+    if (activeTab === "utilisateurs") {
+      setLoadingUsers(true);
+      fetch("/api/admin/users")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.users) {
+            setUsers(data.users);
+          }
+          setLoadingUsers(false);
+        })
+        .catch((err) => {
+          console.error("Erreur chargement users:", err);
+          setLoadingUsers(false);
+        });
+    }
+  }, [activeTab]);
 
   const handleSave = () => {
     setSaved(true);
@@ -90,31 +122,15 @@ export default function ParametresContent() {
           )}
 
           {activeTab === "utilisateurs" && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Gestion des utilisateurs</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <div className="font-medium text-gray-900">Super-Administrateurs</div>
-                    <div className="text-sm text-gray-500">Accès complet au système</div>
-                  </div>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">2 actifs</span>
+            <div>
+              {loadingUsers ? (
+                <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-4 text-gray-500">Chargement des utilisateurs...</p>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <div className="font-medium text-gray-900">Administrateurs</div>
-                    <div className="text-sm text-gray-500">Gestion des données et validations</div>
-                  </div>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">5 actifs</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <div className="font-medium text-gray-900">Agents de saisie</div>
-                    <div className="text-sm text-gray-500">Saisie des données de production</div>
-                  </div>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">12 actifs</span>
-                </div>
-              </div>
+              ) : (
+                <UsersContent users={users} />
+              )}
             </div>
           )}
 
