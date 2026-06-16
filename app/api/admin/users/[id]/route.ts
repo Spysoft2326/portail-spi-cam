@@ -1,102 +1,156 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
 
-export const dynamic = 'force-dynamic';
-
-export async function PUT(
-  request: Request,
+// PATCH /api/production/[id] - Modifier une production (Admin/SuperAdmin)
+export async function PATCH(
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role as string)) {
-      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Non autorisé - Seuls Admin et SuperAdmin peuvent modifier" },
+        { status: 403 }
+      );
     }
 
     const { id } = params;
-    const { name, email, role, password } = await request.json();
+    const body = await request.json();
+    const { produit, quantite, unite, periode, annee } = body;
 
-    const existingUser = await prisma.user.findUnique({ where: { id } });
-    if (!existingUser) {
-      return NextResponse.json({ error: "Utilisateur non trouve" }, { status: 404 });
-    }
+    const existing = await prisma.production.findUnique({
+      where: { id },
+    });
 
-    if (existingUser.role === "SUPER_ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Impossible de modifier un Super Admin" }, { status: 403 });
-    }
-
-    if (role === "SUPER_ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Seul un Super Admin peut attribuer ce role" }, { status: 403 });
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Production non trouvée" },
+        { status: 404 }
+      );
     }
 
     const updateData: any = {};
-    if (name) updateData.name = name;
-    if (email) updateData.email = email;
-    if (role) updateData.role = role;
-    if (password) {
-      updateData.password = await bcrypt.hash(password, 10);
-    }
+    if (produit !== undefined) updateData.produit = produit;
+    if (quantite !== undefined) updateData.quantite = quantite;
+    if (unite !== undefined) updateData.unite = unite;
+    if (periode !== undefined) updateData.periode = periode;
+    if (annee !== undefined) updateData.annee = annee;
 
-    const user = await prisma.user.update({
+    const production = await prisma.production.update({
       where: { id },
       data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
+      include: {
+        entreprise: {
+          select: {
+            id: true,
+            denomination: true,
+            referenceSPI: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(user);
+    return NextResponse.json({ production });
   } catch (error) {
-    console.error("Erreur API update user:", error);
+    console.error("[PRODUCTION_PATCH]", error);
     return NextResponse.json(
-      { error: "Erreur lors de la modification de l'utilisateur" },
+      { error: "Erreur lors de la modification de la production" },
       { status: 500 }
     );
   }
 }
 
-export async function DELETE(
-  request: Request,
+// GET /api/production/[id] - Détails d'une production
+export async function GET(
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role as string)) {
-      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     const { id } = params;
 
-    const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) {
-      return NextResponse.json({ error: "Utilisateur non trouve" }, { status: 404 });
+    const production = await prisma.production.findUnique({
+      where: { id },
+      include: {
+        entreprise: {
+          select: {
+            id: true,
+            denomination: true,
+            referenceSPI: true,
+            secteurActivite: true,
+          },
+        },
+      },
+    });
+
+    if (!production) {
+      return NextResponse.json(
+        { error: "Production non trouvée" },
+        { status: 404 }
+      );
     }
 
-    if (user.role === "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Impossible de supprimer un Super Admin" }, { status: 403 });
-    }
-
-    if (user.role === "ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Seul un Super Admin peut supprimer un Admin" }, { status: 403 });
-    }
-
-    if (user.id === session.user.id) {
-      return NextResponse.json({ error: "Vous ne pouvez pas vous supprimer vous-meme" }, { status: 403 });
-    }
-
-    await prisma.user.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ production });
   } catch (error) {
-    console.error("Erreur API delete user:", error);
+    console.error("[PRODUCTION_GET_ID]", error);
     return NextResponse.json(
-      { error: "Erreur lors de la suppression de l'utilisateur" },
+      { error: "Erreur lors de la récupération de la production" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/production/[id] - Supprimer une production
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const { id } = params;
+
+    const existing = await prisma.production.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Production non trouvée" },
+        { status: 404 }
+      );
+    }
+
+    if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Non autorisé - Seuls Admin et SuperAdmin peuvent supprimer" },
+        { status: 403 }
+      );
+    }
+
+    await prisma.production.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Production supprimée" });
+  } catch (error) {
+    console.error("[PRODUCTION_DELETE]", error);
+    return NextResponse.json(
+      { error: "Erreur lors de la suppression de la production" },
       { status: 500 }
     );
   }
