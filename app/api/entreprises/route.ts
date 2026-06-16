@@ -132,7 +132,7 @@ export async function POST(request: Request) {
         secteurActivite: body.secteurActivite || "AUTRE",
         sousSecteur: body.sousSecteur?.trim() || null,
         produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
-        anneeCreation: body.anneeCreation ? parseInt(body.anneeCreation) : null, // ✅ NOUVEAU
+        // ✅ NOUVEAU
         statut: statut,
         estExportateur: body.estExportateur || false,
         estDansZoneIndustrielle: body.estDansZoneIndustrielle || false,
