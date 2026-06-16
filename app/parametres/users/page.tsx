@@ -19,7 +19,7 @@ export default async function UsersPage() {
       name: true,
       email: true,
       role: true,
-      isActive: true,
+      // ❌ REMOVED: isActive n'existe pas dans le modèle Prisma User
       createdAt: true,
       emailVerified: true,
     },
