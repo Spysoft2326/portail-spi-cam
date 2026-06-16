@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
@@ -101,8 +101,8 @@ export default function AnnuairePage() {
   const [selectedSector, setSelectedSector] = useState(sectorParam || "");
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedVille, setSelectedVille] = useState("");
-  const [regionText, setRegionText] = useState("");
-  const [villeText, setVilleText] = useState("");
+  const [regionText, setRegionText] = useState("");   // saisie libre région
+  const [villeText, setVilleText] = useState("");     // saisie libre ville
 
   // Vue
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
@@ -127,11 +127,15 @@ export default function AnnuairePage() {
     fetchEntreprises();
   }, [fetchEntreprises]);
 
-  // --- DYNAMIQUE : extraire régions et villes uniques ---
+  // ─── DYNAMIQUE : extraire régions et villes uniques ───
   const { regionsUniques, villesUniques } = useMemo(() => {
-    const regions = Array.from(new Set(entreprises.map((e) => e.region).filter(Boolean))).sort();
-    const villes = Array.from(new Set(entreprises.map((e) => e.ville).filter(Boolean))).sort();
-    return { regionsUniques: regions as string[], villesUniques: villes as string[] };
+    const regions = Array.from(new Set(
+      entreprises.map((e) => e.region).filter((r): r is string => typeof r === "string" && r.length > 0)
+    )).sort();
+    const villes = Array.from(new Set(
+      entreprises.map((e) => e.ville).filter((v): v is string => typeof v === "string" && v.length > 0)
+    )).sort();
+    return { regionsUniques: regions, villesUniques: villes };
   }, [entreprises]);
 
   // Villes filtrées par région si une région est sélectionnée
@@ -142,14 +146,15 @@ export default function AnnuairePage() {
         entreprises
           .filter((e) => e.region === selectedRegion)
           .map((e) => e.ville)
-          .filter(Boolean)
+          .filter((v): v is string => typeof v === "string" && v.length > 0)
       )
     ).sort();
   }, [entreprises, selectedRegion, villesUniques]);
 
-  // --- FILTRAGE ---
+  // ─── FILTRAGE ───
   const filtered = useMemo(() => {
     return entreprises.filter((e) => {
+      // Texte libre (nom, sigle, description, contact)
       const matchText =
         !searchText ||
         e.nom?.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -157,12 +162,15 @@ export default function AnnuairePage() {
         e.description?.toLowerCase().includes(searchText.toLowerCase()) ||
         e.nomContact?.toLowerCase().includes(searchText.toLowerCase());
 
+      // Secteur (dropdown exact)
       const matchSector = !selectedSector || e.secteurActivite === selectedSector;
 
+      // Région : dropdown OU saisie libre
       const matchRegion =
         (!selectedRegion || e.region === selectedRegion) &&
         (!regionText || e.region?.toLowerCase().includes(regionText.toLowerCase()));
 
+      // Ville : dropdown OU saisie libre
       const matchVille =
         (!selectedVille || e.ville === selectedVille) &&
         (!villeText || e.ville?.toLowerCase().includes(villeText.toLowerCase()));
@@ -237,7 +245,7 @@ export default function AnnuairePage() {
           </p>
         </div>
 
-        {/* --- BARRE DE RECHERCHE & FILTRES --- */}
+        {/* ─── BARRE DE RECHERCHE & FILTRES ─── */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           {/* Ligne 1 : Recherche + boutons */}
           <div className="flex flex-col md:flex-row gap-3 mb-3">
@@ -305,56 +313,57 @@ export default function AnnuairePage() {
             </div>
           </div>
 
-          {/* --- Ligne 2 : Filtres avancés --- */}
+          {/* ─── Ligne 2 : Filtres avancés ─── */}
           {showFilters && (
             <div className="space-y-3 pt-3 border-t border-gray-100">
+              {/* Filtre secteur (dropdown statique car métier) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {/* Filtre secteur */}
                 <div className="relative">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Secteur d'activité</label>
-                  <div className="relative">
-                    <select
-                      value={selectedSector}
-                      onChange={(e) => setSelectedSector(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D] text-sm"
-                    >
-                      {SECTEURS.map((s) => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  </div>
+                  <select
+                    value={selectedSector}
+                    onChange={(e) => setSelectedSector(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D] text-sm"
+                  >
+                    {SECTEURS.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-[2.1rem] w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
 
                 {/* Région : dropdown dynamique + saisie libre */}
                 <div className="relative">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Région</label>
-                  <div className="relative">
-                    <select
-                      value={selectedRegion}
-                      onChange={(e) => {
-                        setSelectedRegion(e.target.value);
-                        setSelectedVille("");
-                        setRegionText("");
-                      }}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D] text-sm"
-                    >
-                      <option value="">Toutes les régions</option>
-                      {regionsUniques.map((r) => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <select
+                        value={selectedRegion}
+                        onChange={(e) => {
+                          setSelectedRegion(e.target.value);
+                          setSelectedVille(""); // reset ville quand région change
+                          setRegionText("");
+                        }}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D] text-sm"
+                      >
+                        <option value="">Toutes les régions</option>
+                        {regionsUniques.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
                   </div>
+                  {/* Saisie libre région */}
                   <input
                     type="text"
                     placeholder="Ou saisir une région..."
                     value={regionText}
                     onChange={(e) => {
                       setRegionText(e.target.value);
-                      setSelectedRegion("");
+                      setSelectedRegion(""); // reset dropdown si saisie libre
                     }}
                     className="w-full mt-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D]"
                   />
@@ -379,13 +388,14 @@ export default function AnnuairePage() {
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
+                  {/* Saisie libre ville */}
                   <input
                     type="text"
                     placeholder="Ou saisir une ville..."
                     value={villeText}
                     onChange={(e) => {
                       setVilleText(e.target.value);
-                      setSelectedVille("");
+                      setSelectedVille(""); // reset dropdown si saisie libre
                     }}
                     className="w-full mt-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D]"
                   />
@@ -394,7 +404,7 @@ export default function AnnuairePage() {
             </div>
           )}
 
-          {/* --- Tags de filtres actifs --- */}
+          {/* ─── Tags de filtres actifs ─── */}
           {hasActiveFilters && (
             <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
               {searchText && (
@@ -455,7 +465,7 @@ export default function AnnuairePage() {
           )}
         </div>
 
-        {/* --- LOADING --- */}
+        {/* ─── LOADING ─── */}
         {loading && (
           <div className="text-center py-12">
             <div className="w-12 h-12 border-4 border-[#007A3D] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -463,7 +473,7 @@ export default function AnnuairePage() {
           </div>
         )}
 
-        {/* --- ERROR --- */}
+        {/* ─── ERROR ─── */}
         {error && !loading && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
             <p className="text-red-600 font-medium mb-2">{error}</p>
@@ -476,7 +486,7 @@ export default function AnnuairePage() {
           </div>
         )}
 
-        {/* --- RÉSULTATS --- */}
+        {/* ─── RÉSULTATS ─── */}
         {!loading && !error && (
           <>
             {filtered.length === 0 ? (
@@ -499,7 +509,7 @@ export default function AnnuairePage() {
               </div>
             ) : (
               <>
-                {/* === VUE LISTE === */}
+                {/* ═══ VUE LISTE ═══ */}
                 {viewMode === "list" && (
                   <div className="space-y-4">
                     {filtered.map((entreprise) => (
@@ -592,7 +602,7 @@ export default function AnnuairePage() {
                   </div>
                 )}
 
-                {/* === VUE GRILLE === */}
+                {/* ═══ VUE GRILLE ═══ */}
                 {viewMode === "grid" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filtered.map((entreprise) => (
