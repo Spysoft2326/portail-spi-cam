@@ -75,16 +75,20 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
     setShowModal(true);
   };
 
+  // ==================== CORRECTION 1: PUT ====================
   const handleSave = async () => {
     try {
       if (editingUser) {
-        // Modifier
-        const res = await fetch(`/api/admin/users/${editingUser.id}`, {
+        // Modifier - CORRECTION: endpoint sans ID dans l'URL, id dans le body
+        const res = await fetch(`/api/admin/users`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({ id: editingUser.id, ...formData }),
         });
-        if (!res.ok) throw new Error("Erreur de modification");
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || "Erreur de modification");
+        }
         const updatedUser = await res.json();
         setUsers(users.map((u) => (u.id === editingUser.id ? updatedUser : u)));
       } else {
@@ -94,7 +98,10 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         });
-        if (!res.ok) throw new Error("Erreur de creation");
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || "Erreur de creation");
+        }
         const newUser = await res.json();
         setUsers([...users, newUser]);
 
@@ -104,24 +111,31 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
         }
       }
       setShowModal(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur:", error);
-      alert("Erreur lors de l'enregistrement de l'utilisateur");
+      alert(error.message || "Erreur lors de l'enregistrement de l'utilisateur");
     }
   };
+  // ==========================================================
 
+  // ==================== CORRECTION 2: DELETE ====================
   const handleDelete = async (userId: string) => {
     if (confirm("Etes-vous sur de vouloir supprimer cet utilisateur ?")) {
       try {
-        const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Erreur de suppression");
+        // CORRECTION: utiliser ?id= en query param au lieu de /id
+        const res = await fetch(`/api/admin/users?id=${userId}`, { method: "DELETE" });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || "Erreur de suppression");
+        }
         setUsers(users.filter((u) => u.id !== userId));
-      } catch (error) {
+      } catch (error: any) {
         console.error("Erreur:", error);
-        alert("Erreur lors de la suppression de l'utilisateur");
+        alert(error.message || "Erreur lors de la suppression de l'utilisateur");
       }
     }
   };
+  // =============================================================
 
   // Helper pour formater la date
   const formatDate = (date: Date | string | null | undefined) => {
