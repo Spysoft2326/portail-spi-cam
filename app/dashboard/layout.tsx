@@ -1,38 +1,40 @@
-import { getServerSession } from "next-auth/next";
-import { redirect } from "next/navigation";
+"use client";
+
+import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { authOptions } from "@/lib/auth";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Shield, ArrowLeft } from "lucide-react";
+import { useSession } from "next-auth/react";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = session?.user?.role || "AGENT_SAISIE";
 
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const role = session.user.role || "AGENT_SAISIE";
+  // Ne pas afficher le lien si on est déjà sur la page Paramètres
+  const isParametresPage = pathname === "/dashboard/parametres" || pathname?.startsWith("/dashboard/parametres/");
 
   return (
     <div className="flex h-screen bg-slate-50">
-      <Sidebar user={session.user} />
+      <Sidebar user={session?.user} />
       <main className="flex-1 overflow-y-auto">
         {/* Header harmonisé */}
         <div className="bg-white border-b px-8 py-6">
           <div className="max-w-7xl mx-auto">
-            {/* CORRECTION: Lien vers Paramètres au lieu de la page publique */}
-            <Link
-              href="/dashboard/parametres"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Retour aux paramètres
-            </Link>
+            {/* Lien conditionnel: ne s'affiche pas sur Paramètres */}
+            {!isParametresPage && (
+              <Link
+                href="/dashboard/parametres"
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Retour aux paramètres
+              </Link>
+            )}
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
