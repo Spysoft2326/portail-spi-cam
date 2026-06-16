@@ -77,12 +77,17 @@ export function Sidebar({ user }: SidebarProps) {
           },
         ]
       : []),
-    {
-      name: "Paramètres",
-      href: "/dashboard/parametres",
-      icon: Settings,
-      roles: ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"],
-    },
+    // CORRECTION: Paramètres pointe directement vers la page CRUD users
+    ...(role === "SUPER_ADMIN" || role === "ADMIN"
+      ? [
+          {
+            name: "Paramètres",
+            href: "/dashboard/parametres/users",  // ← Page CRUD directe
+            icon: Settings,
+            roles: ["ADMIN", "SUPER_ADMIN"],
+          },
+        ]
+      : []),
   ];
 
   const filteredNavigation = navigation.filter((item) =>
