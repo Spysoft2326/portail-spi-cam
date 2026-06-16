@@ -17,70 +17,25 @@ interface Enterprise {
   statut: string;
 }
 
-// ✅ TOUS LES SECTEURS complets (alignés avec le mapping et les données réelles)
+// ✅ 16 SECTEURS exacts (cohérents avec l'annuaire public et les compteurs page d'accueil)
 const SECTEURS = [
-  { value: "AGRICULTURE", label: "Agriculture" },
-  { value: "AGRO-INDUSTRIE", label: "Agro-industrie" },
-  { value: "ELEVAGE", label: "Élevage" },
-  { value: "PECHE", label: "Pêche" },
-  { value: "FORESTERIE", label: "Foresterie" },
-  { value: "INDUSTRIE", label: "Industrie" },
-  { value: "INDUSTRIE_LEGERE", label: "Industrie légère" },
-  { value: "PHARMACEUTIQUE", label: "Pharmaceutique" },
-  { value: "CHIMIE", label: "Chimie" },
-  { value: "CHIMIE_PLASTIQUE", label: "Chimie / Plastique" },
-  { value: "PLASTIQUE", label: "Plastique" },
-  { value: "TEXTILE", label: "Textile" },
-  { value: "TEXTILE_HABILLEMENT", label: "Textile / Habillement" },
-  { value: "HABILLEMENT", label: "Habillement" },
-  { value: "METALLURGIE", label: "Métallurgie" },
-  { value: "BOIS", label: "Bois" },
-  { value: "FORET_BOIS", label: "Forêt / Bois" },
-  { value: "CIMENT", label: "Ciment" },
-  { value: "ENERGIE", label: "Énergie" },
-  { value: "MINES", label: "Mines" },
-  { value: "SERVICES", label: "Services" },
-  { value: "CONSULTING", label: "Consulting" },
-  { value: "INFORMATIQUE", label: "Informatique" },
-  { value: "TELECOMMUNICATIONS", label: "Télécommunications" },
-  { value: "TELECOMMUNICATIONS_IT", label: "Télécommunications / IT" },
-  { value: "TELECOM", label: "Télécom" },
+  { value: "AGRICULTURE / AGRO", label: "Agriculture / Agro" },
+  { value: "BTP / MATÉRIAUX", label: "BTP / Matériaux" },
+  { value: "CHIMIE / PLASTIQUE", label: "Chimie / Plastique" },
   { value: "COMMERCE", label: "Commerce" },
-  { value: "DISTRIBUTION", label: "Distribution" },
-  { value: "IMPORT_EXPORT", label: "Import-Export" },
-  { value: "CONSTRUCTION", label: "Construction" },
-  { value: "BATIMENT", label: "Bâtiment" },
-  { value: "TRAVAUX_PUBLICS", label: "Travaux publics" },
-  { value: "BTP", label: "BTP" },
-  { value: "BTP_MATERIAUX", label: "BTP / Matériaux" },
-  { value: "MATERIAUX", label: "Matériaux" },
-  { value: "TECHNOLOGIE", label: "Technologie" },
-  { value: "TECH", label: "Tech" },
-  { value: "NUMERIQUE", label: "Numérique" },
-  { value: "DIGITAL", label: "Digital" },
-  { value: "IT", label: "IT" },
-  { value: "TRANSPORT", label: "Transport" },
-  { value: "LOGISTIQUE", label: "Logistique" },
-  { value: "TRANSPORT_LOGISTIQUE", label: "Transport / Logistique" },
-  { value: "TOURISME", label: "Tourisme" },
-  { value: "HOTELLERIE", label: "Hôtellerie" },
-  { value: "RESTAURATION", label: "Restauration" },
-  { value: "TOURISME_HOTELLERIE", label: "Tourisme / Hôtellerie" },
-  { value: "SANTE", label: "Santé" },
-  { value: "PHARMACIE", label: "Pharmacie" },
-  { value: "MEDICAL", label: "Médical" },
-  { value: "EDUCATION", label: "Éducation" },
-  { value: "FORMATION", label: "Formation" },
-  { value: "ENSEIGNEMENT", label: "Enseignement" },
+  { value: "ÉNERGIE", label: "Énergie" },
+  { value: "ENVIRONNEMENT / DÉCHETS", label: "Environnement / Déchets" },
   { value: "FINANCE", label: "Finance" },
-  { value: "BANQUE", label: "Banque" },
-  { value: "ASSURANCE", label: "Assurance" },
-  { value: "MICROFINANCE", label: "Microfinance" },
-  { value: "SECURITE_DEFENSE", label: "Sécurité / Défense" },
-  { value: "ENVIRONNEMENT", label: "Environnement" },
-  { value: "ENVIRONNEMENT_DECHETS", label: "Environnement / Déchets" },
-  { value: "DECHETS", label: "Déchets" },
-  { value: "AUTRE", label: "Autre" },
+  { value: "FORÊT / BOIS", label: "Forêt / Bois" },
+  { value: "INDUSTRIE LÉGÈRE", label: "Industrie légère" },
+  { value: "MÉTALLURGIE", label: "Métallurgie" },
+  { value: "PHARMACEUTIQUE", label: "Pharmaceutique" },
+  { value: "SANTÉ", label: "Santé" },
+  { value: "SÉCURITÉ / DÉFENSE", label: "Sécurité / Défense" },
+  { value: "TÉLÉCOMS / IT", label: "Télécoms / IT" },
+  { value: "TEXTILE / HABILLEMENT", label: "Textile / Habillement" },
+  { value: "TRANSPORT / LOGISTIQUE", label: "Transport / Logistique" },
+  { value: "TOURISME / HÔTELLERIE", label: "Tourisme / Hôtellerie" },
 ];
 
 const REGIONS = [
@@ -102,9 +57,9 @@ export default function EntreprisesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    denomination: "", sigle: "", secteurActivite: "AUTRE",
+    denomination: "", sigle: "", secteurActivite: "AGRICULTURE / AGRO",
     ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
-    anneeCreation: "", // ✅ NOUVEAU: Année de création
+    anneeCreation: "",
   });
 
   useEffect(() => {
@@ -144,7 +99,7 @@ export default function EntreprisesPage() {
 
   const resetForm = () => {
     setFormData({
-      denomination: "", sigle: "", secteurActivite: "AUTRE",
+      denomination: "", sigle: "", secteurActivite: "AGRICULTURE / AGRO",
       ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
       anneeCreation: "",
     });
@@ -163,7 +118,7 @@ export default function EntreprisesPage() {
       telephone: enterprise.telephone || "",
       email: enterprise.email || "",
       nomContact: enterprise.nomContact || "",
-      anneeCreation: "", // Pas encore dans le modèle, à récupérer si ajouté
+      anneeCreation: "",
     });
     setEditingId(enterprise.id);
     setShowForm(true);
@@ -260,7 +215,7 @@ export default function EntreprisesPage() {
       (e.email && e.email.toLowerCase().includes(searchLower));
 
     const matchSecteur = !filterSecteur ||
-      e.secteurActivite.toUpperCase() === filterSecteur;
+      e.secteurActivite === filterSecteur;
     const matchRegion = !filterRegion || e.region === filterRegion;
     const matchVille = !filterVille || e.ville === filterVille;
 
