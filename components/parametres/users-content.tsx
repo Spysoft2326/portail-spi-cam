@@ -8,7 +8,7 @@ interface User {
   name: string | null;
   email: string;
   role: string;
-  isActive: boolean;
+  // ❌ REMOVED: isActive n'existe pas dans le modèle Prisma User
   createdAt?: Date | string | null;
   emailVerified: Date | null;
 }
@@ -28,7 +28,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
     name: "",
     email: "",
     role: "AGENT_SAISIE",
-    isActive: true,
+    // ❌ REMOVED: isActive n'existe pas dans Prisma
     password: "",
   });
 
@@ -61,7 +61,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
       name: user.name || "",
       email: user.email,
       role: user.role,
-      isActive: user.isActive,
+      // ❌ REMOVED: isActive
       password: "",
     });
     setGeneratedPassword("");
@@ -70,7 +70,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
 
   const handleAdd = () => {
     setEditingUser(null);
-    setFormData({ name: "", email: "", role: "AGENT_SAISIE", isActive: true, password: "" });
+    setFormData({ name: "", email: "", role: "AGENT_SAISIE", password: "" });
     setGeneratedPassword("");
     setShowModal(true);
   };
@@ -217,7 +217,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+              {/* ❌ REMOVED: Colonne Statut (isActive) */}
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inscription</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email verifie</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -226,7 +226,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
           <tbody className="divide-y divide-gray-200">
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                   Aucun utilisateur trouve.
                 </td>
               </tr>
@@ -249,11 +249,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
                       {roleLabels[user.role] || user.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                      {user.isActive ? "Actif" : "Inactif"}
-                    </span>
-                  </td>
+                  {/* ❌ REMOVED: Colonne Statut (isActive) */}
                   <td className="px-4 py-3 text-sm text-gray-500">
                     {formatDate(user.createdAt)}
                   </td>
@@ -356,15 +352,7 @@ export default function UsersContent({ users: initialUsers }: UsersContentProps)
                   <option value="SUPER_ADMIN">Super Administrateur</option>
                 </select>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="rounded border-gray-300"
-                />
-                <label className="text-sm text-gray-700">Actif</label>
-              </div>
+              {/* ❌ REMOVED: Checkbox isActive */}
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button
