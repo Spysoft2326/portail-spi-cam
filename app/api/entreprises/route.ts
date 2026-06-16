@@ -3,13 +3,15 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// ✅ GET — Liste des entreprises (filtrée par statut, recherche, rôle)
+// ✅ GET — Liste des entreprises (filtrée par rôle, recherche, secteur, région, ville)
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const secteur = searchParams.get("secteur") || "";
+    const region = searchParams.get("region") || "";
+    const ville = searchParams.get("ville") || "";
     const statutParam = searchParams.get("statut");
 
     const userRole = session?.user?.role;
@@ -21,11 +23,9 @@ export async function GET(request: Request) {
       // Public : voir uniquement ACTIF
       statutFilter = "ACTIF";
     } else if (userRole === "AGENT_SAISIE") {
-      // Agent : voir ACTIF + ses propres EN_ATTENTE
       statutFilter = statutParam || "ACTIF";
     } else if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-      // Admin/SuperAdmin : voir tout selon paramètre
-      statutFilter = statutParam || "ACTIF";
+      statutFilter = statutParam || "ALL";
     }
 
     const where: any = {};
@@ -39,16 +39,30 @@ export async function GET(request: Request) {
       where.agentId = userId;
     }
 
+    // Recherche textuelle (nom, sigle, ville, description, contact, téléphone, email)
     if (search) {
       where.OR = [
         { denomination: { contains: search, mode: "insensitive" } },
         { sigle: { contains: search, mode: "insensitive" } },
         { ville: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { nomContact: { contains: search, mode: "insensitive" } },
+        { telephone: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { adresse: { contains: search, mode: "insensitive" } },
       ];
     }
 
     if (secteur) {
       where.secteurActivite = { equals: secteur, mode: "insensitive" };
+    }
+
+    if (region) {
+      where.region = { equals: region, mode: "insensitive" };
+    }
+
+    if (ville) {
+      where.ville = { equals: ville, mode: "insensitive" };
     }
 
     const entreprises = await prisma.entreprise.findMany({
@@ -105,6 +119,7 @@ export async function POST(request: Request) {
         referenceSPI: body.referenceSPI?.trim() || `SPI-${Date.now()}`,
         denomination: body.denomination?.trim(),
         sigle: body.sigle?.trim() || null,
+        description: body.description?.trim() || null,
         formeJuridique: body.formeJuridique?.trim() || null,
         capitalSocial: body.capitalSocial ? parseFloat(body.capitalSocial) : null,
         adresse: body.adresse?.trim() || null,
@@ -123,7 +138,6 @@ export async function POST(request: Request) {
         estExportateur: body.estExportateur || false,
         estDansZoneIndustrielle: body.estDansZoneIndustrielle || false,
         nomZoneIndustrielle: body.nomZoneIndustrielle?.trim() || null,
-        // === LIEN AVEC L'AGENT ===
         agentId: userRole === "AGENT_SAISIE" ? userId : null,
       },
     });
