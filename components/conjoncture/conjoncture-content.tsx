@@ -50,6 +50,15 @@ interface Stats {
 
 const COLORS = ['#007A3D', '#CE1126', '#FCD116', '#0066CC', '#FF6600', '#9933CC', '#00CC99', '#FF3366'];
 
+// Helper pour formater un nombre en toute sécurité
+function safeNumber(value: number | null | undefined): number {
+  return value ?? 0;
+}
+
+function safeLocaleString(value: number | null | undefined): string {
+  return (value ?? 0).toLocaleString();
+}
+
 export default function ConjonctureContent() {
   const { data: session } = useSession();
   const [productions, setProductions] = useState<Production[]>([]);
@@ -78,8 +87,19 @@ export default function ConjonctureContent() {
       if (!res.ok) throw new Error("Erreur de chargement");
 
       const data = await res.json();
+
+      // Normalisation des données avec valeurs par défaut
+      const normalizedStats: Stats | null = data.stats ? {
+        totalProductions: data.stats.totalProductions ?? 0,
+        totalCA: data.stats.totalCA ?? 0,
+        totalEmplois: data.stats.totalEmplois ?? 0,
+        totalInvestissements: data.stats.totalInvestissements ?? 0,
+        productionsParSecteur: data.stats.productionsParSecteur || [],
+        productionsParTrimestre: data.stats.productionsParTrimestre || [],
+      } : null;
+
       setProductions(data.productions || []);
-      setStats(data.stats || null);
+      setStats(normalizedStats);
       setAnnees(data.annees || []);
       setSecteurs(data.secteurs || []);
     } catch (err: any) {
@@ -129,15 +149,15 @@ export default function ConjonctureContent() {
 
         <div style="text-align: center;">
           <div class="kpi">
-            <div class="kpi-value">${stats?.totalProductions || 0}</div>
+            <div class="kpi-value">${safeLocaleString(stats?.totalProductions)}</div>
             <div>Productions</div>
           </div>
           <div class="kpi">
-            <div class="kpi-value">${(stats?.totalCA || 0).toLocaleString()} FCFA</div>
+            <div class="kpi-value">${safeLocaleString(stats?.totalCA)} FCFA</div>
             <div>Chiffre d'affaires</div>
           </div>
           <div class="kpi">
-            <div class="kpi-value">${stats?.totalEmplois || 0}</div>
+            <div class="kpi-value">${safeLocaleString(stats?.totalEmplois)}</div>
             <div>Emplois</div>
           </div>
         </div>
@@ -158,13 +178,13 @@ export default function ConjonctureContent() {
           <tbody>
             ${productions.map(p => `
               <tr>
-                <td>${p.entreprise.denomination}</td>
-                <td>${p.entreprise.secteurActivite}</td>
-                <td>${p.annee}</td>
-                <td>T${p.trimestre}</td>
-                <td>${p.productionPhysique.toLocaleString()}</td>
-                <td>${p.chiffreAffaires.toLocaleString()}</td>
-                <td>${p.effectifs}</td>
+                <td>${p.entreprise?.denomination || 'N/A'}</td>
+                <td>${p.entreprise?.secteurActivite || 'N/A'}</td>
+                <td>${p.annee || 'N/A'}</td>
+                <td>T${p.trimestre || 'N/A'}</td>
+                <td>${safeLocaleString(p.productionPhysique)}</td>
+                <td>${safeLocaleString(p.chiffreAffaires)}</td>
+                <td>${p.effectifs ?? 0}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -281,7 +301,7 @@ export default function ConjonctureContent() {
                   </div>
                   <span className="text-sm text-gray-500">Productions</span>
                 </div>
-                <div className="text-2xl font-bold">{stats.totalProductions.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{safeLocaleString(stats.totalProductions)}</div>
               </div>
 
               <div className="bg-white rounded-xl shadow-sm p-6">
@@ -291,7 +311,7 @@ export default function ConjonctureContent() {
                   </div>
                   <span className="text-sm text-gray-500">Chiffre d'affaires</span>
                 </div>
-                <div className="text-2xl font-bold">{(stats.totalCA / 1000000).toFixed(1)}M FCFA</div>
+                <div className="text-2xl font-bold">{(safeNumber(stats.totalCA) / 1000000).toFixed(1)}M FCFA</div>
               </div>
 
               <div className="bg-white rounded-xl shadow-sm p-6">
@@ -301,7 +321,7 @@ export default function ConjonctureContent() {
                   </div>
                   <span className="text-sm text-gray-500">Emplois</span>
                 </div>
-                <div className="text-2xl font-bold">{stats.totalEmplois.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{safeLocaleString(stats.totalEmplois)}</div>
               </div>
 
               <div className="bg-white rounded-xl shadow-sm p-6">
@@ -311,7 +331,7 @@ export default function ConjonctureContent() {
                   </div>
                   <span className="text-sm text-gray-500">Investissements</span>
                 </div>
-                <div className="text-2xl font-bold">{(stats.totalInvestissements / 1000000).toFixed(1)}M FCFA</div>
+                <div className="text-2xl font-bold">{(safeNumber(stats.totalInvestissements) / 1000000).toFixed(1)}M FCFA</div>
               </div>
             </div>
           )}
@@ -325,16 +345,16 @@ export default function ConjonctureContent() {
                 <ResponsiveContainer width="100%" height={300}>
                   <RePieChart>
                     <Pie
-                      data={stats.productionsParSecteur}
+                      data={stats.productionsParSecteur || []}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {stats.productionsParSecteur.map((entry, index) => (
+                      {(stats.productionsParSecteur || []).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -348,7 +368,7 @@ export default function ConjonctureContent() {
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold mb-4">Évolution par trimestre</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={stats.productionsParTrimestre}>
+                  <BarChart data={stats.productionsParTrimestre || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
@@ -365,46 +385,52 @@ export default function ConjonctureContent() {
           {/* Tableau des productions */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Détail des productions</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4">Entreprise</th>
-                    <th className="text-left py-3 px-4">Secteur</th>
-                    <th className="text-left py-3 px-4">Période</th>
-                    <th className="text-right py-3 px-4">Production</th>
-                    <th className="text-right py-3 px-4">CA (FCFA)</th>
-                    <th className="text-right py-3 px-4">Effectifs</th>
-                    <th className="text-center py-3 px-4">Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productions.map((p) => (
-                    <tr key={p.id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4 font-medium">{p.entreprise.denomination}</td>
-                      <td className="py-3 px-4">
-                        <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-gray-100">
-                          {p.entreprise.secteurActivite}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">{p.annee} T{p.trimestre}</td>
-                      <td className="py-3 px-4 text-right">{p.productionPhysique.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right">{p.chiffreAffaires.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right">{p.effectifs}</td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                          p.statut === 'VALIDEE' ? 'bg-green-100 text-green-800' :
-                          p.statut === 'EN_ATTENTE' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {p.statut}
-                        </span>
-                      </td>
+            {productions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>Aucune production trouvée pour les critères sélectionnés.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">Entreprise</th>
+                      <th className="text-left py-3 px-4">Secteur</th>
+                      <th className="text-left py-3 px-4">Période</th>
+                      <th className="text-right py-3 px-4">Production</th>
+                      <th className="text-right py-3 px-4">CA (FCFA)</th>
+                      <th className="text-right py-3 px-4">Effectifs</th>
+                      <th className="text-center py-3 px-4">Statut</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {productions.map((p) => (
+                      <tr key={p.id} className="border-b hover:bg-gray-50">
+                        <td className="py-3 px-4 font-medium">{p.entreprise?.denomination || 'N/A'}</td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-gray-100">
+                            {p.entreprise?.secteurActivite || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">{p.annee || 'N/A'} T{p.trimestre || 'N/A'}</td>
+                        <td className="py-3 px-4 text-right">{safeLocaleString(p.productionPhysique)}</td>
+                        <td className="py-3 px-4 text-right">{safeLocaleString(p.chiffreAffaires)}</td>
+                        <td className="py-3 px-4 text-right">{p.effectifs ?? 0}</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                            p.statut === 'VALIDEE' ? 'bg-green-100 text-green-800' :
+                            p.statut === 'EN_ATTENTE' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {p.statut || 'N/A'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </>
       )}
