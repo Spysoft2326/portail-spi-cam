@@ -6,6 +6,7 @@ import { Settings, Users, Bell, Shield, Database } from "lucide-react";
 import UsersContent from "@/components/parametres/users-content";
 import NotificationsContent from "@/components/parametres/notifications-content";
 import SecurityContent from "@/components/parametres/security-content";
+import DataContent from "@/components/parametres/data-content";
 
 export const dynamic = 'force-dynamic';
 
@@ -180,13 +181,7 @@ function ParametresContent() {
 
         {activeTab === "security" && <SecurityContent />}
 
-        {activeTab === "data" && (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>💾</div>
-            <h3 style={{ fontSize: "18px", fontWeight: "600", margin: "0 0 8px 0" }}>Donnees</h3>
-            <p style={{ color: "#6b7280", margin: 0 }}>Gestion des donnees en cours de developpement.</p>
-          </div>
-        )}
+        {activeTab === "data" && <DataContent />}
       </div>
     </div>
   );
