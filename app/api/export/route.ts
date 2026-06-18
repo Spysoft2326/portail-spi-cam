@@ -75,18 +75,16 @@ export async function GET(request: Request) {
           email: true,
           role: true,
           emailVerified: true,
-          createdAt: true,
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { id: "desc" },
       });
 
-      const headers = ["Nom", "Email", "Role", "Email verifie", "Date creation"];
+      const headers = ["Nom", "Email", "Role", "Email verifie"];
       const data = users.map((u) => ({
         "Nom": u.name || "",
         "Email": u.email || "",
         "Role": u.role,
         "Email verifie": u.emailVerified ? "Oui" : "Non",
-        "Date creation": u.createdAt.toISOString().split("T")[0],
       }));
 
       csv += "=== UTILISATEURS ===\n" + toCSV(data, headers) + "\n\n";
