@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Settings, Users, Bell, Shield, Database } from "lucide-react";
 import UsersContent from "@/components/parametres/users-content";
+
+export const dynamic = 'force-dynamic';
 
 interface User {
   id: string;
@@ -21,12 +23,12 @@ const tabs = [
   { id: "data", label: "Donnees", icon: Database },
 ];
 
-export default function ParametresPage() {
+function ParametresContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "general");
   const [users, setUsers] = useState<User[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [generalSettings, setGeneralSettings] = useState({
     nomPortail: "Portail SPI-CAM",
     emailContact: "contact@spi-cam.cm",
@@ -200,5 +202,18 @@ export default function ParametresPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ParametresPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        <div style={{ display: "inline-block", width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTop: "4px solid #059669", borderRadius: "50%", animation: "spin 1s linear infinite" }}></div>
+        <p style={{ marginTop: "16px", color: "#6b7280" }}>Chargement...</p>
+      </div>
+    }>
+      <ParametresContent />
+    </Suspense>
   );
 }
