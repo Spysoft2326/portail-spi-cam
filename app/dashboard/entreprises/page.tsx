@@ -59,7 +59,6 @@ export default function EntreprisesPage() {
   const [formData, setFormData] = useState({
     denomination: "", sigle: "", secteurActivite: "AGRICULTURE / AGRO",
     ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
-    anneeCreation: "",
   });
 
   useEffect(() => {
@@ -101,7 +100,6 @@ export default function EntreprisesPage() {
     setFormData({
       denomination: "", sigle: "", secteurActivite: "AGRICULTURE / AGRO",
       ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
-      anneeCreation: "",
     });
     setEditingId(null);
     setShowForm(false);
@@ -118,7 +116,6 @@ export default function EntreprisesPage() {
       telephone: enterprise.telephone || "",
       email: enterprise.email || "",
       nomContact: enterprise.nomContact || "",
-      anneeCreation: "",
     });
     setEditingId(enterprise.id);
     setShowForm(true);
@@ -299,20 +296,6 @@ export default function EntreprisesPage() {
                   {SECTEURS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
-              <div>
-                <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  📅 Année de création
-                </label>
-                <input
-                  type="number"
-                  min="1900"
-                  max={new Date().getFullYear()}
-                  placeholder="Ex: 2010"
-                  value={formData.anneeCreation}
-                  onChange={(e) => setFormData({ ...formData, anneeCreation: e.target.value })}
-                  style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
-                />
-              </div>
             </div>
           </div>
 
@@ -447,7 +430,8 @@ export default function EntreprisesPage() {
                   e.referenceSPI, e.denomination, e.sigle || "", e.secteurActivite, e.ville || "", e.region || "",
                   e.telephone || "", e.email || "", e.nomContact || "", e.statut
                 ].join(";"))
-              ].join("\n");
+              ].join("
+");
               const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement("a"); a.href = url;
