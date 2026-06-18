@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Settings, Users, Bell, Shield, Database } from "lucide-react";
 import UsersContent from "@/components/parametres/users-content";
+import NotificationsContent from "@/components/parametres/notifications-content";
 
 export const dynamic = 'force-dynamic';
 
@@ -177,13 +178,7 @@ function ParametresContent() {
           </>
         )}
 
-        {activeTab === "notifications" && (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔔</div>
-            <h3 style={{ fontSize: "18px", fontWeight: "600", margin: "0 0 8px 0" }}>Notifications</h3>
-            <p style={{ color: "#6b7280", margin: 0 }}>Configuration des notifications en cours de developpement.</p>
-          </div>
-        )}
+        {activeTab === "notifications" && <NotificationsContent />}
 
         {activeTab === "security" && (
           <div style={{ textAlign: "center", padding: "60px 20px" }}>
