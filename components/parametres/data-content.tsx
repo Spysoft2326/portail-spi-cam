@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Database, Download, Upload, Trash2, Save, RefreshCw, FileUp } from "lucide-react";
+import { Database, Download, Upload, Trash2, Save, RefreshCw, FileUp, Info, AlertTriangle, CheckCircle } from "lucide-react";
 
 export default function DataContent() {
   const [exportFormat, setExportFormat] = useState<"csv" | "json">("csv");
@@ -10,6 +10,7 @@ export default function DataContent() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
   const [importEntity, setImportEntity] = useState<"entreprises" | "users">("entreprises");
+  const [showInstructions, setShowInstructions] = useState(false);
   const [purging, setPurging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,8 +85,16 @@ export default function DataContent() {
     }
   };
 
+  const entreprisesExample = `Denomination;Sigle;Secteur;Ville;Region;Telephone;Email;Contact;Adresse;Statut
+Societe ABC;ABC;AGRICULTURE / AGRO;Yaounde;Centre;+237 6XX XXX XXX;contact@abc.cm;Jean Dupont;BP 123 Yaounde;ACTIF
+Entreprise XYZ;XYZ;BTP / MATERIAUX;Douala;Littoral;+237 6XX XXX XXX;info@xyz.cm;Marie Martin;Rue 12 Douala;ACTIF`;
+
+  const usersExample = `Nom;Email;Role
+Agent Saisie 2;agent2@spi-cam.cm;AGENT_SAISIE
+Administrateur 2;admin2@spi-cam.cm;ADMIN`;
+
   return (
-    <div style={{ maxWidth: "800px" }}>
+    <div style={{ maxWidth: "900px" }}>
       <h3 style={{ fontSize: "18px", fontWeight: "600", margin: "0 0 24px 0", display: "flex", alignItems: "center", gap: "8px" }}>
         <Database className="w-5 h-5" />
         Gestion des donnees
@@ -187,6 +196,72 @@ export default function DataContent() {
           </select>
         </div>
 
+        {/* Instructions */}
+        <div style={{ marginBottom: "16px", padding: "12px", borderRadius: "8px", background: "#f0f9ff", border: "1px solid #bae6fd" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", cursor: "pointer" }} onClick={() => setShowInstructions(!showInstructions)}>
+            <Info className="w-4 h-4" style={{ color: "#0284c7" }} />
+            <span style={{ fontWeight: "600", fontSize: "14px", color: "#0369a1" }}>Format attendu du fichier CSV</span>
+            <span style={{ marginLeft: "auto", fontSize: "12px", color: "#0369a1" }}>{showInstructions ? "Masquer" : "Afficher"}</span>
+          </div>
+
+          {showInstructions && (
+            <div style={{ fontSize: "13px", color: "#374151" }}>
+              <div style={{ marginBottom: "12px" }}>
+                <p style={{ fontWeight: "600", margin: "0 0 6px 0" }}>Regles generales :</p>
+                <ul style={{ margin: 0, paddingLeft: "20px" }}>
+                  <li>Separateur : <strong>point-virgule (;)</strong></li>
+                  <li>Encodage : <strong>UTF-8</strong></li>
+                  <li>Extension : <strong>.csv</strong></li>
+                  <li>Premiere ligne : <strong>en-tetes de colonnes obligatoires</strong></li>
+                </ul>
+              </div>
+
+              {importEntity === "entreprises" && (
+                <div style={{ marginBottom: "12px" }}>
+                  <p style={{ fontWeight: "600", margin: "0 0 6px 0" }}>Colonnes obligatoires pour Entreprises :</p>
+                  <div style={{ padding: "8px", borderRadius: "4px", background: "#f8fafc", fontFamily: "monospace", fontSize: "12px", overflowX: "auto" }}>
+                    Denomination;Sigle;Secteur;Ville;Region;Telephone;Email;Contact;Adresse;Statut
+                  </div>
+                  <p style={{ margin: "6px 0 0 0", fontSize: "12px", color: "#6b7280" }}>
+                    <strong>Denomination</strong> est obligatoire. Les autres sont facultatives.<br/>
+                    <strong>Secteur</strong> doit correspondre a un secteur valide (ex: AGRICULTURE / AGRO, BTP / MATERIAUX, etc.)<br/>
+                    <strong>Statut</strong> : ACTIF ou EN_ATTENTE (defaut: ACTIF)
+                  </p>
+                  <p style={{ fontWeight: "600", margin: "12px 0 6px 0" }}>Exemple :</p>
+                  <pre style={{ padding: "8px", borderRadius: "4px", background: "#f8fafc", fontFamily: "monospace", fontSize: "11px", overflowX: "auto", whiteSpace: "pre-wrap" }}>
+{entreprisesExample}
+                  </pre>
+                </div>
+              )}
+
+              {importEntity === "users" && (
+                <div style={{ marginBottom: "12px" }}>
+                  <p style={{ fontWeight: "600", margin: "0 0 6px 0" }}>Colonnes obligatoires pour Utilisateurs :</p>
+                  <div style={{ padding: "8px", borderRadius: "4px", background: "#f8fafc", fontFamily: "monospace", fontSize: "12px", overflowX: "auto" }}>
+                    Nom;Email;Role
+                  </div>
+                  <p style={{ margin: "6px 0 0 0", fontSize: "12px", color: "#6b7280" }}>
+                    <strong>Email</strong> est obligatoire et doit etre unique.<br/>
+                    <strong>Role</strong> : AGENT_SAISIE, ADMIN, ou SUPER_ADMIN (defaut: AGENT_SAISIE)<br/>
+                    Si l'email existe deja, le role sera mis a jour.
+                  </p>
+                  <p style={{ fontWeight: "600", margin: "12px 0 6px 0" }}>Exemple :</p>
+                  <pre style={{ padding: "8px", borderRadius: "4px", background: "#f8fafc", fontFamily: "monospace", fontSize: "11px", overflowX: "auto", whiteSpace: "pre-wrap" }}>
+{usersExample}
+                  </pre>
+                </div>
+              )}
+
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px", borderRadius: "6px", background: "#fef3c7", marginTop: "8px" }}>
+                <AlertTriangle className="w-4 h-4" style={{ color: "#d97706", flexShrink: 0 }} />
+                <p style={{ margin: 0, fontSize: "12px", color: "#92400e" }}>
+                  <strong>Attention :</strong> L'import modifie la base de donnees. Faites une sauvegarde avant d'importer des donnees.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           <input
             type="file"
@@ -224,7 +299,10 @@ export default function DataContent() {
               {importResult.errors === 0 ? "✅ Import reussi !" : "⚠️ Import termine avec des erreurs"}
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", fontSize: "13px" }}>
-              <div>✅ Crees: <strong>{importResult.created}</strong></div>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <CheckCircle className="w-4 h-4" style={{ color: "#059669" }} />
+                Crees: <strong>{importResult.created}</strong>
+              </div>
               <div>🔄 Mis a jour: <strong>{importResult.updated}</strong></div>
               <div>❌ Erreurs: <strong>{importResult.errors}</strong></div>
             </div>
