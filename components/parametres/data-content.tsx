@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { Database, Download, Upload, Trash2, Save, RefreshCw } from "lucide-react";
+import { useState, useRef } from "react";
+import { Database, Download, Upload, Trash2, Save, RefreshCw, FileUp } from "lucide-react";
 
 export default function DataContent() {
   const [exportFormat, setExportFormat] = useState<"csv" | "json">("csv");
   const [exportEntity, setExportEntity] = useState<"all" | "entreprises" | "users" | "productions">("all");
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<any>(null);
+  const [importEntity, setImportEntity] = useState<"entreprises" | "users">("entreprises");
   const [purging, setPurging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = async () => {
     try {
@@ -31,8 +35,35 @@ export default function DataContent() {
     }
   };
 
-  const handleImport = () => {
-    alert("Import de donnees - Fonctionnalite en cours de developpement");
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setImporting(true);
+      setImportResult(null);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("entity", importEntity);
+
+      const res = await fetch("/api/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        setImportResult(result);
+      } else {
+        alert("Erreur : " + (result.error || "Erreur lors de l'import"));
+      }
+    } catch (err: any) {
+      alert("Erreur : " + err.message);
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleBackup = () => {
@@ -134,22 +165,79 @@ export default function DataContent() {
 
       {/* Import */}
       <div style={{ padding: "20px", borderRadius: "12px", border: "1px solid #e5e7eb", background: "white", marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
           <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#d1fae5", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Upload className="w-5 h-5" style={{ color: "#059669" }} />
           </div>
           <div>
             <p style={{ fontWeight: "600", margin: 0, fontSize: "14px" }}>Importer des donnees</p>
-            <p style={{ fontSize: "13px", color: "#6b7280", margin: "2px 0 0 0" }}>Charger des donnees depuis un fichier</p>
+            <p style={{ fontSize: "13px", color: "#6b7280", margin: "2px 0 0 0" }}>Charger des donnees depuis un fichier CSV</p>
           </div>
         </div>
-        <button
-          onClick={handleImport}
-          style={{ padding: "10px 20px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px", color: "#374151" }}
-        >
-          <Upload className="w-4 h-4" />
-          Importer
-        </button>
+
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>Type de donnees</label>
+          <select
+            value={importEntity}
+            onChange={(e) => setImportEntity(e.target.value as any)}
+            style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", background: "white", maxWidth: "300px" }}
+          >
+            <option value="entreprises">Entreprises</option>
+            <option value="users">Utilisateurs</option>
+          </select>
+        </div>
+
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <input
+            type="file"
+            accept=".csv"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            style={{ display: "none" }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            style={{
+              padding: "10px 20px",
+              border: "1px solid #d1d5db",
+              borderRadius: "6px",
+              background: "white",
+              cursor: "pointer",
+              fontSize: "14px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              color: "#374151",
+              opacity: importing ? 0.5 : 1,
+            }}
+          >
+            <FileUp className="w-4 h-4" />
+            {importing ? "Import en cours..." : "Selectionner un fichier CSV"}
+          </button>
+        </div>
+
+        {/* Resultat import */}
+        {importResult && (
+          <div style={{ marginTop: "16px", padding: "16px", borderRadius: "8px", background: importResult.errors === 0 ? "#d1fae5" : "#fef3c7", border: "1px solid " + (importResult.errors === 0 ? "#059669" : "#d97706") }}>
+            <p style={{ fontWeight: "600", margin: "0 0 8px 0", fontSize: "14px", color: importResult.errors === 0 ? "#059669" : "#92400e" }}>
+              {importResult.errors === 0 ? "✅ Import reussi !" : "⚠️ Import termine avec des erreurs"}
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", fontSize: "13px" }}>
+              <div>✅ Crees: <strong>{importResult.created}</strong></div>
+              <div>🔄 Mis a jour: <strong>{importResult.updated}</strong></div>
+              <div>❌ Erreurs: <strong>{importResult.errors}</strong></div>
+            </div>
+            {importResult.errorDetails?.length > 0 && (
+              <div style={{ marginTop: "8px", fontSize: "12px", color: "#92400e" }}>
+                <p style={{ fontWeight: "600", margin: "0 0 4px 0" }}>Details des erreurs :</p>
+                {importResult.errorDetails.map((err: string, i: number) => (
+                  <p key={i} style={{ margin: "2px 0" }}>• {err}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Sauvegarde / Restauration */}
