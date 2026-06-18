@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import {
   Building2, ClipboardList, Clock, CheckCircle, XCircle,
-  TrendingUp, ArrowRight, Plus, FileText, AlertCircle
+  TrendingUp, AlertCircle
 } from "lucide-react";
 
 interface Stats {
@@ -43,20 +42,20 @@ export default function AgentSaisieDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Récupérer les entreprises (toutes)
-      const entRes = await fetch("/api/entreprises?limit=1");
+      setLoading(true);
+
+      // Recuperer toutes les entreprises pour le compteur
+      const entRes = await fetch("/api/entreprises");
       const entData = await entRes.json();
+      const totalEntreprises = Array.isArray(entData) ? entData.length : (entData.total || 0);
 
-      // Récupérer les productions (toutes)
-      const prodRes = await fetch("/api/productions?limit=1000");
+      // Recuperer les productions
+      const prodRes = await fetch("/api/productions");
       const prodData = await prodRes.json();
+      const productions = Array.isArray(prodData) ? prodData : (prodData.productions || []);
 
-      const productions = prodData.productions || [];
-
-      // Pour l'Agent, on affiche toutes les productions (pas de filtre par ID)
-      // car session?.user?.id peut être undefined dans NextAuth
       setStats({
-        totalEntreprises: entData.total || 0,
+        totalEntreprises,
         mesProductions: productions.length,
         enAttente: productions.filter((p: any) => p.statut === "EN_ATTENTE").length,
         validees: productions.filter((p: any) => p.statut === "VALIDEE").length,
@@ -89,11 +88,19 @@ export default function AgentSaisieDashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Tableau de bord — Agent de saisie</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Tableau de bord - Agent de saisie</h1>
         <p className="text-gray-500 mt-1">Bienvenue, {session?.user?.name || "Agent"}</p>
       </div>
 
@@ -107,7 +114,7 @@ export default function AgentSaisieDashboard() {
             <span className="text-sm text-gray-500">Entreprises</span>
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats.totalEntreprises}</p>
-          <p className="text-sm text-gray-500 mt-1">répertoriées</p>
+          <p className="text-sm text-gray-500 mt-1">repertoriees</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -129,7 +136,7 @@ export default function AgentSaisieDashboard() {
             <span className="text-sm text-gray-500">En attente</span>
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats.enAttente}</p>
-          <p className="text-sm text-gray-500 mt-1">à valider</p>
+          <p className="text-sm text-gray-500 mt-1">a valider</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -137,69 +144,20 @@ export default function AgentSaisieDashboard() {
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
-            <span className="text-sm text-gray-500">Validées</span>
+            <span className="text-sm text-gray-500">Validees</span>
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats.validees}</p>
-          <p className="text-sm text-gray-500 mt-1">acceptées</p>
+          <p className="text-sm text-gray-500 mt-1">acceptees</p>
         </div>
       </div>
 
-      {/* Liens rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Link href="/dashboard/entreprises" className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition">Entreprises</h3>
-                <p className="text-sm text-gray-500">Consulter et gérer les entreprises répertoriées</p>
-              </div>
-            </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition" />
-          </div>
-          <div className="mt-4 flex gap-2">
-            <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-              {stats.totalEntreprises} entreprises
-            </span>
-          </div>
-        </Link>
-
-        <Link href="/dashboard/production" className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <ClipboardList className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-700 transition">Production</h3>
-                <p className="text-sm text-gray-500">Saisir et consulter les données de production</p>
-              </div>
-            </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition" />
-          </div>
-          <div className="mt-4 flex gap-2">
-            <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-medium">
-              {stats.enAttente} en attente
-            </span>
-            <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
-              {stats.validees} validées
-            </span>
-          </div>
-        </Link>
-      </div>
-
-      {/* Dernières productions */}
+      {/* Dernieres productions */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-gray-600" />
-            Mes dernières saisies
+            Mes dernieres saisies
           </h2>
-          <Link href="/dashboard/production" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
-            Voir tout <ArrowRight className="w-4 h-4" />
-          </Link>
         </div>
 
         {recentProductions.length === 0 ? (
@@ -214,7 +172,7 @@ export default function AgentSaisieDashboard() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entreprise</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Période</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Periode</th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Statut</th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Date</th>
                 </tr>
