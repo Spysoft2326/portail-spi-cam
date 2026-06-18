@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Settings, Users, Bell, Shield, Database } from "lucide-react";
 import UsersContent from "@/components/parametres/users-content";
 import NotificationsContent from "@/components/parametres/notifications-content";
+import SecurityContent from "@/components/parametres/security-content";
 
 export const dynamic = 'force-dynamic';
 
@@ -69,13 +70,11 @@ function ParametresContent() {
 
   return (
     <div>
-      {/* Header */}
       <div style={{ marginBottom: "24px" }}>
         <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Parametres</h1>
         <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Configuration du portail SPI-CAM</p>
       </div>
 
-      {/* Onglets */}
       <div style={{ display: "flex", gap: "4px", marginBottom: "24px", borderBottom: "1px solid #e5e7eb" }}>
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -106,7 +105,6 @@ function ParametresContent() {
         })}
       </div>
 
-      {/* Contenu */}
       <div>
         {activeTab === "general" && (
           <div style={{ maxWidth: "800px" }}>
@@ -159,7 +157,7 @@ function ParametresContent() {
                 onClick={handleSaveGeneral}
                 style={{ padding: "10px 20px", border: "none", borderRadius: "6px", background: "#2563eb", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}
               >
-                💾 Enregistrer
+                Enregistrer
               </button>
             </div>
           </div>
@@ -180,13 +178,7 @@ function ParametresContent() {
 
         {activeTab === "notifications" && <NotificationsContent />}
 
-        {activeTab === "security" && (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>🛡️</div>
-            <h3 style={{ fontSize: "18px", fontWeight: "600", margin: "0 0 8px 0" }}>Securite</h3>
-            <p style={{ color: "#6b7280", margin: 0 }}>Configuration de la securite en cours de developpement.</p>
-          </div>
-        )}
+        {activeTab === "security" && <SecurityContent />}
 
         {activeTab === "data" && (
           <div style={{ textAlign: "center", padding: "60px 20px" }}>
