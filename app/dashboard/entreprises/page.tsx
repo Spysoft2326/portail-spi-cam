@@ -17,29 +17,29 @@ interface Enterprise {
   statut: string;
 }
 
-// ✅ 16 SECTEURS exacts (cohérents avec l'annuaire public et les compteurs page d'accueil)
+// 16 SECTEURS exacts (coherents avec l'annuaire public et les compteurs page d'accueil)
 const SECTEURS = [
   { value: "AGRICULTURE / AGRO", label: "Agriculture / Agro" },
-  { value: "BTP / MATÉRIAUX", label: "BTP / Matériaux" },
+  { value: "BTP / MATERIAUX", label: "BTP / Materiaux" },
   { value: "CHIMIE / PLASTIQUE", label: "Chimie / Plastique" },
   { value: "COMMERCE", label: "Commerce" },
-  { value: "ÉNERGIE", label: "Énergie" },
-  { value: "ENVIRONNEMENT / DÉCHETS", label: "Environnement / Déchets" },
+  { value: "ENERGIE", label: "Energie" },
+  { value: "ENVIRONNEMENT / DECHETS", label: "Environnement / Dechets" },
   { value: "FINANCE", label: "Finance" },
-  { value: "FORÊT / BOIS", label: "Forêt / Bois" },
-  { value: "INDUSTRIE LÉGÈRE", label: "Industrie légère" },
-  { value: "MÉTALLURGIE", label: "Métallurgie" },
+  { value: "FORET / BOIS", label: "Foret / Bois" },
+  { value: "INDUSTRIE LEGERE", label: "Industrie legere" },
+  { value: "METALLURGIE", label: "Metallurgie" },
   { value: "PHARMACEUTIQUE", label: "Pharmaceutique" },
-  { value: "SANTÉ", label: "Santé" },
-  { value: "SÉCURITÉ / DÉFENSE", label: "Sécurité / Défense" },
-  { value: "TÉLÉCOMS / IT", label: "Télécoms / IT" },
+  { value: "SANTE", label: "Sante" },
+  { value: "SECURITE / DEFENSE", label: "Securite / Defense" },
+  { value: "TELECOMS / IT", label: "Telecoms / IT" },
   { value: "TEXTILE / HABILLEMENT", label: "Textile / Habillement" },
   { value: "TRANSPORT / LOGISTIQUE", label: "Transport / Logistique" },
-  { value: "TOURISME / HÔTELLERIE", label: "Tourisme / Hôtellerie" },
+  { value: "TOURISME / HOTELLERIE", label: "Tourisme / Hotellerie" },
 ];
 
 const REGIONS = [
-  "Adamaoua", "Centre", "Est", "Extrême-Nord", "Littoral",
+  "Adamaoua", "Centre", "Est", "Extreme-Nord", "Littoral",
   "Nord", "Nord-Ouest", "Ouest", "Sud", "Sud-Ouest"
 ];
 
@@ -53,7 +53,6 @@ export default function EntreprisesPage() {
   const [filterVille, setFilterVille] = useState("");
   const [userRole, setUserRole] = useState<string>("");
 
-  // CRUD states
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -124,7 +123,7 @@ export default function EntreprisesPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!formData.denomination.trim()) {
-      alert("La dénomination est obligatoire");
+      alert("La denomination est obligatoire");
       return;
     }
 
@@ -140,12 +139,12 @@ export default function EntreprisesPage() {
       });
 
       if (res.ok) {
-        alert(editingId ? "Entreprise modifiée !" : "Entreprise ajoutée !");
+        alert(editingId ? "Entreprise modifiee !" : "Entreprise ajoutee !");
         resetForm();
         fetchAllData();
       } else {
         const err = await res.json().catch(() => ({}));
-        alert("Erreur : " + (err.error || "Erreur lors de l'opération"));
+        alert("Erreur : " + (err.error || "Erreur lors de l'operation"));
       }
     } catch (error) {
       alert("Erreur de connexion");
@@ -155,11 +154,11 @@ export default function EntreprisesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer cette entreprise ? Cette action est irréversible.")) return;
+    if (!confirm("Supprimer cette entreprise ? Cette action est irreversible.")) return;
     try {
       const res = await fetch(`/api/entreprises/${id}`, { method: "DELETE" });
       if (res.ok) {
-        alert("Entreprise supprimée");
+        alert("Entreprise supprimee");
         fetchAllData();
       } else {
         const err = await res.json().catch(() => ({}));
@@ -179,7 +178,7 @@ export default function EntreprisesPage() {
       });
 
       if (res.ok) {
-        alert(statut === "ACTIF" ? "Entreprise validée !" : "Entreprise rejetée.");
+        alert(statut === "ACTIF" ? "Entreprise validee !" : "Entreprise rejetee.");
         fetchAllData();
       } else {
         const err = await res.json().catch(() => ({}));
@@ -190,7 +189,6 @@ export default function EntreprisesPage() {
     }
   };
 
-  // Extraction des villes uniques pour le filtre
   const villesUniques = Array.from(new Set(
     enterprises
       .map(e => e.ville)
@@ -198,7 +196,6 @@ export default function EntreprisesPage() {
       .sort()
   ));
 
-  // Filtrage côté client
   const filteredEnterprises = enterprises.filter((e) => {
     const searchLower = searchTerm.toLowerCase().trim();
     const matchSearch = !searchLower ||
@@ -211,8 +208,7 @@ export default function EntreprisesPage() {
       (e.telephone && e.telephone.includes(searchLower)) ||
       (e.email && e.email.toLowerCase().includes(searchLower));
 
-    const matchSecteur = !filterSecteur ||
-      e.secteurActivite === filterSecteur;
+    const matchSecteur = !filterSecteur || e.secteurActivite === filterSecteur;
     const matchRegion = !filterRegion || e.region === filterRegion;
     const matchVille = !filterVille || e.ville === filterVille;
 
@@ -232,7 +228,6 @@ export default function EntreprisesPage() {
     );
   }
 
-  // ===== FORMULAIRE AJOUT/MODIFICATION =====
   if (showForm) {
     return (
       <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
@@ -240,7 +235,7 @@ export default function EntreprisesPage() {
           onClick={resetForm}
           style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
         >
-          ← Retour à l'annuaire
+          Retour a l'annuaire
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
@@ -256,15 +251,14 @@ export default function EntreprisesPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Identité */}
           <div style={{ marginBottom: "24px" }}>
             <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#374151", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-              🏢 Identité de l'entreprise
+              🏢 Identite de l'entreprise
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  Dénomination <span style={{ color: "#ef4444" }}>*</span>
+                  Denomination <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <input
                   type="text" required
@@ -286,7 +280,7 @@ export default function EntreprisesPage() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  Secteur d'activité <span style={{ color: "#ef4444" }}>*</span>
+                  Secteur d'activite <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <select
                   value={formData.secteurActivite}
@@ -301,20 +295,19 @@ export default function EntreprisesPage() {
 
           <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
 
-          {/* Localisation */}
           <div style={{ marginBottom: "24px" }}>
             <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#374151", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
               📍 Localisation
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>Région</label>
+                <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>Region</label>
                 <select
                   value={formData.region}
                   onChange={(e) => setFormData({ ...formData, region: e.target.value })}
                   style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", background: "white" }}
                 >
-                  <option value="">Non spécifiée</option>
+                  <option value="">Non specifiee</option>
                   {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
@@ -322,7 +315,7 @@ export default function EntreprisesPage() {
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>Ville</label>
                 <input
                   type="text"
-                  placeholder="Ex: Yaoundé, Douala..."
+                  placeholder="Ex: Yaounde, Douala..."
                   value={formData.ville}
                   onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
                   style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
@@ -332,7 +325,7 @@ export default function EntreprisesPage() {
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>Adresse / BP</label>
                 <input
                   type="text"
-                  placeholder="Ex: BP 1234 Yaoundé..."
+                  placeholder="Ex: BP 1234 Yaounde..."
                   value={formData.adresse}
                   onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
                   style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
@@ -343,7 +336,6 @@ export default function EntreprisesPage() {
 
           <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
 
-          {/* Contact */}
           <div style={{ marginBottom: "24px" }}>
             <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#374151", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
               👤 Contact de l'entreprise
@@ -360,7 +352,7 @@ export default function EntreprisesPage() {
                 />
               </div>
               <div>
-                <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>📞 Téléphone</label>
+                <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>📞 Telephone</label>
                 <input
                   type="text"
                   placeholder="Ex: +237 6XX XXX XXX"
@@ -407,31 +399,27 @@ export default function EntreprisesPage() {
     );
   }
 
-  // ===== LISTE PRINCIPALE =====
   return (
     <div style={{ padding: "24px" }}>
-      {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{ padding: "10px", background: "#dbeafe", borderRadius: "8px", fontSize: "24px" }}>🏢</div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Annuaire des Entreprises</h1>
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>
-              {enterprises.length} entreprises répertoriées · {filteredEnterprises.length} résultat{filteredEnterprises.length > 1 ? "s" : ""}
+              {enterprises.length} entreprises repertoriees &middot; {filteredEnterprises.length} resultat{filteredEnterprises.length > 1 ? "s" : ""}
             </p>
           </div>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={() => {
-              const csv = [
-                ["Référence SPI", "Dénomination", "Sigle", "Secteur", "Ville", "Région", "Téléphone", "Email", "Contact", "Statut"].join(";"),
-                ...filteredEnterprises.map((e) => [
-                  e.referenceSPI, e.denomination, e.sigle || "", e.secteurActivite, e.ville || "", e.region || "",
-                  e.telephone || "", e.email || "", e.nomContact || "", e.statut
-                ].join(";"))
-              ].join("
-");
+              const headers = ["Reference SPI", "Denomination", "Sigle", "Secteur", "Ville", "Region", "Telephone", "Email", "Contact", "Statut"];
+              const rows = filteredEnterprises.map((e) => [
+                e.referenceSPI, e.denomination, e.sigle || "", e.secteurActivite, e.ville || "", e.region || "",
+                e.telephone || "", e.email || "", e.nomContact || "", e.statut
+              ]);
+              const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(";")).join("\n");
               const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement("a"); a.href = url;
@@ -452,7 +440,6 @@ export default function EntreprisesPage() {
         </div>
       </div>
 
-      {/* Filtres */}
       <div style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", marginBottom: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", fontWeight: "600", fontSize: "14px" }}>
           🔍 Recherche & Filtres
@@ -462,7 +449,7 @@ export default function EntreprisesPage() {
             <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px" }}>🔍</span>
             <input
               type="text"
-              placeholder="Rechercher (nom, sigle, ville, contact, téléphone...)"
+              placeholder="Rechercher (nom, sigle, ville, contact, telephone...)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ width: "100%", padding: "8px 12px 8px 36px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
@@ -481,7 +468,7 @@ export default function EntreprisesPage() {
             onChange={(e) => { setFilterRegion(e.target.value); setFilterVille(""); }}
             style={{ padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", background: "white" }}
           >
-            <option value="">Toutes les régions</option>
+            <option value="">Toutes les regions</option>
             {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
           <select
@@ -498,18 +485,17 @@ export default function EntreprisesPage() {
             onClick={() => { setSearchTerm(""); setFilterSecteur(""); setFilterRegion(""); setFilterVille(""); }}
             style={{ marginTop: "12px", padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "13px", color: "#6b7280" }}
           >
-            🔄 Réinitialiser les filtres
+            🔄 Reinitialiser les filtres
           </button>
         )}
       </div>
 
-      {/* Liste */}
       <div style={{ borderRadius: "8px", border: "1px solid #e5e7eb", background: "white" }}>
         <div style={{ padding: "16px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontWeight: "600", fontSize: "16px" }}>📋 Résultats</div>
+            <div style={{ fontWeight: "600", fontSize: "16px" }}>📋 Resultats</div>
             <p style={{ fontSize: "13px", color: "#6b7280", margin: "4px 0 0 0" }}>
-              {filteredEnterprises.length} résultat{filteredEnterprises.length > 1 ? "s" : ""} sur {enterprises.length} entreprises
+              {filteredEnterprises.length} resultat{filteredEnterprises.length > 1 ? "s" : ""} sur {enterprises.length} entreprises
             </p>
           </div>
         </div>
@@ -517,7 +503,7 @@ export default function EntreprisesPage() {
           {filteredEnterprises.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune entreprise trouvée</h3>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune entreprise trouvee</h3>
               <p style={{ color: "#6b7280", margin: 0 }}>Ajustez vos filtres ou ajoutez une nouvelle entreprise.</p>
               {(isAdmin || isAgent) && (
                 <button
@@ -530,7 +516,6 @@ export default function EntreprisesPage() {
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column" }}>
-              {/* En-tête du tableau */}
               <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 140px", padding: "12px 16px", background: "#f9fafb", borderBottom: "1px solid #e5e7eb", fontSize: "12px", fontWeight: "600", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 <div>Entreprise</div>
                 <div>Secteur</div>
@@ -550,21 +535,18 @@ export default function EntreprisesPage() {
                   onMouseEnter={(e) => (e.currentTarget.style.background = "#f9fafb")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
-                  {/* Entreprise */}
                   <div>
                     <p style={{ fontWeight: "600", margin: 0, color: "#111827", fontSize: "14px" }}>{enterprise.denomination}</p>
                     {enterprise.sigle && <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{enterprise.sigle}</p>}
                     <p style={{ fontSize: "11px", color: "#9ca3af", margin: "2px 0 0 0" }}>Ref: {enterprise.referenceSPI}</p>
                   </div>
 
-                  {/* Secteur */}
                   <div>
                     <span style={{ padding: "4px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "500", background: "#f3f4f6", color: "#374151" }}>
                       {enterprise.secteurActivite}
                     </span>
                   </div>
 
-                  {/* Localisation */}
                   <div>
                     <p style={{ margin: 0, fontSize: "13px", color: "#374151" }}>
                       {enterprise.ville || "-"}
@@ -572,7 +554,6 @@ export default function EntreprisesPage() {
                     {enterprise.region && <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: "#9ca3af" }}>{enterprise.region}</p>}
                   </div>
 
-                  {/* Contact */}
                   <div>
                     {enterprise.nomContact && <p style={{ margin: 0, fontSize: "13px", color: "#374151" }}>{enterprise.nomContact}</p>}
                     {enterprise.telephone && <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: "#6b7280" }}>📞 {enterprise.telephone}</p>}
@@ -580,18 +561,16 @@ export default function EntreprisesPage() {
                     {!enterprise.nomContact && !enterprise.telephone && !enterprise.email && <span style={{ color: "#9ca3af", fontSize: "13px" }}>-</span>}
                   </div>
 
-                  {/* Statut */}
                   <div>
                     <span style={{
                       padding: "4px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "500",
                       background: enterprise.statut === "ACTIF" ? "#d1fae5" : enterprise.statut === "EN_ATTENTE" ? "#fef3c7" : "#fee2e2",
                       color: enterprise.statut === "ACTIF" ? "#059669" : enterprise.statut === "EN_ATTENTE" ? "#d97706" : "#dc2626"
                     }}>
-                      {enterprise.statut === "ACTIF" ? "✅ Actif" : enterprise.statut === "EN_ATTENTE" ? "⏳ En attente" : "❌ Rejeté"}
+                      {enterprise.statut === "ACTIF" ? "✅ Actif" : enterprise.statut === "EN_ATTENTE" ? "⏳ En attente" : "❌ Rejete"}
                     </span>
                   </div>
 
-                  {/* Actions */}
                   <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
                     {(isAdmin || isAgent) && (
                       <button
