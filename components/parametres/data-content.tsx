@@ -6,11 +6,29 @@ import { Database, Download, Upload, Trash2, Save, RefreshCw } from "lucide-reac
 export default function DataContent() {
   const [exportFormat, setExportFormat] = useState<"csv" | "json">("csv");
   const [exportEntity, setExportEntity] = useState<"all" | "entreprises" | "users" | "productions">("all");
-  const [saved, setSaved] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [purging, setPurging] = useState(false);
 
-  const handleExport = () => {
-    alert(`Export ${exportFormat.toUpperCase()} des ${exportEntity} lance !`);
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const res = await fetch(`/api/export?entity=${exportEntity}&format=${exportFormat}`);
+      if (!res.ok) throw new Error("Erreur lors de l'export");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("Content-Disposition")?.split('filename="')[1]?.replace('"', '') || `export.${exportFormat}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert("Erreur : " + err.message);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleImport = () => {
@@ -94,10 +112,23 @@ export default function DataContent() {
         </div>
         <button
           onClick={handleExport}
-          style={{ padding: "10px 20px", border: "none", borderRadius: "6px", background: "#2563eb", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}
+          disabled={exporting}
+          style={{
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: "6px",
+            background: "#2563eb",
+            color: "white",
+            cursor: "pointer",
+            fontSize: "14px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            opacity: exporting ? 0.5 : 1,
+          }}
         >
           <Download className="w-4 h-4" />
-          Exporter
+          {exporting ? "Export en cours..." : "Exporter"}
         </button>
       </div>
 
