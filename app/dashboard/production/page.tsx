@@ -78,7 +78,6 @@ function formatTrimestre(t: number | null): string {
   return map[t] || "T" + t;
 }
 
-// Helper: determine si une production est une prevision (trimestre futur)
 function isPrevision(annee: number | null, trimestre: number | null): boolean {
   if (!annee || !trimestre) return false;
   const now = new Date();
@@ -247,16 +246,24 @@ ${errors} erreur(s).` : ""}`);
     }
   };
 
+  // Helper pour nettoyer les guillemets sans regex
+  const cleanQuotes = (str: string): string => {
+    let result = str;
+    if (result.startsWith('"') || result.startsWith("'")) result = result.slice(1);
+    if (result.endsWith('"') || result.endsWith("'")) result = result.slice(0, -1);
+    return result;
+  };
+
   const parseCSV = (text: string): Record<string, string>[] => {
     const lines = text.split("
 ").map(l => l.replace("", "")).filter(line => line.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(",").map(h => h.trim().replace(/^["']|["']$/g, ""));
+    const headers = lines[0].split(",").map(h => cleanQuotes(h.trim()));
     const rows: Record<string, string>[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(",").map(v => v.trim().replace(/^["']|["']$/g, ""));
+      const values = lines[i].split(",").map(v => cleanQuotes(v.trim()));
       if (values.length < headers.length) continue;
       const row: Record<string, string> = {};
       headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
