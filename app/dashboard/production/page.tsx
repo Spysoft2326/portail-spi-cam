@@ -28,6 +28,7 @@ import {
   AlertCircle,
   CheckCircle,
   CheckSquare,
+  Eye,
 } from "lucide-react";
 
 interface Enterprise {
@@ -75,6 +76,19 @@ function formatTrimestre(t: number | null): string {
   if (!t) return "-";
   const map: Record<number, string> = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
   return map[t] || "T" + t;
+}
+
+// Helper: dÃ©termine si une production est une prÃ©vision (trimestre futur)
+function isPrevision(annee: number | null, trimestre: number | null): boolean {
+  if (!annee || !trimestre) return false;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentTrimestre = Math.ceil(currentMonth / 3); // 1-4
+
+  if (annee > currentYear) return true;
+  if (annee === currentYear && trimestre > currentTrimestre) return true;
+  return false;
 }
 
 // Conversion: Millions de tonnes <-> tonnes
@@ -169,11 +183,13 @@ export default function ProductionPage() {
   const handleValidateAll = async () => {
     const enAttente = visibleProductions.filter(p => p.statut === "EN_ATTENTE");
     if (enAttente.length === 0) {
-      alert("Aucune production en attente à valider.");
+      alert("Aucune production en attente Ã  valider.");
       return;
     }
 
-    if (!confirm(`Valider ${enAttente.length} production(s) en attente ?\n\nCette action est irréversible.`)) {
+    if (!confirm(`Valider ${enAttente.length} production(s) en attente ?
+
+Cette action est irrÃ©versible.`)) {
       return;
     }
 
@@ -199,7 +215,8 @@ export default function ProductionPage() {
         }
       }
 
-      alert(`${success} production(s) validée(s) avec succès !${errors > 0 ? `\n${errors} erreur(s).` : ""}`);
+      alert(`${success} production(s) validÃ©e(s) avec succÃ¨s !${errors > 0 ? `
+${errors} erreur(s).` : ""}`);
       fetchAllData();
     } catch (error) {
       alert("Erreur lors de la validation en masse.");
@@ -237,7 +254,8 @@ export default function ProductionPage() {
   };
 
   const parseCSV = (text: string): Record<string, string>[] => {
-    const lines = text.split(/\r?\n/).filter(line => line.trim());
+    const lines = text.split(/?
+/).filter(line => line.trim());
     if (lines.length < 2) return [];
 
     const headers = lines[0].split(",").map(h => h.trim().replace(/^["']|["']$/g, ""));
@@ -276,7 +294,6 @@ export default function ProductionPage() {
         const rowNum = i + 1;
 
         try {
-          // Mapping des colonnes CSV vers les champs API
           const entrepriseId = row["entreprise_id"] || row["entrepriseId"] || row["ID Entreprise"] || "";
           const annee = parseInt(row["annee"] || row["Annee"] || row["annee"] || "0");
           const trimestreStr = row["trimestre"] || row["Trimestre"] || row["trimestre"] || "";
@@ -292,15 +309,13 @@ export default function ProductionPage() {
             continue;
           }
 
-          // Vérifier que l'entreprise existe
           const entExists = enterprises.find(e => e.id === entrepriseId);
           if (!entExists) {
             results.errors++;
-            results.details.push({ row: rowNum, status: "error", message: `Entreprise ID ${entrepriseId} non trouvée` });
+            results.details.push({ row: rowNum, status: "error", message: `Entreprise ID ${entrepriseId} non trouvÃ©e` });
             continue;
           }
 
-          // Convertir en unités de base
           const productionPhysiqueTonnes = productionPhysique * TONNES_FACTOR;
           const chiffreAffairesFCFA = chiffreAffaires * FCFA_FACTOR;
 
@@ -320,7 +335,7 @@ export default function ProductionPage() {
 
           if (res.ok) {
             results.success++;
-            results.details.push({ row: rowNum, status: "success", message: `${entExists.denomination} - ${annee}-T${trimestre} importé` });
+            results.details.push({ row: rowNum, status: "success", message: `${entExists.denomination} - ${annee}-T${trimestre} importÃ©` });
           } else {
             const err = await res.json().catch(() => ({}));
             results.errors++;
@@ -334,7 +349,7 @@ export default function ProductionPage() {
 
       setImportResult(results);
       if (results.success > 0) {
-        fetchAllData(); // Rafraîchir la liste
+        fetchAllData();
       }
     } catch (error: any) {
       setImportResult({ success: 0, errors: 1, total: 0, details: [{ row: 0, status: "error", message: error.message || "Erreur de lecture du fichier" }] });
@@ -716,7 +731,8 @@ export default function ProductionPage() {
                   getEnterpriseName(p.entrepriseId), p.annee || "", formatTrimestre(p.trimestre),
                   p.productionPhysique || 0, p.chiffreAffaires || 0, p.effectifs || 0, p.statut || "EN_ATTENTE"
                 ].join(","))
-              ].join("\n");
+              ].join("
+");
               const blob = new Blob([csv], { type: "text/csv" });
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement("a"); a.href = url;
@@ -727,7 +743,6 @@ export default function ProductionPage() {
             <Download size={16} /> Exporter CSV
           </button>
 
-          {/* BOUTON IMPORTER CSV */}
           <button
             onClick={() => { setShowImportModal(true); setImportFile(null); setImportResult(null); }}
             style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px", color: "#374151" }}
@@ -756,7 +771,6 @@ export default function ProductionPage() {
             background: "white", borderRadius: "12px", width: "100%", maxWidth: "600px",
             maxHeight: "90vh", overflow: "auto", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)"
           }}>
-            {/* Header */}
             <div style={{ padding: "20px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <div style={{ padding: "8px", background: "#dbeafe", borderRadius: "8px" }}>
@@ -764,7 +778,7 @@ export default function ProductionPage() {
                 </div>
                 <div>
                   <h2 style={{ fontSize: "18px", fontWeight: "600", margin: 0 }}>Importer des productions</h2>
-                  <p style={{ fontSize: "13px", color: "#6b7280", margin: "2px 0 0 0" }}>Fichier CSV avec les données trimestrielles</p>
+                  <p style={{ fontSize: "13px", color: "#6b7280", margin: "2px 0 0 0" }}>Fichier CSV avec les donnÃ©es trimestrielles</p>
                 </div>
               </div>
               <button
@@ -776,19 +790,17 @@ export default function ProductionPage() {
             </div>
 
             <div style={{ padding: "24px" }}>
-              {/* Format attendu */}
               <div style={{ padding: "12px 16px", background: "#f9fafb", borderRadius: "8px", marginBottom: "20px", fontSize: "13px" }}>
                 <p style={{ fontWeight: "600", margin: "0 0 8px 0", color: "#374151" }}>Format attendu :</p>
                 <code style={{ display: "block", padding: "8px 12px", background: "#1f2937", color: "#e5e7eb", borderRadius: "6px", fontSize: "12px", overflow: "auto" }}>
                   entreprise_id,annee,trimestre,production_physique,chiffre_affaires,effectifs,commentaire<br/>
-                  abc-123,2024,1,5000,120,800,Données T1 2024
+                  abc-123,2024,1,5000,120,800,DonnÃ©es T1 2024
                 </code>
                 <p style={{ margin: "8px 0 0 0", color: "#6b7280" }}>
                   <span style={{ color: "#ef4444" }}>*</span> entreprise_id, annee, trimestre sont obligatoires
                 </p>
               </div>
 
-              {/* Zone de drop */}
               {!importResult && (
                 <div
                   onDragEnter={handleDrag}
@@ -825,7 +837,6 @@ export default function ProductionPage() {
                 </div>
               )}
 
-              {/* Résultat */}
               {importResult && (
                 <div style={{ marginTop: "16px" }}>
                   <div style={{
@@ -841,12 +852,11 @@ export default function ProductionPage() {
                         <AlertCircle size={20} color="#d97706" />
                       )}
                       <span style={{ fontWeight: "600" }}>
-                        {importResult.success} importé(s) / {importResult.errors} erreur(s) sur {importResult.total} ligne(s)
+                        {importResult.success} importÃ©(s) / {importResult.errors} erreur(s) sur {importResult.total} ligne(s)
                       </span>
                     </div>
                   </div>
 
-                  {/* Détails */}
                   {importResult.details.length > 0 && (
                     <div style={{ maxHeight: "200px", overflow: "auto", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
                       {importResult.details.map((detail, idx) => (
@@ -874,7 +884,6 @@ export default function ProductionPage() {
                 </div>
               )}
 
-              {/* Boutons */}
               <div style={{ display: "flex", gap: "10px", marginTop: "20px", justifyContent: "flex-end" }}>
                 <button
                   onClick={() => { setShowImportModal(false); setImportFile(null); setImportResult(null); }}
@@ -1082,6 +1091,21 @@ export default function ProductionPage() {
                             ) : (
                               <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={12} /> Rejete</span>
                             )}
+                          </span>
+                        )}
+                        {/* BADGE PREVISION */}
+                        {isPrevision(p.annee, p.trimestre) && (
+                          <span style={{
+                            padding: "2px 8px",
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            background: "#e0e7ff",
+                            color: "#4338ca",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}>
+                            <Eye size={12} /> PrÃ©vision
                           </span>
                         )}
                       </div>
