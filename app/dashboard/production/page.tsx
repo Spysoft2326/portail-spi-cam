@@ -65,6 +65,11 @@ function formatTrimestre(t: number | null): string {
   return map[t] || "T" + t;
 }
 
+// Conversion: Millions de tonnes <-> tonnes
+const TONNES_FACTOR = 1000000;
+// Conversion: Milliards de FCFA <-> FCFA
+const FCFA_FACTOR = 1000000000;
+
 export default function ProductionPage() {
   const { data: session } = useSession();
   const userRole = session?.user?.role || "";
@@ -86,8 +91,8 @@ export default function ProductionPage() {
     entrepriseId: "",
     annee: "2026",
     trimestre: "T1",
-    productionPhysique: "",
-    chiffreAffaires: "",
+    productionPhysique: "", // en Millions de tonnes
+    chiffreAffaires: "", // en Milliards de FCFA
     nombreEmployes: "",
     commentaire: "",
   });
@@ -147,8 +152,14 @@ export default function ProductionPage() {
       entrepriseId: production.entrepriseId,
       annee: production.annee?.toString() || "2026",
       trimestre: formatTrimestre(production.trimestre),
-      productionPhysique: production.productionPhysique?.toString() || "",
-      chiffreAffaires: production.chiffreAffaires?.toString() || "",
+      // Convertir tonnes -> Millions de tonnes
+      productionPhysique: production.productionPhysique
+        ? (production.productionPhysique / TONNES_FACTOR).toString()
+        : "",
+      // Convertir FCFA -> Milliards de FCFA
+      chiffreAffaires: production.chiffreAffaires
+        ? (production.chiffreAffaires / FCFA_FACTOR).toString()
+        : "",
       nombreEmployes: production.effectifs?.toString() || "",
       commentaire: production.commentaire || "",
     });
@@ -167,6 +178,10 @@ export default function ProductionPage() {
       const url = editingProduction ? `/api/productions/${editingProduction.id}` : "/api/productions";
       const method = editingProduction ? "PATCH" : "POST";
 
+      // Convertir les valeurs saisies en unités de base avant envoi
+      const productionPhysiqueTonnes = parseFloat(formData.productionPhysique) * TONNES_FACTOR;
+      const chiffreAffairesFCFA = parseFloat(formData.chiffreAffaires) * FCFA_FACTOR;
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -174,8 +189,8 @@ export default function ProductionPage() {
           entrepriseId: formData.entrepriseId,
           annee: parseInt(formData.annee),
           trimestre: formData.trimestre,
-          productionPhysique: parseFloat(formData.productionPhysique) || 0,
-          chiffreAffaires: parseFloat(formData.chiffreAffaires) || 0,
+          productionPhysique: productionPhysiqueTonnes || 0,
+          chiffreAffaires: chiffreAffairesFCFA || 0,
           effectifs: parseInt(formData.nombreEmployes) || 0,
           commentaire: formData.commentaire,
         }),
@@ -375,34 +390,48 @@ export default function ProductionPage() {
               <BarChart3 size={18} /> Donnees de production
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+              {/* Production physique - Millions de tonnes */}
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
                   <Package size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Production physique
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="0"
-                  value={formData.productionPhysique}
-                  onChange={(e) => setFormData({ ...formData, productionPhysique: e.target.value })}
-                  style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
-                />
-                <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>tonnes, unites, etc.</p>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0"
+                    value={formData.productionPhysique}
+                    onChange={(e) => setFormData({ ...formData, productionPhysique: e.target.value })}
+                    style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
+                  />
+                  <span style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#9ca3af", fontWeight: "500" }}>
+                    Mt
+                  </span>
+                </div>
+                <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>Millions de tonnes</p>
               </div>
+
+              {/* Chiffre d'affaires - Milliards de FCFA */}
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
                   <DollarSign size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Chiffre d&apos;affaires
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="0"
-                  value={formData.chiffreAffaires}
-                  onChange={(e) => setFormData({ ...formData, chiffreAffaires: e.target.value })}
-                  style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
-                />
-                <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>en FCFA</p>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0"
+                    value={formData.chiffreAffaires}
+                    onChange={(e) => setFormData({ ...formData, chiffreAffaires: e.target.value })}
+                    style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
+                  />
+                  <span style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#9ca3af", fontWeight: "500" }}>
+                    Gd FCFA
+                  </span>
+                </div>
+                <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>Milliards de FCFA</p>
               </div>
+
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
                   <Users size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Nombre d&apos;employes
@@ -537,8 +566,8 @@ export default function ProductionPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
         {[
           { label: "Total productions", value: visibleProductions.length, sub: "saisies enregistrees", color: "#059669", bg: "#d1fae5" },
-          { label: "Production physique", value: totalProduction.toLocaleString(), sub: "tonnes / unites", color: "#2563eb", bg: "#dbeafe" },
-          { label: "Chiffre d&apos;affaires", value: totalCA.toLocaleString() + " FCFA", sub: "cumule", color: "#d97706", bg: "#fef3c7" },
+          { label: "Production physique", value: (totalProduction / TONNES_FACTOR).toLocaleString() + " Mt", sub: "millions de tonnes", color: "#2563eb", bg: "#dbeafe" },
+          { label: "Chiffre d&apos;affaires", value: (totalCA / FCFA_FACTOR).toLocaleString() + " Gd FCFA", sub: "milliards de FCFA", color: "#d97706", bg: "#fef3c7" },
           { label: "Emplois crees", value: totalEmployes.toLocaleString(), sub: "employes au total", color: "#7c3aed", bg: "#ede9fe" },
         ].map((item) => (
           <div key={item.label} style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "linear-gradient(135deg, " + item.bg + ", white)" }}>
@@ -645,8 +674,8 @@ export default function ProductionPage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <div style={{ textAlign: "right", marginRight: "8px" }}>
-                      <p style={{ fontWeight: "600", margin: 0, fontSize: "14px" }}>{(p.productionPhysique || 0).toLocaleString()} unites</p>
-                      <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{(p.chiffreAffaires || 0).toLocaleString()} FCFA</p>
+                      <p style={{ fontWeight: "600", margin: 0, fontSize: "14px" }}>{(p.productionPhysique ? (p.productionPhysique / TONNES_FACTOR).toLocaleString() : "0")} Mt</p>
+                      <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{(p.chiffreAffaires ? (p.chiffreAffaires / FCFA_FACTOR).toLocaleString() : "0")} Gd FCFA</p>
                       <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employes</p>
                     </div>
 
