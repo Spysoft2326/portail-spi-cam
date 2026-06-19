@@ -181,7 +181,7 @@ export default function ProductionPage() {
       const chiffreAffairesFCFA = parseFloat(formData.chiffreAffaires) * FCFA_FACTOR;
 
       const res = await fetch(url, {
-        method,
+        method: editingProduction ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           entrepriseId: formData.entrepriseId,
@@ -564,8 +564,8 @@ export default function ProductionPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
         {[
           { label: "Total productions", value: visibleProductions.length, sub: "saisies enregistrees", color: "#059669", bg: "#d1fae5" },
-          { label: "Production physique", value: (totalProduction / TONNES_FACTOR).toLocaleString() + " Mt", sub: "millions de tonnes", color: "#2563eb", bg: "#dbeafe" },
-          { label: "Chiffre d&apos;affaires", value: (totalCA / FCFA_FACTOR).toLocaleString() + " Gd FCFA", sub: "milliards de FCFA", color: "#d97706", bg: "#fef3c7" },
+          { label: "Production physique", value: (totalProduction / TONNES_FACTOR).toLocaleString(), sub: "millions de tonnes", color: "#2563eb", bg: "#dbeafe" },
+          { label: "Chiffre d'affaires", value: (totalCA / FCFA_FACTOR).toLocaleString(), sub: "milliards de FCFA", color: "#d97706", bg: "#fef3c7" },
           { label: "Emplois crees", value: totalEmployes.toLocaleString(), sub: "employes au total", color: "#7c3aed", bg: "#ede9fe" },
         ].map((item) => (
           <div key={item.label} style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "linear-gradient(135deg, " + item.bg + ", white)" }}>
