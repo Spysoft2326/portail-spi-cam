@@ -9,6 +9,7 @@ import {
   Building2,
   BarChart3,
   PieChart,
+  Eye,
 } from "lucide-react";
 import {
   BarChart,
@@ -57,6 +58,17 @@ function safeNumber(value: number | null | undefined): number {
 
 function safeLocaleString(value: number | null | undefined): string {
   return (value ?? 0).toLocaleString('fr-FR');
+}
+
+function isPrevision(annee: number | null | undefined, trimestre: number | null | undefined): boolean {
+  if (!annee || !trimestre) return false;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentTrimestre = Math.ceil(currentMonth / 3);
+  if (annee > currentYear) return true;
+  if (annee === currentYear && trimestre > currentTrimestre) return true;
+  return false;
 }
 
 export default function ConjonctureContent() {
@@ -429,13 +441,20 @@ export default function ConjonctureContent() {
                         <td className="py-3 px-4 text-right">{safeLocaleString(p.chiffreAffaires)}</td>
                         <td className="py-3 px-4 text-right">{p.effectifs ?? 0}</td>
                         <td className="py-3 px-4 text-center">
-                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                            p.statut === 'VALIDE' ? 'bg-green-100 text-green-800' :
-                            p.statut === 'EN_ATTENTE' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {p.statut || 'N/A'}
-                          </span>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                              p.statut === 'VALIDE' ? 'bg-green-100 text-green-800' :
+                              p.statut === 'EN_ATTENTE' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {p.statut || 'N/A'}
+                            </span>
+                            {isPrevision(p.annee, p.trimestre) && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                <Eye className="w-3 h-3" /> Estimation
+                              </span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
