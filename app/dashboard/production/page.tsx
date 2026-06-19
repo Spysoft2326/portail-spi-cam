@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
   Factory,
   Plus,
   Download,
+  Upload,
   Search,
   BarChart3,
   Building2,
@@ -22,7 +23,10 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  ChevronDown,
+  X,
+  FileText,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 
 interface Enterprise {
@@ -59,6 +63,13 @@ interface Production {
   } | null;
 }
 
+interface ImportResult {
+  success: number;
+  errors: number;
+  total: number;
+  details: { row: number; status: string; message: string }[];
+}
+
 function formatTrimestre(t: number | null): string {
   if (!t) return "-";
   const map: Record<number, string> = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
@@ -78,6 +89,7 @@ export default function ProductionPage() {
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
 
   const [showForm, setShowForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [productions, setProductions] = useState<Production[]>([]);
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,12 +99,19 @@ export default function ProductionPage() {
   const [editingProduction, setEditingProduction] = useState<Production | null>(null);
   const [message, setMessage] = useState("");
 
+  // Import CSV states
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     entrepriseId: "",
     annee: "2026",
     trimestre: "T1",
-    productionPhysique: "", // en Millions de tonnes
-    chiffreAffaires: "", // en Milliards de FCFA
+    productionPhysique: "",
+    chiffreAffaires: "",
     nombreEmployes: "",
     commentaire: "",
   });
@@ -141,6 +160,141 @@ export default function ProductionPage() {
     setShowForm(false);
   };
 
+  // --- IMPORT CSV FUNCTIONS ---
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setImportFile(e.dataTransfer.files[0]);
+      setImportResult(null);
+    }
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImportFile(e.target.files[0]);
+      setImportResult(null);
+    }
+  };
+
+  const parseCSV = (text: string): Record<string, string>[] => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim());
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(",").map(h => h.trim().replace(/^["']|["']$/g, ""));
+    const rows: Record<string, string>[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(",").map(v => v.trim().replace(/^["']|["']$/g, ""));
+      if (values.length < headers.length) continue;
+      const row: Record<string, string> = {};
+      headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
+      rows.push(row);
+    }
+    return rows;
+  };
+
+  const handleImport = async () => {
+    if (!importFile) return;
+
+    setImportLoading(true);
+    setImportResult(null);
+
+    try {
+      const text = await importFile.text();
+      const rows = parseCSV(text);
+
+      if (rows.length === 0) {
+        setImportResult({ success: 0, errors: 0, total: 0, details: [{ row: 0, status: "error", message: "Fichier vide ou format invalide" }] });
+        setImportLoading(false);
+        return;
+      }
+
+      const results: ImportResult = { success: 0, errors: 0, total: rows.length, details: [] };
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const rowNum = i + 1;
+
+        try {
+          // Mapping des colonnes CSV vers les champs API
+          const entrepriseId = row["entreprise_id"] || row["entrepriseId"] || row["ID Entreprise"] || "";
+          const annee = parseInt(row["annee"] || row["Annee"] || row["annee"] || "0");
+          const trimestreStr = row["trimestre"] || row["Trimestre"] || row["trimestre"] || "";
+          const trimestre = parseInt(trimestreStr.replace("T", "")) || 0;
+          const productionPhysique = parseFloat(row["production_physique"] || row["productionPhysique"] || row["Production"] || "0");
+          const chiffreAffaires = parseFloat(row["chiffre_affaires"] || row["chiffreAffaires"] || row["CA"] || "0");
+          const effectifs = parseInt(row["effectifs"] || row["Effectifs"] || row["Employes"] || "0");
+          const commentaire = row["commentaire"] || row["Commentaire"] || "";
+
+          if (!entrepriseId || !annee || !trimestre) {
+            results.errors++;
+            results.details.push({ row: rowNum, status: "error", message: "Champs obligatoires manquants (entreprise_id, annee, trimestre)" });
+            continue;
+          }
+
+          // Vérifier que l'entreprise existe
+          const entExists = enterprises.find(e => e.id === entrepriseId);
+          if (!entExists) {
+            results.errors++;
+            results.details.push({ row: rowNum, status: "error", message: `Entreprise ID ${entrepriseId} non trouvée` });
+            continue;
+          }
+
+          // Convertir en unités de base
+          const productionPhysiqueTonnes = productionPhysique * TONNES_FACTOR;
+          const chiffreAffairesFCFA = chiffreAffaires * FCFA_FACTOR;
+
+          const res = await fetch("/api/productions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              entrepriseId,
+              annee,
+              trimestre: `T${trimestre}`,
+              productionPhysique: productionPhysiqueTonnes,
+              chiffreAffaires: chiffreAffairesFCFA,
+              effectifs,
+              commentaire,
+            }),
+          });
+
+          if (res.ok) {
+            results.success++;
+            results.details.push({ row: rowNum, status: "success", message: `${entExists.denomination} - ${annee}-T${trimestre} importé` });
+          } else {
+            const err = await res.json().catch(() => ({}));
+            results.errors++;
+            results.details.push({ row: rowNum, status: "error", message: err.error || "Erreur API" });
+          }
+        } catch (err: any) {
+          results.errors++;
+          results.details.push({ row: rowNum, status: "error", message: err.message || "Erreur inconnue" });
+        }
+      }
+
+      setImportResult(results);
+      if (results.success > 0) {
+        fetchAllData(); // Rafraîchir la liste
+      }
+    } catch (error: any) {
+      setImportResult({ success: 0, errors: 1, total: 0, details: [{ row: 0, status: "error", message: error.message || "Erreur de lecture du fichier" }] });
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
   const handleEdit = (production: Production) => {
     if (isAgent && production.statut !== "EN_ATTENTE") {
       alert("Vous ne pouvez modifier que les productions en attente de validation.");
@@ -152,11 +306,9 @@ export default function ProductionPage() {
       entrepriseId: production.entrepriseId,
       annee: production.annee?.toString() || "2026",
       trimestre: formatTrimestre(production.trimestre),
-      // Convertir tonnes -> Millions de tonnes
       productionPhysique: production.productionPhysique
         ? (production.productionPhysique / TONNES_FACTOR).toString()
         : "",
-      // Convertir FCFA -> Milliards de FCFA
       chiffreAffaires: production.chiffreAffaires
         ? (production.chiffreAffaires / FCFA_FACTOR).toString()
         : "",
@@ -176,7 +328,6 @@ export default function ProductionPage() {
     setSubmitting(true);
     try {
       const url = editingProduction ? `/api/production/${editingProduction.id}` : "/api/productions";
-      // Convertir les valeurs saisies en unités de base avant envoi
       const productionPhysiqueTonnes = parseFloat(formData.productionPhysique) * TONNES_FACTOR;
       const chiffreAffairesFCFA = parseFloat(formData.chiffreAffaires) * FCFA_FACTOR;
 
@@ -227,11 +378,11 @@ export default function ProductionPage() {
 
   const handleValidate = async (id: string, statut: "VALIDE" | "REJETE") => {
     try {
-     const res = await fetch(`/api/admin/productions/${id}/validate`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ statut }),
-});
+      const res = await fetch(`/api/admin/productions/${id}/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statut }),
+      });
 
       if (res.ok) {
         alert(statut === "VALIDE" ? "Production validee !" : "Production rejetee.");
@@ -388,7 +539,6 @@ export default function ProductionPage() {
               <BarChart3 size={18} /> Donnees de production
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
-              {/* Production physique - Millions de tonnes */}
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
                   <Package size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Production physique
@@ -409,7 +559,6 @@ export default function ProductionPage() {
                 <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>Millions de tonnes</p>
               </div>
 
-              {/* Chiffre d'affaires - Milliards de FCFA */}
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
                   <DollarSign size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Chiffre d&apos;affaires
@@ -529,6 +678,15 @@ export default function ProductionPage() {
           >
             <Download size={16} /> Exporter CSV
           </button>
+
+          {/* BOUTON IMPORTER CSV */}
+          <button
+            onClick={() => { setShowImportModal(true); setImportFile(null); setImportResult(null); }}
+            style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px", color: "#374151" }}
+          >
+            <Upload size={16} /> Importer CSV
+          </button>
+
           <button
             onClick={() => setShowForm(true)}
             style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
@@ -537,6 +695,188 @@ export default function ProductionPage() {
           </button>
         </div>
       </div>
+
+      {/* MODAL IMPORT CSV */}
+      {showImportModal && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)", zIndex: 50,
+          display: "flex", justifyContent: "center", alignItems: "center",
+          padding: "24px"
+        }}>
+          <div style={{
+            background: "white", borderRadius: "12px", width: "100%", maxWidth: "600px",
+            maxHeight: "90vh", overflow: "auto", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)"
+          }}>
+            {/* Header */}
+            <div style={{ padding: "20px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ padding: "8px", background: "#dbeafe", borderRadius: "8px" }}>
+                  <Upload size={20} color="#2563eb" />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: "18px", fontWeight: "600", margin: 0 }}>Importer des productions</h2>
+                  <p style={{ fontSize: "13px", color: "#6b7280", margin: "2px 0 0 0" }}>Fichier CSV avec les données trimestrielles</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowImportModal(false)}
+                style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", borderRadius: "6px" }}
+              >
+                <X size={20} color="#6b7280" />
+              </button>
+            </div>
+
+            <div style={{ padding: "24px" }}>
+              {/* Format attendu */}
+              <div style={{ padding: "12px 16px", background: "#f9fafb", borderRadius: "8px", marginBottom: "20px", fontSize: "13px" }}>
+                <p style={{ fontWeight: "600", margin: "0 0 8px 0", color: "#374151" }}>Format attendu :</p>
+                <code style={{ display: "block", padding: "8px 12px", background: "#1f2937", color: "#e5e7eb", borderRadius: "6px", fontSize: "12px", overflow: "auto" }}>
+                  entreprise_id,annee,trimestre,production_physique,chiffre_affaires,effectifs,commentaire<br/>
+                  abc-123,2024,1,5000,120,800,Données T1 2024
+                </code>
+                <p style={{ margin: "8px 0 0 0", color: "#6b7280" }}>
+                  <span style={{ color: "#ef4444" }}>*</span> entreprise_id, annee, trimestre sont obligatoires
+                </p>
+              </div>
+
+              {/* Zone de drop */}
+              {!importResult && (
+                <div
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    border: dragActive ? "2px dashed #059669" : "2px dashed #d1d5db",
+                    borderRadius: "12px",
+                    padding: "40px 24px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    background: dragActive ? "#ecfdf5" : "#f9fafb",
+                    transition: "all 0.2s"
+                  }}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                  />
+                  <div style={{ padding: "12px", background: "white", borderRadius: "50%", display: "inline-block", marginBottom: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+                    <FileText size={32} color="#6b7280" />
+                  </div>
+                  <p style={{ fontWeight: "500", color: "#374151", margin: "0 0 4px 0" }}>
+                    {importFile ? importFile.name : "Glissez un fichier CSV ici ou cliquez pour parcourir"}
+                  </p>
+                  <p style={{ fontSize: "13px", color: "#9ca3af", margin: 0 }}>
+                    {importFile ? `${(importFile.size / 1024).toFixed(1)} Ko` : "Format .csv uniquement"}
+                  </p>
+                </div>
+              )}
+
+              {/* Résultat */}
+              {importResult && (
+                <div style={{ marginTop: "16px" }}>
+                  <div style={{
+                    padding: "16px",
+                    borderRadius: "8px",
+                    background: importResult.errors === 0 ? "#d1fae5" : importResult.success > 0 ? "#fef3c7" : "#fee2e2",
+                    marginBottom: "16px"
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                      {importResult.errors === 0 ? (
+                        <CheckCircle size={20} color="#059669" />
+                      ) : (
+                        <AlertCircle size={20} color="#d97706" />
+                      )}
+                      <span style={{ fontWeight: "600" }}>
+                        {importResult.success} importé(s) / {importResult.errors} erreur(s) sur {importResult.total} ligne(s)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Détails */}
+                  {importResult.details.length > 0 && (
+                    <div style={{ maxHeight: "200px", overflow: "auto", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
+                      {importResult.details.map((detail, idx) => (
+                        <div key={idx} style={{
+                          padding: "8px 12px",
+                          borderBottom: "1px solid #e5e7eb",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          fontSize: "13px"
+                        }}>
+                          {detail.status === "success" ? (
+                            <CheckCircle size={14} color="#059669" />
+                          ) : (
+                            <XCircle size={14} color="#dc2626" />
+                          )}
+                          <span style={{ color: "#6b7280", minWidth: "40px" }}>L{detail.row}</span>
+                          <span style={{ color: detail.status === "success" ? "#059669" : "#dc2626" }}>
+                            {detail.message}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Boutons */}
+              <div style={{ display: "flex", gap: "10px", marginTop: "20px", justifyContent: "flex-end" }}>
+                <button
+                  onClick={() => { setShowImportModal(false); setImportFile(null); setImportResult(null); }}
+                  style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}
+                >
+                  Fermer
+                </button>
+                {importFile && !importResult && (
+                  <button
+                    onClick={handleImport}
+                    disabled={importLoading}
+                    style={{
+                      padding: "8px 16px",
+                      border: "none",
+                      borderRadius: "6px",
+                      background: "#059669",
+                      color: "white",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      opacity: importLoading ? 0.5 : 1
+                    }}
+                  >
+                    {importLoading ? (
+                      <>
+                        <div style={{ width: "14px", height: "14px", border: "2px solid white", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                        Import en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={14} /> Importer
+                      </>
+                    )}
+                  </button>
+                )}
+                {importResult && (
+                  <button
+                    onClick={() => { setImportFile(null); setImportResult(null); }}
+                    style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <Upload size={14} /> Nouvel import
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isAdmin && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
