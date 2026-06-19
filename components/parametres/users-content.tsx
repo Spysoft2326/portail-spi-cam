@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 interface User {
   id: string;
@@ -21,6 +22,7 @@ export default function UsersContent({ users }: UsersContentProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({ name: "", email: "", role: "AGENT_SAISIE", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Compteurs par role
@@ -43,6 +45,7 @@ export default function UsersContent({ users }: UsersContentProps) {
     setFormData({ name: "", email: "", role: "AGENT_SAISIE", password: "" });
     setEditingUser(null);
     setShowForm(false);
+    setShowPassword(false);
   };
 
   const handleEdit = (user: User) => {
@@ -225,14 +228,34 @@ export default function UsersContent({ users }: UsersContentProps) {
               {!editingUser && (
                 <div>
                   <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>Mot de passe</label>
-                  <input
-                    type="password"
-                    placeholder="Mot de passe"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
-                    required={!editingUser}
-                  />
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Mot de passe"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      style={{ width: "100%", padding: "10px 44px 10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
+                      required={!editingUser}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: "8px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px",
+                        color: "#6b7280",
+                      }}
+                      title={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
