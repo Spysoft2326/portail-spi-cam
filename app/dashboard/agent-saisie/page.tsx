@@ -21,7 +21,7 @@ interface Production {
   annee: number;
   trimestre: number;
   statut: string;
-  dateSaisie: string;
+  createdAt: string;
 }
 
 export default function AgentSaisieDashboard() {
@@ -49,8 +49,8 @@ export default function AgentSaisieDashboard() {
       const entData = await entRes.json();
       const totalEntreprises = Array.isArray(entData) ? entData.length : (entData.total || 0);
 
-      // Recuperer les productions
-      const prodRes = await fetch("/api/productions");
+      // Recuperer les productions de l'agent uniquement
+      const prodRes = await fetch("/api/productions?mesProductions=true");
       const prodData = await prodRes.json();
       const productions = Array.isArray(prodData) ? prodData : (prodData.productions || []);
 
@@ -58,8 +58,8 @@ export default function AgentSaisieDashboard() {
         totalEntreprises,
         mesProductions: productions.length,
         enAttente: productions.filter((p: any) => p.statut === "EN_ATTENTE").length,
-        validees: productions.filter((p: any) => p.statut === "VALIDEE").length,
-        rejetees: productions.filter((p: any) => p.statut === "REJETEE").length,
+        validees: productions.filter((p: any) => p.statut === "VALIDE").length,
+        rejetees: productions.filter((p: any) => p.statut === "REJETE").length,
       });
 
       setRecentProductions(productions.slice(0, 5));
@@ -72,19 +72,34 @@ export default function AgentSaisieDashboard() {
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
-      case "VALIDEE": return "bg-green-100 text-green-700 border-green-200";
+      case "VALIDE": return "bg-green-100 text-green-700 border-green-200";
       case "EN_ATTENTE": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "REJETEE": return "bg-red-100 text-red-700 border-red-200";
+      case "REJETE": return "bg-red-100 text-red-700 border-red-200";
       default: return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
   const getStatusIcon = (statut: string) => {
     switch (statut) {
-      case "VALIDEE": return <CheckCircle className="w-4 h-4" />;
+      case "VALIDE": return <CheckCircle className="w-4 h-4" />;
       case "EN_ATTENTE": return <Clock className="w-4 h-4" />;
-      case "REJETEE": return <XCircle className="w-4 h-4" />;
+      case "REJETE": return <XCircle className="w-4 h-4" />;
       default: return <AlertCircle className="w-4 h-4" />;
+    }
+  };
+
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "-";
+      return date.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return "-";
     }
   };
 
@@ -189,7 +204,7 @@ export default function AgentSaisieDashboard() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 text-right">
-                      {new Date(p.dateSaisie).toLocaleDateString("fr-FR")}
+                      {formatDate(p.createdAt)}
                     </td>
                   </tr>
                 ))}
