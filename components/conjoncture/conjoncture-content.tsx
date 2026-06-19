@@ -71,6 +71,34 @@ function isPrevision(annee: number | null | undefined, trimestre: number | null 
   return false;
 }
 
+function generateSynthese(stats: Stats | null, productions: Production[], selectedAnnee: string, selectedTrimestre: string, selectedSecteur: string): string {
+  if (!stats || productions.length === 0) return "Aucune donnée disponible pour la période sélectionnée.";
+
+  const periode = selectedAnnee ? (selectedTrimestre ? `${selectedAnnee} T${selectedTrimestre}` : selectedAnnee) : "l'ensemble des périodes";
+  const secteur = selectedSecteur || "l'ensemble des secteurs";
+  const totalProd = safeNumber(stats.totalProductions);
+  const totalCA = safeNumber(stats.totalCA);
+  const totalEmplois = safeNumber(stats.totalEmplois);
+  const nbEntreprises = new Set(productions.map(p => p.entreprise?.denomination).filter(Boolean)).size;
+
+  const secteurLeader = stats.productionsParSecteur && stats.productionsParSecteur.length > 0
+    ? stats.productionsParSecteur.reduce((max, s) => (s.value > max.value ? s : max), stats.productionsParSecteur[0])
+    : null;
+
+  const nbEstimations = productions.filter(p => isPrevision(p.annee, p.trimestre)).length;
+  const pctEstimations = productions.length > 0 ? Math.round((nbEstimations / productions.length) * 100) : 0;
+
+  let synthese = `Au ${periode}, le secteur industriel camerounais enregistre ${totalProd.toLocaleString('fr-FR')} productions validées sur ${nbEntreprises} entreprises couvrant ${secteur}. `;
+  synthese += `Le chiffre d'affaires cumulé s'élève à ${(totalCA / 1000000000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} milliards de FCFA, avec ${totalEmplois.toLocaleString('fr-FR')} emplois générés. `;
+  if (secteurLeader) {
+    synthese += `Le secteur ${secteurLeader.name} domine avec ${secteurLeader.value.toLocaleString('fr-FR')} unités de production. `;
+  }
+  if (pctEstimations > 0) {
+    synthese += `À noter, ${pctEstimations}% des données présentées sont des estimations pour périodes futures.`;
+  }
+  return synthese;
+}
+
 export default function ConjonctureContent() {
   const { data: session } = useSession();
   const [productions, setProductions] = useState<Production[]>([]);
@@ -135,6 +163,8 @@ export default function ConjonctureContent() {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    const syntheseText = generateSynthese(stats, productions, selectedAnnee, selectedTrimestre, selectedSecteur);
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -172,6 +202,11 @@ export default function ConjonctureContent() {
             <div class="kpi-value">${safeLocaleString(stats?.totalEmplois)}</div>
             <div>Emplois</div>
           </div>
+        </div>
+
+        <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div style="font-size: 16px; font-weight: bold; color: #065f46; margin-bottom: 10px;">📊 Synthèse de la conjoncture</div>
+          <div style="color: #065f46; line-height: 1.6; font-size: 14px;">${syntheseText}</div>
         </div>
 
         <h2>Détail des productions</h2>
@@ -357,6 +392,21 @@ export default function ConjonctureContent() {
                 </div>
                 <div className="text-sm text-gray-400 mt-1">milliards de FCFA</div>
               </div>
+            </div>
+          )}
+
+          {/* Synthèse textuelle */}
+          {stats && productions.length > 0 && (
+            <div className="bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl p-6 mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 bg-[#059669] rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#065f46]">Note de synthèse</h3>
+              </div>
+              <p className="text-[#065f46] leading-relaxed text-sm">
+                {generateSynthese(stats, productions, selectedAnnee, selectedTrimestre, selectedSecteur)}
+              </p>
             </div>
           )}
 
