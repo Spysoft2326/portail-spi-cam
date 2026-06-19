@@ -3,32 +3,10 @@
 import { useState, useEffect, FormEvent, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
-  Factory,
-  Plus,
-  Download,
-  Upload,
-  Search,
-  BarChart3,
-  Building2,
-  Calendar,
-  Package,
-  DollarSign,
-  Users,
-  MessageSquare,
-  Save,
-  ArrowLeft,
-  Pencil,
-  Trash2,
-  Settings,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  X,
-  FileText,
-  AlertCircle,
-  CheckCircle,
-  CheckSquare,
-  Eye,
+  Factory, Plus, Download, Upload, Search, BarChart3, Building2, Calendar,
+  Package, DollarSign, Users, MessageSquare, Save, ArrowLeft, Pencil, Trash2,
+  Settings, CheckCircle2, XCircle, Clock, X, FileText, AlertCircle, CheckCircle,
+  CheckSquare, Eye,
 } from "lucide-react";
 
 interface Enterprise {
@@ -52,17 +30,6 @@ interface Production {
   validePar: string | null;
   dateValidation: string | null;
   createdAt: string;
-  entreprise?: {
-    id: string;
-    denomination: string;
-    sigle: string | null;
-    secteurActivite: string;
-  };
-  agentSaisie?: {
-    id: string;
-    name: string | null;
-    email: string | null;
-  } | null;
 }
 
 interface ImportResult {
@@ -74,8 +41,11 @@ interface ImportResult {
 
 function formatTrimestre(t: number | null): string {
   if (!t) return "-";
-  const map: Record<number, string> = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
-  return map[t] || "T" + t;
+  if (t === 1) return "T1";
+  if (t === 2) return "T2";
+  if (t === 3) return "T3";
+  if (t === 4) return "T4";
+  return "T" + t;
 }
 
 function isPrevision(annee: number | null, trimestre: number | null): boolean {
@@ -84,7 +54,6 @@ function isPrevision(annee: number | null, trimestre: number | null): boolean {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
   const currentTrimestre = Math.ceil(currentMonth / 3);
-
   if (annee > currentYear) return true;
   if (annee === currentYear && trimestre > currentTrimestre) return true;
   return false;
@@ -138,7 +107,6 @@ export default function ProductionPage() {
     try {
       setLoading(true);
       setMessage("");
-
       const entRes = await fetch("/api/entreprises");
       if (entRes.ok) {
         const entData = await entRes.json();
@@ -147,7 +115,6 @@ export default function ProductionPage() {
       } else {
         setMessage("Erreur chargement entreprises");
       }
-
       const prodUrl = isAgent ? "/api/productions?mesProductions=true" : "/api/productions";
       const prodRes = await fetch(prodUrl);
       if (prodRes.ok) {
@@ -180,37 +147,24 @@ export default function ProductionPage() {
       alert("Aucune production en attente a valider.");
       return;
     }
-
-    if (!confirm(`Valider ${enAttente.length} production(s) en attente ?
-
-Cette action est irreversible.`)) {
+    if (!confirm("Valider " + enAttente.length + " production(s) en attente ? Cette action est irreversible.")) {
       return;
     }
-
     setValidateAllLoading(true);
     let success = 0;
     let errors = 0;
-
     try {
       for (const p of enAttente) {
         try {
-          const res = await fetch(`/api/admin/productions/${p.id}/validate`, {
+          const res = await fetch("/api/admin/productions/" + p.id + "/validate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ statut: "VALIDE" }),
           });
-          if (res.ok) {
-            success++;
-          } else {
-            errors++;
-          }
-        } catch {
-          errors++;
-        }
+          if (res.ok) { success++; } else { errors++; }
+        } catch { errors++; }
       }
-
-      alert(`${success} production(s) validee(s) avec succes !${errors > 0 ? `
-${errors} erreur(s).` : ""}`);
+      alert(success + " production(s) validee(s) avec succes !" + (errors > 0 ? "\n" + errors + " erreur(s)." : ""));
       fetchAllData();
     } catch (error) {
       alert("Erreur lors de la validation en masse.");
@@ -246,27 +200,45 @@ ${errors} erreur(s).` : ""}`);
     }
   };
 
-  // Helper pour nettoyer les guillemets sans regex
-  const cleanQuotes = (str: string): string => {
-    let result = str;
-    if (result.startsWith('"') || result.startsWith("'")) result = result.slice(1);
-    if (result.endsWith('"') || result.endsWith("'")) result = result.slice(0, -1);
+  // Fonction pour enlever les guillemets au debut et a la fin
+  const stripQuotes = (s: string): string => {
+    let result = s;
+    while (result.length > 0 && (result.charAt(0) === '"' || result.charAt(0) === "'")) {
+      result = result.substring(1);
+    }
+    while (result.length > 0 && (result.charAt(result.length - 1) === '"' || result.charAt(result.length - 1) === "'")) {
+      result = result.substring(0, result.length - 1);
+    }
     return result;
   };
 
   const parseCSV = (text: string): Record<string, string>[] => {
-    const lines = text.split("
-").map(l => l.replace("", "")).filter(line => line.trim());
+    // Decouper par lignes (gerer les retours a la ligne Windows et Unix)
+    const rawLines = text.split("
+");
+    const lines: string[] = [];
+    for (const rawLine of rawLines) {
+      let line = rawLine;
+      // Enlever le retour chariot Windows a la fin si present
+      if (line.length > 0 && line.charAt(line.length - 1) === "") {
+        line = line.substring(0, line.length - 1);
+      }
+      if (line.trim().length > 0) {
+        lines.push(line);
+      }
+    }
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(",").map(h => cleanQuotes(h.trim()));
+    const headers = lines[0].split(",").map(h => stripQuotes(h.trim()));
     const rows: Record<string, string>[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(",").map(v => cleanQuotes(v.trim()));
+      const values = lines[i].split(",").map(v => stripQuotes(v.trim()));
       if (values.length < headers.length) continue;
       const row: Record<string, string> = {};
-      headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
+      for (let j = 0; j < headers.length; j++) {
+        row[headers[j]] = values[j] || "";
+      }
       rows.push(row);
     }
     return rows;
@@ -274,26 +246,20 @@ ${errors} erreur(s).` : ""}`);
 
   const handleImport = async () => {
     if (!importFile) return;
-
     setImportLoading(true);
     setImportResult(null);
-
     try {
       const text = await importFile.text();
       const rows = parseCSV(text);
-
       if (rows.length === 0) {
         setImportResult({ success: 0, errors: 0, total: 0, details: [{ row: 0, status: "error", message: "Fichier vide ou format invalide" }] });
         setImportLoading(false);
         return;
       }
-
       const results: ImportResult = { success: 0, errors: 0, total: rows.length, details: [] };
-
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         const rowNum = i + 1;
-
         try {
           const entrepriseId = row["entreprise_id"] || row["entrepriseId"] || row["ID Entreprise"] || "";
           const annee = parseInt(row["annee"] || row["Annee"] || row["annee"] || "0");
@@ -309,14 +275,12 @@ ${errors} erreur(s).` : ""}`);
             results.details.push({ row: rowNum, status: "error", message: "Champs obligatoires manquants (entreprise_id, annee, trimestre)" });
             continue;
           }
-
           const entExists = enterprises.find(e => e.id === entrepriseId);
           if (!entExists) {
             results.errors++;
-            results.details.push({ row: rowNum, status: "error", message: `Entreprise ID ${entrepriseId} non trouvee` });
+            results.details.push({ row: rowNum, status: "error", message: "Entreprise ID " + entrepriseId + " non trouvee" });
             continue;
           }
-
           const productionPhysiqueTonnes = productionPhysique * TONNES_FACTOR;
           const chiffreAffairesFCFA = chiffreAffaires * FCFA_FACTOR;
 
@@ -326,17 +290,16 @@ ${errors} erreur(s).` : ""}`);
             body: JSON.stringify({
               entrepriseId,
               annee,
-              trimestre: `T${trimestre}`,
+              trimestre: "T" + trimestre,
               productionPhysique: productionPhysiqueTonnes,
               chiffreAffaires: chiffreAffairesFCFA,
               effectifs,
               commentaire,
             }),
           });
-
           if (res.ok) {
             results.success++;
-            results.details.push({ row: rowNum, status: "success", message: `${entExists.denomination} - ${annee}-T${trimestre} importe` });
+            results.details.push({ row: rowNum, status: "success", message: entExists.denomination + " - " + annee + "-T" + trimestre + " importe" });
           } else {
             const err = await res.json().catch(() => ({}));
             results.errors++;
@@ -347,7 +310,6 @@ ${errors} erreur(s).` : ""}`);
           results.details.push({ row: rowNum, status: "error", message: err.message || "Erreur inconnue" });
         }
       }
-
       setImportResult(results);
       if (results.success > 0) {
         fetchAllData();
@@ -364,18 +326,13 @@ ${errors} erreur(s).` : ""}`);
       alert("Vous ne pouvez modifier que les productions en attente de validation.");
       return;
     }
-
     setEditingProduction(production);
     setFormData({
       entrepriseId: production.entrepriseId,
       annee: production.annee?.toString() || "2026",
       trimestre: formatTrimestre(production.trimestre),
-      productionPhysique: production.productionPhysique
-        ? (production.productionPhysique / TONNES_FACTOR).toString()
-        : "",
-      chiffreAffaires: production.chiffreAffaires
-        ? (production.chiffreAffaires / FCFA_FACTOR).toString()
-        : "",
+      productionPhysique: production.productionPhysique ? (production.productionPhysique / TONNES_FACTOR).toString() : "",
+      chiffreAffaires: production.chiffreAffaires ? (production.chiffreAffaires / FCFA_FACTOR).toString() : "",
       nombreEmployes: production.effectifs?.toString() || "",
       commentaire: production.commentaire || "",
     });
@@ -388,13 +345,11 @@ ${errors} erreur(s).` : ""}`);
       alert("Veuillez selectionner une entreprise");
       return;
     }
-
     setSubmitting(true);
     try {
-      const url = editingProduction ? `/api/production/${editingProduction.id}` : "/api/productions";
+      const url = editingProduction ? "/api/production/" + editingProduction.id : "/api/productions";
       const productionPhysiqueTonnes = parseFloat(formData.productionPhysique) * TONNES_FACTOR;
       const chiffreAffairesFCFA = parseFloat(formData.chiffreAffaires) * FCFA_FACTOR;
-
       const res = await fetch(url, {
         method: editingProduction ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -408,7 +363,6 @@ ${errors} erreur(s).` : ""}`);
           commentaire: formData.commentaire,
         }),
       });
-
       if (res.ok) {
         alert(editingProduction ? "Production modifiee !" : "Production enregistree !");
         resetForm();
@@ -427,7 +381,7 @@ ${errors} erreur(s).` : ""}`);
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette production ?")) return;
     try {
-      const res = await fetch(`/api/production/${id}`, { method: "DELETE" });
+      const res = await fetch("/api/production/" + id, { method: "DELETE" });
       if (res.ok) {
         alert("Production supprimee");
         fetchAllData();
@@ -442,12 +396,11 @@ ${errors} erreur(s).` : ""}`);
 
   const handleValidate = async (id: string, statut: "VALIDE" | "REJETE") => {
     try {
-      const res = await fetch(`/api/admin/productions/${id}/validate`, {
+      const res = await fetch("/api/admin/productions/" + id + "/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ statut }),
       });
-
       if (res.ok) {
         alert(statut === "VALIDE" ? "Production validee !" : "Production rejetee.");
         setValidatingId(null);
@@ -504,13 +457,9 @@ ${errors} erreur(s).` : ""}`);
   if (showForm) {
     return (
       <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
-        <button
-          onClick={() => resetForm()}
-          style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
-        >
+        <button onClick={() => resetForm()} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}>
           <ArrowLeft size={16} /> Retour aux productions
         </button>
-
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
           <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px" }}>
             <Factory size={28} color="#059669" />
@@ -522,7 +471,6 @@ ${errors} erreur(s).` : ""}`);
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Production trimestrielle</p>
           </div>
         </div>
-
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
@@ -555,9 +503,7 @@ ${errors} erreur(s).` : ""}`);
               )}
             </div>
           </div>
-
           <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
-
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               <Calendar size={18} /> Periode
@@ -595,9 +541,7 @@ ${errors} erreur(s).` : ""}`);
               </div>
             </div>
           </div>
-
           <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />
-
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               <BarChart3 size={18} /> Donnees de production
@@ -608,95 +552,39 @@ ${errors} erreur(s).` : ""}`);
                   <Package size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Production physique
                 </label>
                 <div style={{ position: "relative" }}>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0"
-                    value={formData.productionPhysique}
-                    onChange={(e) => setFormData({ ...formData, productionPhysique: e.target.value })}
-                    style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
-                  />
-                  <span style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#9ca3af", fontWeight: "500" }}>
-                    Mt
-                  </span>
+                  <input type="number" step="0.01" placeholder="0" value={formData.productionPhysique} onChange={(e) => setFormData({ ...formData, productionPhysique: e.target.value })} style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }} />
+                  <span style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#9ca3af", fontWeight: "500" }}>Mt</span>
                 </div>
                 <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>Millions de tonnes</p>
               </div>
-
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
                   <DollarSign size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Chiffre d&apos;affaires
                 </label>
                 <div style={{ position: "relative" }}>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0"
-                    value={formData.chiffreAffaires}
-                    onChange={(e) => setFormData({ ...formData, chiffreAffaires: e.target.value })}
-                    style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
-                  />
-                  <span style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#9ca3af", fontWeight: "500" }}>
-                    Gd FCFA
-                  </span>
+                  <input type="number" step="0.01" placeholder="0" value={formData.chiffreAffaires} onChange={(e) => setFormData({ ...formData, chiffreAffaires: e.target.value })} style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }} />
+                  <span style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#9ca3af", fontWeight: "500" }}>Gd FCFA</span>
                 </div>
                 <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>Milliards de FCFA</p>
               </div>
-
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
                   <Users size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Nombre d&apos;employes
                 </label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  value={formData.nombreEmployes}
-                  onChange={(e) => setFormData({ ...formData, nombreEmployes: e.target.value })}
-                  style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
-                />
+                <input type="number" placeholder="0" value={formData.nombreEmployes} onChange={(e) => setFormData({ ...formData, nombreEmployes: e.target.value })} style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }} />
                 <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>effectif total</p>
               </div>
             </div>
           </div>
-
           <div style={{ marginBottom: "32px" }}>
             <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
               <MessageSquare size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Commentaire (optionnel)
             </label>
-            <textarea
-              placeholder="Notes additionnelles..."
-              value={formData.commentaire}
-              onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })}
-              rows={3}
-              style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", resize: "vertical" }}
-            />
+            <textarea placeholder="Notes additionnelles..." value={formData.commentaire} onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })} rows={3} style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", resize: "vertical" }} />
           </div>
-
           <div style={{ display: "flex", gap: "12px", paddingTop: "16px" }}>
-            <button
-              type="button"
-              onClick={() => resetForm()}
-              style={{ padding: "10px 20px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={submitting || !formData.entrepriseId}
-              style={{
-                padding: "10px 20px",
-                border: "none",
-                borderRadius: "6px",
-                background: "#059669",
-                color: "white",
-                cursor: "pointer",
-                fontSize: "14px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                opacity: submitting || !formData.entrepriseId ? 0.5 : 1
-              }}
-            >
+            <button type="button" onClick={() => resetForm()} style={{ padding: "10px 20px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}>Annuler</button>
+            <button type="submit" disabled={submitting || !formData.entrepriseId} style={{ padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px", opacity: submitting || !formData.entrepriseId ? 0.5 : 1 }}>
               <Save size={16} /> {submitting ? "Enregistrement..." : (editingProduction ? "Modifier" : "Enregistrer")}
             </button>
           </div>
@@ -724,53 +612,22 @@ ${errors} erreur(s).` : ""}`);
           </div>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            onClick={() => {
-              const csv = [
-                ["Entreprise", "Annee", "Trimestre", "Production", "CA (FCFA)", "Employes", "Statut"].join(","),
-                ...visibleProductions.map((p) => [
-                  getEnterpriseName(p.entrepriseId), p.annee || "", formatTrimestre(p.trimestre),
-                  p.productionPhysique || 0, p.chiffreAffaires || 0, p.effectifs || 0, p.statut || "EN_ATTENTE"
-                ].join(","))
-              ].join("
-");
-              const blob = new Blob([csv], { type: "text/csv" });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement("a"); a.href = url;
-              a.download = "productions_" + new Date().toISOString().split("T")[0] + ".csv"; a.click();
-            }}
-            style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
-          >
+          <button onClick={() => { const csv = [["Entreprise", "Annee", "Trimestre", "Production", "CA (FCFA)", "Employes", "Statut"].join(","), ...visibleProductions.map((p) => [getEnterpriseName(p.entrepriseId), p.annee || "", formatTrimestre(p.trimestre), p.productionPhysique || 0, p.chiffreAffaires || 0, p.effectifs || 0, p.statut || "EN_ATTENTE"].join(","))].join("
+"); const blob = new Blob([csv], { type: "text/csv" }); const url = window.URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "productions_" + new Date().toISOString().split("T")[0] + ".csv"; a.click(); }} style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
             <Download size={16} /> Exporter CSV
           </button>
-
-          <button
-            onClick={() => { setShowImportModal(true); setImportFile(null); setImportResult(null); }}
-            style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px", color: "#374151" }}
-          >
+          <button onClick={() => { setShowImportModal(true); setImportFile(null); setImportResult(null); }} style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px", color: "#374151" }}>
             <Upload size={16} /> Importer CSV
           </button>
-
-          <button
-            onClick={() => setShowForm(true)}
-            style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
-          >
+          <button onClick={() => setShowForm(true)} style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
             <Plus size={16} /> Nouvelle saisie
           </button>
         </div>
       </div>
 
       {showImportModal && (
-        <div style={{
-          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(0,0,0,0.5)", zIndex: 50,
-          display: "flex", justifyContent: "center", alignItems: "center",
-          padding: "24px"
-        }}>
-          <div style={{
-            background: "white", borderRadius: "12px", width: "100%", maxWidth: "600px",
-            maxHeight: "90vh", overflow: "auto", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)"
-          }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 50, display: "flex", justifyContent: "center", alignItems: "center", padding: "24px" }}>
+          <div style={{ background: "white", borderRadius: "12px", width: "100%", maxWidth: "600px", maxHeight: "90vh", overflow: "auto", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
             <div style={{ padding: "20px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <div style={{ padding: "8px", background: "#dbeafe", borderRadius: "8px" }}>
@@ -781,14 +638,10 @@ ${errors} erreur(s).` : ""}`);
                   <p style={{ fontSize: "13px", color: "#6b7280", margin: "2px 0 0 0" }}>Fichier CSV avec les donnees trimestrielles</p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowImportModal(false)}
-                style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", borderRadius: "6px" }}
-              >
+              <button onClick={() => setShowImportModal(false)} style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", borderRadius: "6px" }}>
                 <X size={20} color="#6b7280" />
               </button>
             </div>
-
             <div style={{ padding: "24px" }}>
               <div style={{ padding: "12px 16px", background: "#f9fafb", borderRadius: "8px", marginBottom: "20px", fontSize: "13px" }}>
                 <p style={{ fontWeight: "600", margin: "0 0 8px 0", color: "#374151" }}>Format attendu :</p>
@@ -800,31 +653,9 @@ ${errors} erreur(s).` : ""}`);
                   <span style={{ color: "#ef4444" }}>*</span> entreprise_id, annee, trimestre sont obligatoires
                 </p>
               </div>
-
               {!importResult && (
-                <div
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{
-                    border: dragActive ? "2px dashed #059669" : "2px dashed #d1d5db",
-                    borderRadius: "12px",
-                    padding: "40px 24px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    background: dragActive ? "#ecfdf5" : "#f9fafb",
-                    transition: "all 0.2s"
-                  }}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
+                <div onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()} style={{ border: dragActive ? "2px dashed #059669" : "2px dashed #d1d5db", borderRadius: "12px", padding: "40px 24px", textAlign: "center", cursor: "pointer", background: dragActive ? "#ecfdf5" : "#f9fafb", transition: "all 0.2s" }}>
+                  <input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileChange} style={{ display: "none" }} />
                   <div style={{ padding: "12px", background: "white", borderRadius: "50%", display: "inline-block", marginBottom: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
                     <FileText size={32} color="#6b7280" />
                   </div>
@@ -832,100 +663,42 @@ ${errors} erreur(s).` : ""}`);
                     {importFile ? importFile.name : "Glissez un fichier CSV ici ou cliquez pour parcourir"}
                   </p>
                   <p style={{ fontSize: "13px", color: "#9ca3af", margin: 0 }}>
-                    {importFile ? `${(importFile.size / 1024).toFixed(1)} Ko` : "Format .csv uniquement"}
+                    {importFile ? (importFile.size / 1024).toFixed(1) + " Ko" : "Format .csv uniquement"}
                   </p>
                 </div>
               )}
-
               {importResult && (
                 <div style={{ marginTop: "16px" }}>
-                  <div style={{
-                    padding: "16px",
-                    borderRadius: "8px",
-                    background: importResult.errors === 0 ? "#d1fae5" : importResult.success > 0 ? "#fef3c7" : "#fee2e2",
-                    marginBottom: "16px"
-                  }}>
+                  <div style={{ padding: "16px", borderRadius: "8px", background: importResult.errors === 0 ? "#d1fae5" : importResult.success > 0 ? "#fef3c7" : "#fee2e2", marginBottom: "16px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                      {importResult.errors === 0 ? (
-                        <CheckCircle size={20} color="#059669" />
-                      ) : (
-                        <AlertCircle size={20} color="#d97706" />
-                      )}
+                      {importResult.errors === 0 ? <CheckCircle size={20} color="#059669" /> : <AlertCircle size={20} color="#d97706" />}
                       <span style={{ fontWeight: "600" }}>
                         {importResult.success} importe(s) / {importResult.errors} erreur(s) sur {importResult.total} ligne(s)
                       </span>
                     </div>
                   </div>
-
                   {importResult.details.length > 0 && (
                     <div style={{ maxHeight: "200px", overflow: "auto", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
                       {importResult.details.map((detail, idx) => (
-                        <div key={idx} style={{
-                          padding: "8px 12px",
-                          borderBottom: "1px solid #e5e7eb",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          fontSize: "13px"
-                        }}>
-                          {detail.status === "success" ? (
-                            <CheckCircle size={14} color="#059669" />
-                          ) : (
-                            <XCircle size={14} color="#dc2626" />
-                          )}
+                        <div key={idx} style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+                          {detail.status === "success" ? <CheckCircle size={14} color="#059669" /> : <XCircle size={14} color="#dc2626" />}
                           <span style={{ color: "#6b7280", minWidth: "40px" }}>L{detail.row}</span>
-                          <span style={{ color: detail.status === "success" ? "#059669" : "#dc2626" }}>
-                            {detail.message}
-                          </span>
+                          <span style={{ color: detail.status === "success" ? "#059669" : "#dc2626" }}>{detail.message}</span>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
               )}
-
               <div style={{ display: "flex", gap: "10px", marginTop: "20px", justifyContent: "flex-end" }}>
-                <button
-                  onClick={() => { setShowImportModal(false); setImportFile(null); setImportResult(null); }}
-                  style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}
-                >
-                  Fermer
-                </button>
+                <button onClick={() => { setShowImportModal(false); setImportFile(null); setImportResult(null); }} style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}>Fermer</button>
                 {importFile && !importResult && (
-                  <button
-                    onClick={handleImport}
-                    disabled={importLoading}
-                    style={{
-                      padding: "8px 16px",
-                      border: "none",
-                      borderRadius: "6px",
-                      background: "#059669",
-                      color: "white",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      opacity: importLoading ? 0.5 : 1
-                    }}
-                  >
-                    {importLoading ? (
-                      <>
-                        <div style={{ width: "14px", height: "14px", border: "2px solid white", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                        Import en cours...
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={14} /> Importer
-                      </>
-                    )}
+                  <button onClick={handleImport} disabled={importLoading} style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px", opacity: importLoading ? 0.5 : 1 }}>
+                    {importLoading ? <><div style={{ width: "14px", height: "14px", border: "2px solid white", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />Import en cours...</> : <><Upload size={14} /> Importer</>}
                   </button>
                 )}
                 {importResult && (
-                  <button
-                    onClick={() => { setImportFile(null); setImportResult(null); }}
-                    style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
-                  >
+                  <button onClick={() => { setImportFile(null); setImportResult(null); }} style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
                     <Upload size={14} /> Nouvel import
                   </button>
                 )}
@@ -939,54 +712,23 @@ ${errors} erreur(s).` : ""}`);
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#d97706" }}>{enAttenteCount}</p>
-            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-              <Clock size={12} /> En attente
-            </p>
+            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}><Clock size={12} /> En attente</p>
           </div>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #d1fae5", background: "#d1fae5", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#059669" }}>{valideCount}</p>
-            <p style={{ fontSize: "12px", color: "#065f46", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-              <CheckCircle2 size={12} /> Valides
-            </p>
+            <p style={{ fontSize: "12px", color: "#065f46", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}><CheckCircle2 size={12} /> Valides</p>
           </div>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fee2e2", background: "#fee2e2", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#dc2626" }}>{rejeteCount}</p>
-            <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-              <XCircle size={12} /> Rejetes
-            </p>
+            <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}><XCircle size={12} /> Rejetes</p>
           </div>
         </div>
       )}
 
       {isSuperAdmin && enAttenteCount > 0 && (
         <div style={{ marginBottom: "16px", display: "flex", justifyContent: "flex-end" }}>
-          <button
-            onClick={handleValidateAll}
-            disabled={validateAllLoading}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderRadius: "6px",
-              background: "#059669",
-              color: "white",
-              cursor: "pointer",
-              fontSize: "14px",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              opacity: validateAllLoading ? 0.5 : 1
-            }}
-          >
-            {validateAllLoading ? (
-              <>
-                <div style={{ width: "14px", height: "14px", border: "2px solid white", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                Validation en cours...
-              </>
-            ) : (
-              <>
-                <CheckSquare size={16} /> Valider tout ({enAttenteCount})
-              </>
-            )}
+          <button onClick={handleValidateAll} disabled={validateAllLoading} style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px", opacity: validateAllLoading ? 0.5 : 1 }}>
+            {validateAllLoading ? <><div style={{ width: "14px", height: "14px", border: "2px solid white", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />Validation en cours...</> : <><CheckSquare size={16} /> Valider tout ({enAttenteCount})</>}
           </button>
         </div>
       )}
@@ -1015,13 +757,7 @@ ${errors} erreur(s).` : ""}`);
             <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px" }}>
               <Search size={16} color="#9ca3af" />
             </span>
-            <input
-              type="text"
-              placeholder="Rechercher entreprise, annee..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: "100%", padding: "8px 12px 8px 36px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
-            />
+            <input type="text" placeholder="Rechercher entreprise, annee..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: "100%", padding: "8px 12px 8px 36px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }} />
           </div>
         </div>
       </div>
@@ -1036,32 +772,17 @@ ${errors} erreur(s).` : ""}`);
         <div style={{ padding: "16px" }}>
           {visibleProductions.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px" }}>
-              <div style={{ fontSize: "48px", marginBottom: "16px" }}>
-                <Factory size={48} color="##9ca3af" />
-              </div>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}><Factory size={48} color="#9ca3af" /></div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune production enregistree</h3>
               <p style={{ color: "#6b7280", margin: 0 }}>Commencez par ajouter votre premiere saisie.</p>
-              <button
-                onClick={() => setShowForm(true)}
-                style={{ marginTop: "16px", padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "6px" }}
-              >
+              <button onClick={() => setShowForm(true)} style={{ marginTop: "16px", padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
                 <Plus size={16} /> Nouvelle saisie
               </button>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {visibleProductions.map((p) => (
-                <div
-                  key={p.id}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "16px",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                  }}
-                >
+                <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
                     <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "6px" }}>
                       <Factory size={20} color="#059669" />
@@ -1069,40 +790,15 @@ ${errors} erreur(s).` : ""}`);
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{getEnterpriseName(p.entrepriseId)}</p>
                       <div style={{ display: "flex", gap: "8px", marginTop: "4px", flexWrap: "wrap" }}>
-                        <span style={{ padding: "2px 8px", border: "1px solid #e5e7eb", borderRadius: "4px", fontSize: "12px" }}>
-                          {(p.annee || "") + " - " + formatTrimestre(p.trimestre)}
-                        </span>
-                        <span style={{ padding: "2px 8px", background: "#f3f4f6", borderRadius: "4px", fontSize: "12px" }}>
-                          {getEnterpriseSecteur(p.entrepriseId)}
-                        </span>
+                        <span style={{ padding: "2px 8px", border: "1px solid #e5e7eb", borderRadius: "4px", fontSize: "12px" }}>{(p.annee || "") + " - " + formatTrimestre(p.trimestre)}</span>
+                        <span style={{ padding: "2px 8px", background: "#f3f4f6", borderRadius: "4px", fontSize: "12px" }}>{getEnterpriseSecteur(p.entrepriseId)}</span>
                         {p.statut && (
-                          <span style={{
-                            padding: "2px 8px",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            background: p.statut === "VALIDE" ? "#d1fae5" : p.statut === "EN_ATTENTE" ? "#fef3c7" : "#fee2e2",
-                            color: p.statut === "VALIDE" ? "#059669" : p.statut === "EN_ATTENTE" ? "#d97706" : "#dc2626"
-                          }}>
-                            {p.statut === "VALIDE" ? (
-                              <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={12} /> Valide</span>
-                            ) : p.statut === "EN_ATTENTE" ? (
-                              <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Clock size={12} /> En attente</span>
-                            ) : (
-                              <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={12} /> Rejete</span>
-                            )}
+                          <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "12px", background: p.statut === "VALIDE" ? "#d1fae5" : p.statut === "EN_ATTENTE" ? "#fef3c7" : "#fee2e2", color: p.statut === "VALIDE" ? "#059669" : p.statut === "EN_ATTENTE" ? "#d97706" : "#dc2626" }}>
+                            {p.statut === "VALIDE" ? <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={12} /> Valide</span> : p.statut === "EN_ATTENTE" ? <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Clock size={12} /> En attente</span> : <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={12} /> Rejete</span>}
                           </span>
                         )}
                         {isPrevision(p.annee, p.trimestre) && (
-                          <span style={{
-                            padding: "2px 8px",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            background: "#e0e7ff",
-                            color: "#4338ca",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px"
-                          }}>
+                          <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "12px", background: "#e0e7ff", color: "#4338ca", display: "flex", alignItems: "center", gap: "4px" }}>
                             <Eye size={12} /> Prevision
                           </span>
                         )}
@@ -1120,58 +816,27 @@ ${errors} erreur(s).` : ""}`);
                       <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{(p.chiffreAffaires ? (p.chiffreAffaires / FCFA_FACTOR).toLocaleString() : "0")} Gd FCFA</p>
                       <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employes</p>
                     </div>
-
                     <div style={{ display: "flex", gap: "4px" }}>
                       {(isAdmin || (isAgent && p.statut === "EN_ATTENTE")) && (
-                        <button
-                          onClick={() => handleEdit(p)}
-                          title="Modifier"
-                          style={{ padding: "6px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}
-                        >
+                        <button onClick={() => handleEdit(p)} title="Modifier" style={{ padding: "6px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}>
                           <Pencil size={14} color="#374151" />
                         </button>
                       )}
-
                       {(isAdmin || (isAgent && p.statut === "EN_ATTENTE")) && (
-                        <button
-                          onClick={() => handleDelete(p.id)}
-                          title="Supprimer"
-                          style={{ padding: "6px", border: "1px solid #ef4444", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", color: "#ef4444" }}
-                        >
+                        <button onClick={() => handleDelete(p.id)} title="Supprimer" style={{ padding: "6px", border: "1px solid #ef4444", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", color: "#ef4444" }}>
                           <Trash2 size={14} />
                         </button>
                       )}
-
                       {isAdmin && p.statut === "EN_ATTENTE" && (
                         <div style={{ display: "flex", gap: "4px" }}>
                           {validatingId === p.id ? (
                             <>
-                              <button
-                                onClick={() => handleValidate(p.id, "VALIDE")}
-                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
-                              >
-                                <CheckCircle2 size={12} /> Valider
-                              </button>
-                              <button
-                                onClick={() => handleValidate(p.id, "REJETE")}
-                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
-                              >
-                                <XCircle size={12} /> Rejeter
-                              </button>
-                              <button
-                                onClick={() => setValidatingId(null)}
-                                style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px" }}
-                              >
-                                Annuler
-                              </button>
+                              <button onClick={() => handleValidate(p.id, "VALIDE")} style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={12} /> Valider</button>
+                              <button onClick={() => handleValidate(p.id, "REJETE")} style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={12} /> Rejeter</button>
+                              <button onClick={() => setValidatingId(null)} style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px" }}>Annuler</button>
                             </>
                           ) : (
-                            <button
-                              onClick={() => setValidatingId(p.id)}
-                              style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151", display: "flex", alignItems: "center", gap: "4px" }}
-                            >
-                              <Settings size={12} /> Valider
-                            </button>
+                            <button onClick={() => setValidatingId(p.id)} style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151", display: "flex", alignItems: "center", gap: "4px" }}><Settings size={12} /> Valider</button>
                           )}
                         </div>
                       )}
