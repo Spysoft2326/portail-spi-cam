@@ -27,6 +27,7 @@ import {
   FileText,
   AlertCircle,
   CheckCircle,
+  CheckSquare,
 } from "lucide-react";
 
 interface Enterprise {
@@ -87,6 +88,7 @@ export default function ProductionPage() {
   const userId = session?.user?.id || "";
   const isAgent = userRole === "AGENT_SAISIE";
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+  const isSuperAdmin = userRole === "SUPER_ADMIN";
 
   const [showForm, setShowForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -105,6 +107,9 @@ export default function ProductionPage() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Valider tout state
+  const [validateAllLoading, setValidateAllLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     entrepriseId: "",
@@ -158,6 +163,49 @@ export default function ProductionPage() {
     });
     setEditingProduction(null);
     setShowForm(false);
+  };
+
+  // --- VALIDER TOUT (SUPERADMIN UNIQUEMENT) ---
+  const handleValidateAll = async () => {
+    const enAttente = visibleProductions.filter(p => p.statut === "EN_ATTENTE");
+    if (enAttente.length === 0) {
+      alert("Aucune production en attente à valider.");
+      return;
+    }
+
+    if (!confirm(`Valider ${enAttente.length} production(s) en attente ?\n\nCette action est irréversible.`)) {
+      return;
+    }
+
+    setValidateAllLoading(true);
+    let success = 0;
+    let errors = 0;
+
+    try {
+      for (const p of enAttente) {
+        try {
+          const res = await fetch(`/api/admin/productions/${p.id}/validate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ statut: "VALIDE" }),
+          });
+          if (res.ok) {
+            success++;
+          } else {
+            errors++;
+          }
+        } catch {
+          errors++;
+        }
+      }
+
+      alert(`${success} production(s) validée(s) avec succès !${errors > 0 ? `\n${errors} erreur(s).` : ""}`);
+      fetchAllData();
+    } catch (error) {
+      alert("Erreur lors de la validation en masse.");
+    } finally {
+      setValidateAllLoading(false);
+    }
   };
 
   // --- IMPORT CSV FUNCTIONS ---
@@ -901,6 +949,40 @@ export default function ProductionPage() {
         </div>
       )}
 
+      {/* BOUTON VALIDER TOUT - SUPERADMIN UNIQUEMENT */}
+      {isSuperAdmin && enAttenteCount > 0 && (
+        <div style={{ marginBottom: "16px", display: "flex", justifyContent: "flex-end" }}>
+          <button
+            onClick={handleValidateAll}
+            disabled={validateAllLoading}
+            style={{
+              padding: "8px 16px",
+              border: "none",
+              borderRadius: "6px",
+              background: "#059669",
+              color: "white",
+              cursor: "pointer",
+              fontSize: "14px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              opacity: validateAllLoading ? 0.5 : 1
+            }}
+          >
+            {validateAllLoading ? (
+              <>
+                <div style={{ width: "14px", height: "14px", border: "2px solid white", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                Validation en cours...
+              </>
+            ) : (
+              <>
+                <CheckSquare size={16} /> Valider tout ({enAttenteCount})
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
         {[
           { label: "Total productions", value: visibleProductions.length, sub: "saisies enregistrees", color: "#059669", bg: "#d1fae5" },
@@ -947,7 +1029,7 @@ export default function ProductionPage() {
           {visibleProductions.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px" }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>
-                <Factory size={48} color="#9ca3af" />
+                <Factory size={48} color="##9ca3af" />
               </div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune production enregistree</h3>
               <p style={{ color: "#6b7280", margin: 0 }}>Commencez par ajouter votre premiere saisie.</p>
