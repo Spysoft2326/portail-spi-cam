@@ -28,7 +28,7 @@ interface Production {
 
 function formatTrimestre(t: number): string {
   const map: Record<number, string> = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
-  return map[t] || `T${t}`;
+  return map[t] || "T" + t;
 }
 
 export default function ProductionPage() {
@@ -65,16 +65,13 @@ export default function ProductionPage() {
     try {
       setLoading(true);
 
-      // ✅ FIX: Appel sans pagination — la route retourne un tableau direct
       const entRes = await fetch("/api/entreprises");
       if (entRes.ok) {
         const entData = await entRes.json();
-        // La route retourne un tableau direct ou un objet avec entreprises
         const entList = Array.isArray(entData) ? entData : (entData.entreprises || []);
         setEnterprises(entList);
       }
 
-      // ✅ FIX: Récupérer les productions selon le rôle
       const prodUrl = isAgent ? "/api/production?mesProductions=true" : "/api/production";
       const prodRes = await fetch(prodUrl);
       if (prodRes.ok) {
@@ -99,7 +96,6 @@ export default function ProductionPage() {
   };
 
   const handleEdit = (production: Production) => {
-    // Agent ne peut modifier que ses propres productions EN_ATTENTE
     if (isAgent && production.statut !== "EN_ATTENTE") {
       alert("Vous ne pouvez modifier que les productions en attente de validation.");
       return;
@@ -121,7 +117,7 @@ export default function ProductionPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!formData.entrepriseId) {
-      alert("Veuillez sélectionner une entreprise");
+      alert("Veuillez selectionner une entreprise");
       return;
     }
 
@@ -145,7 +141,7 @@ export default function ProductionPage() {
       });
 
       if (res.ok) {
-        alert(editingProduction ? "Production modifiée !" : "Production enregistrée !");
+        alert(editingProduction ? "Production modifiee !" : "Production enregistree !");
         resetForm();
         fetchAllData();
       } else {
@@ -164,11 +160,11 @@ export default function ProductionPage() {
     try {
       const res = await fetch(`/api/production/${id}`, { method: "DELETE" });
       if (res.ok) {
-        alert("Production supprimée");
+        alert("Production supprimee");
         fetchAllData();
       } else {
         const err = await res.json().catch(() => ({}));
-        alert("Erreur : " + (err.error || "Suppression non autorisée"));
+        alert("Erreur : " + (err.error || "Suppression non autorisee"));
       }
     } catch (error) {
       alert("Erreur de connexion");
@@ -184,7 +180,7 @@ export default function ProductionPage() {
       });
 
       if (res.ok) {
-        alert(statut === "VALIDE" ? "Production validée !" : "Production rejetée.");
+        alert(statut === "VALIDE" ? "Production validee !" : "Production rejetee.");
         setValidatingId(null);
         fetchAllData();
       } else {
@@ -198,7 +194,7 @@ export default function ProductionPage() {
 
   const getEnterpriseName = (id: string) => {
     const ent = enterprises.find((e) => e.id === id);
-    return ent ? `${ent.denomination}${ent.sigle ? ` (${ent.sigle})` : ""}` : "Entreprise inconnue";
+    return ent ? ent.denomination + (ent.sigle ? " (" + ent.sigle + ")" : "") : "Entreprise inconnue";
   };
 
   const getEnterpriseSecteur = (id: string) => {
@@ -206,7 +202,6 @@ export default function ProductionPage() {
     return ent?.secteurActivite || "N/A";
   };
 
-  // ✅ Agent ne voit que ses propres productions (filtrage côté client en plus de l'API)
   const visibleProductions = Array.isArray(productions)
     ? productions.filter((p) => {
         if (isAgent && p.saisiePar && p.saisiePar !== userId) return false;
@@ -214,7 +209,7 @@ export default function ProductionPage() {
         const searchLower = searchTerm.toLowerCase();
         return getEnterpriseName(p.entrepriseId).toLowerCase().includes(searchLower) ||
           formatTrimestre(p.trimestre).toLowerCase().includes(searchLower) ||
-          p.annee.toString().includes(searchLower);
+          p.annee.toString().includes(searchTerm);
       })
     : [];
 
@@ -244,11 +239,13 @@ export default function ProductionPage() {
           onClick={() => resetForm()}
           style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
         >
-          ← Retour aux productions
+          &larr; Retour aux productions
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
-          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>🏭</div>
+          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>
+            <span role="img" aria-label="usine">&#x1F3ED;</span>
+          </div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>
               {editingProduction ? "Modifier la saisie" : "Nouvelle saisie"}
@@ -260,11 +257,11 @@ export default function ProductionPage() {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              🏢 Entreprise
+              <span role="img" aria-label="entreprise">&#x1F3E2;</span> Entreprise
             </div>
             <div style={{ marginBottom: "12px" }}>
               <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Sélectionner une entreprise <span style={{ color: "#ef4444" }}>*</span>
+                Selectionner une entreprise <span style={{ color: "#ef4444" }}>*</span>
               </label>
               <select
                 value={formData.entrepriseId}
@@ -274,7 +271,9 @@ export default function ProductionPage() {
               >
                 <option value="">Choisir une entreprise...</option>
                 {enterprises.map((ent) => (
-                  <option key={ent.id} value={ent.id}>{ent.denomination}{ent.sigle ? ` (${ent.sigle})` : ""}</option>
+                  <option key={ent.id} value={ent.id}>
+                    {ent.denomination}{ent.sigle ? " (" + ent.sigle + ")" : ""}
+                  </option>
                 ))}
               </select>
               {formData.entrepriseId && (
@@ -292,12 +291,12 @@ export default function ProductionPage() {
 
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              📅 Période
+              <span role="img" aria-label="calendrier">&#x1F4C5;</span> Periode
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  Année <span style={{ color: "#ef4444" }}>*</span>
+                  Annee <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <select
                   value={formData.annee}
@@ -322,7 +321,7 @@ export default function ProductionPage() {
                   <option value="T1">T1 (Janvier - Mars)</option>
                   <option value="T2">T2 (Avril - Juin)</option>
                   <option value="T3">T3 (Juillet - Septembre)</option>
-                  <option value="T4">T4 (Octobre - Décembre)</option>
+                  <option value="T4">T4 (Octobre - Decembre)</option>
                 </select>
               </div>
             </div>
@@ -332,12 +331,12 @@ export default function ProductionPage() {
 
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              📊 Données de production
+              <span role="img" aria-label="graphique">&#x1F4CA;</span> Donnees de production
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  📦 Production physique
+                  <span role="img" aria-label="colis">&#x1F4E6;</span> Production physique
                 </label>
                 <input
                   type="number"
@@ -347,11 +346,11 @@ export default function ProductionPage() {
                   onChange={(e) => setFormData({ ...formData, productionPhysique: e.target.value })}
                   style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
                 />
-                <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>tonnes, unités, etc.</p>
+                <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>tonnes, unites, etc.</p>
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  💰 Chiffre d'affaires
+                  <span role="img" aria-label="argent">&#x1F4B0;</span> Chiffre d'affaires
                 </label>
                 <input
                   type="number"
@@ -365,7 +364,7 @@ export default function ProductionPage() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  👥 Nombre d'employés
+                  <span role="img" aria-label="groupe">&#x1F465;</span> Nombre d'employes
                 </label>
                 <input
                   type="number"
@@ -381,7 +380,7 @@ export default function ProductionPage() {
 
           <div style={{ marginBottom: "32px" }}>
             <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-              💬 Commentaire (optionnel)
+              <span role="img" aria-label="bulle">&#x1F4AC;</span> Commentaire (optionnel)
             </label>
             <textarea
               placeholder="Notes additionnelles..."
@@ -417,7 +416,8 @@ export default function ProductionPage() {
                 opacity: submitting || !formData.entrepriseId ? 0.5 : 1
               }}
             >
-              💾 {submitting ? "Enregistrement..." : (editingProduction ? "Modifier" : "Enregistrer")}
+              <span role="img" aria-label="disquette">&#x1F4BE;</span>
+              {submitting ? "Enregistrement..." : (editingProduction ? "Modifier" : "Enregistrer")}
             </button>
           </div>
         </form>
@@ -429,7 +429,9 @@ export default function ProductionPage() {
     <div style={{ padding: "24px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>🏭</div>
+          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>
+            <span role="img" aria-label="usine">&#x1F3ED;</span>
+          </div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Production</h1>
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Gestion des saisies trimestrielles</p>
@@ -439,27 +441,26 @@ export default function ProductionPage() {
           <button
             onClick={() => {
               const csv = [
-                ["Entreprise", "Année", "Trimestre", "Production", "CA (FCFA)", "Employés", "Statut"].join(","),
+                ["Entreprise", "Annee", "Trimestre", "Production", "CA (FCFA)", "Employes", "Statut"].join(","),
                 ...visibleProductions.map((p) => [
                   getEnterpriseName(p.entrepriseId), p.annee, formatTrimestre(p.trimestre),
                   p.productionPhysique, p.chiffreAffaires, p.effectifs, p.statut || "EN_ATTENTE"
                 ].join(","))
-              ].join("
-");
+              ].join("\n");
               const blob = new Blob([csv], { type: "text/csv" });
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement("a"); a.href = url;
-              a.download = `productions_${new Date().toISOString().split("T")[0]}.csv`; a.click();
+              a.download = "productions_" + new Date().toISOString().split("T")[0] + ".csv"; a.click();
             }}
             style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            📥 Exporter CSV
+            <span role="img" aria-label="telecharger">&#x1F4E5;</span> Exporter CSV
           </button>
           <button
             onClick={() => setShowForm(true)}
             style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            ➕ Nouvelle saisie
+            <span role="img" aria-label="plus">&#x2795;</span> Nouvelle saisie
           </button>
         </div>
       </div>
@@ -468,27 +469,33 @@ export default function ProductionPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#d97706" }}>{enAttenteCount}</p>
-            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0" }}>⏳ En attente</p>
+            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0" }}>
+              <span role="img" aria-label="horloge">&#x23F3;</span> En attente
+            </p>
           </div>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #d1fae5", background: "#d1fae5", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#059669" }}>{valideCount}</p>
-            <p style={{ fontSize: "12px", color: "#065f46", margin: "4px 0 0 0" }}>✅ Validés</p>
+            <p style={{ fontSize: "12px", color: "#065f46", margin: "4px 0 0 0" }}>
+              <span role="img" aria-label="coche">&#x2705;</span> Valides
+            </p>
           </div>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fee2e2", background: "#fee2e2", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#dc2626" }}>{rejeteCount}</p>
-            <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0" }}>❌ Rejetés</p>
+            <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0" }}>
+              <span role="img" aria-label="croix">&#x274C;</span> Rejetes
+            </p>
           </div>
         </div>
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
         {[
-          { label: "Total productions", value: visibleProductions.length, sub: "saisies enregistrées", color: "#059669", bg: "#d1fae5" },
-          { label: "Production physique", value: totalProduction.toLocaleString(), sub: "tonnes / unités", color: "#2563eb", bg: "#dbeafe" },
-          { label: "Chiffre d'affaires", value: `${totalCA.toLocaleString()} FCFA`, sub: "cumulé", color: "#d97706", bg: "#fef3c7" },
-          { label: "Emplois créés", value: totalEmployes.toLocaleString(), sub: "employés au total", color: "#7c3aed", bg: "#ede9fe" },
+          { label: "Total productions", value: visibleProductions.length, sub: "saisies enregistrees", color: "#059669", bg: "#d1fae5" },
+          { label: "Production physique", value: totalProduction.toLocaleString(), sub: "tonnes / unites", color: "#2563eb", bg: "#dbeafe" },
+          { label: "Chiffre d'affaires", value: totalCA.toLocaleString() + " FCFA", sub: "cumule", color: "#d97706", bg: "#fef3c7" },
+          { label: "Emplois crees", value: totalEmployes.toLocaleString(), sub: "employes au total", color: "#7c3aed", bg: "#ede9fe" },
         ].map((item) => (
-          <div key={item.label} style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: `linear-gradient(135deg, ${item.bg}, white)` }}>
+          <div key={item.label} style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "linear-gradient(135deg, " + item.bg + ", white)" }}>
             <p style={{ fontSize: "13px", fontWeight: "600", color: item.color, margin: "0 0 8px 0" }}>{item.label}</p>
             <p style={{ fontSize: "28px", fontWeight: "bold", color: "#111827", margin: 0 }}>{item.value}</p>
             <p style={{ fontSize: "12px", color: "#6b7280", margin: "4px 0 0 0" }}>{item.sub}</p>
@@ -498,14 +505,16 @@ export default function ProductionPage() {
 
       <div style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", marginBottom: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", fontWeight: "600", fontSize: "14px" }}>
-          🔍 Filtres
+          <span role="img" aria-label="loupe">&#x1F50D;</span> Filtres
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
           <div style={{ position: "relative" }}>
-            <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px" }}>🔍</span>
+            <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px" }}>
+              <span role="img" aria-label="loupe">&#x1F50D;</span>
+            </span>
             <input
               type="text"
-              placeholder="Rechercher entreprise, année..."
+              placeholder="Rechercher entreprise, annee..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ width: "100%", padding: "8px 12px 8px 36px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
@@ -517,21 +526,23 @@ export default function ProductionPage() {
       <div style={{ borderRadius: "8px", border: "1px solid #e5e7eb", background: "white" }}>
         <div style={{ padding: "16px", borderBottom: "1px solid #e5e7eb" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600" }}>
-            📊 Historique des saisies
+            <span role="img" aria-label="graphique">&#x1F4CA;</span> Historique des saisies
           </div>
-          <p style={{ fontSize: "13px", color: "#6b7280", margin: "4px 0 0 0" }}>{visibleProductions.length} résultat{visibleProductions.length > 1 ? "s" : ""}</p>
+          <p style={{ fontSize: "13px", color: "#6b7280", margin: "4px 0 0 0" }}>{visibleProductions.length} resultat{visibleProductions.length > 1 ? "s" : ""}</p>
         </div>
         <div style={{ padding: "16px" }}>
           {visibleProductions.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px" }}>
-              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏭</div>
-              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune production enregistrée</h3>
-              <p style={{ color: "#6b7280", margin: 0 }}>Commencez par ajouter votre première saisie.</p>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+                <span role="img" aria-label="usine">&#x1F3ED;</span>
+              </div>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune production enregistree</h3>
+              <p style={{ color: "#6b7280", margin: 0 }}>Commencez par ajouter votre premiere saisie.</p>
               <button
                 onClick={() => setShowForm(true)}
                 style={{ marginTop: "16px", padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
-                ➕ Nouvelle saisie
+                <span role="img" aria-label="plus">&#x2795;</span> Nouvelle saisie
               </button>
             </div>
           ) : (
@@ -549,7 +560,9 @@ export default function ProductionPage() {
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
-                    <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "6px", fontSize: "18px" }}>🏭</div>
+                    <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "6px", fontSize: "18px" }}>
+                      <span role="img" aria-label="usine">&#x1F3ED;</span>
+                    </div>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{getEnterpriseName(p.entrepriseId)}</p>
                       <div style={{ display: "flex", gap: "8px", marginTop: "4px", flexWrap: "wrap" }}>
@@ -567,49 +580,51 @@ export default function ProductionPage() {
                             background: p.statut === "VALIDE" ? "#d1fae5" : p.statut === "EN_ATTENTE" ? "#fef3c7" : "#fee2e2",
                             color: p.statut === "VALIDE" ? "#059669" : p.statut === "EN_ATTENTE" ? "#d97706" : "#dc2626"
                           }}>
-                            {p.statut === "VALIDE" ? "✅ Validé" : p.statut === "EN_ATTENTE" ? "⏳ En attente" : "❌ Rejeté"}
+                            {p.statut === "VALIDE" ? (
+                              <><span role="img" aria-label="coche">&#x2705;</span> Valide</>
+                            ) : p.statut === "EN_ATTENTE" ? (
+                              <><span role="img" aria-label="horloge">&#x23F3;</span> En attente</>
+                            ) : (
+                              <><span role="img" aria-label="croix">&#x274C;</span> Rejete</>
+                            )}
                           </span>
                         )}
                       </div>
                       {p.commentaire && (
                         <p style={{ fontSize: "12px", color: "#9ca3af", margin: "4px 0 0 0", fontStyle: "italic" }}>
-                          💬 {p.commentaire}
+                          <span role="img" aria-label="bulle">&#x1F4AC;</span> {p.commentaire}
                         </p>
                       )}
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <div style={{ textAlign: "right", marginRight: "8px" }}>
-                      <p style={{ fontWeight: "600", margin: 0, fontSize: "14px" }}>{(p.productionPhysique || 0).toLocaleString()} unités</p>
+                      <p style={{ fontWeight: "600", margin: 0, fontSize: "14px" }}>{(p.productionPhysique || 0).toLocaleString()} unites</p>
                       <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{(p.chiffreAffaires || 0).toLocaleString()} FCFA</p>
-                      <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employés</p>
+                      <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employes</p>
                     </div>
 
-                    {/* Boutons d'action */}
                     <div style={{ display: "flex", gap: "4px" }}>
-                      {/* Modifier — Agent peut modifier ses EN_ATTENTE, Admin peut tout */}
                       {(isAdmin || (isAgent && p.statut === "EN_ATTENTE")) && (
                         <button
                           onClick={() => handleEdit(p)}
                           title="Modifier"
                           style={{ padding: "6px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}
                         >
-                          ✏️
+                          <span role="img" aria-label="crayon">&#x270F;</span>
                         </button>
                       )}
 
-                      {/* Supprimer — Agent peut supprimer ses EN_ATTENTE, Admin peut tout */}
                       {(isAdmin || (isAgent && p.statut === "EN_ATTENTE")) && (
                         <button
                           onClick={() => handleDelete(p.id)}
                           title="Supprimer"
                           style={{ padding: "6px", border: "1px solid #ef4444", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", color: "#ef4444" }}
                         >
-                          🗑️
+                          <span role="img" aria-label="poubelle">&#x1F5D1;</span>
                         </button>
                       )}
 
-                      {/* Valider/Rejeter — ADMIN/SUPER_ADMIN uniquement */}
                       {isAdmin && p.statut === "EN_ATTENTE" && (
                         <div style={{ display: "flex", gap: "4px" }}>
                           {validatingId === p.id ? (
@@ -618,13 +633,13 @@ export default function ProductionPage() {
                                 onClick={() => handleValidate(p.id, "VALIDE")}
                                 style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px" }}
                               >
-                                ✅ Valider
+                                <span role="img" aria-label="coche">&#x2705;</span> Valider
                               </button>
                               <button
                                 onClick={() => handleValidate(p.id, "REJETE")}
                                 style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px" }}
                               >
-                                ❌ Rejeter
+                                <span role="img" aria-label="croix">&#x274C;</span> Rejeter
                               </button>
                               <button
                                 onClick={() => setValidatingId(null)}
@@ -638,7 +653,7 @@ export default function ProductionPage() {
                               onClick={() => setValidatingId(p.id)}
                               style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151" }}
                             >
-                              ⚙️ Valider
+                              <span role="img" aria-label="engrenage">&#x2699;</span> Valider
                             </button>
                           )}
                         </div>
