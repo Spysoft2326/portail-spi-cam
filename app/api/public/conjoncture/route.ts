@@ -40,8 +40,11 @@ export async function GET(request: Request) {
       take: 100, // Limiter à 100 résultats
     });
 
-    // Calculer les stats basiques (sans chiffreAffaires, effectifs, investissements)
+    // Calculer les stats
     const totalProductions = productions.length;
+    const totalCA = productions.reduce((sum, p) => sum + (p.chiffreAffaires || 0), 0);
+    const totalEmplois = productions.reduce((sum, p) => sum + (p.effectifs || 0), 0);
+    const totalInvestissements = productions.reduce((sum, p) => sum + (p.investissements || 0), 0);
 
     // Regrouper par secteur
     const secteurMap = new Map<string, number>();
@@ -79,6 +82,9 @@ export async function GET(request: Request) {
       productions,
       stats: {
         totalProductions,
+        totalCA,
+        totalEmplois,
+        totalInvestissements,
         productionsParSecteur,
         productionsParTrimestre,
       },
