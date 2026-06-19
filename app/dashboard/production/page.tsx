@@ -78,22 +78,20 @@ function formatTrimestre(t: number | null): string {
   return map[t] || "T" + t;
 }
 
-// Helper: dÃ©termine si une production est une prÃ©vision (trimestre futur)
+// Helper: determine si une production est une prevision (trimestre futur)
 function isPrevision(annee: number | null, trimestre: number | null): boolean {
   if (!annee || !trimestre) return false;
   const now = new Date();
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // 1-12
-  const currentTrimestre = Math.ceil(currentMonth / 3); // 1-4
+  const currentMonth = now.getMonth() + 1;
+  const currentTrimestre = Math.ceil(currentMonth / 3);
 
   if (annee > currentYear) return true;
   if (annee === currentYear && trimestre > currentTrimestre) return true;
   return false;
 }
 
-// Conversion: Millions de tonnes <-> tonnes
 const TONNES_FACTOR = 1000000;
-// Conversion: Milliards de FCFA <-> FCFA
 const FCFA_FACTOR = 1000000000;
 
 export default function ProductionPage() {
@@ -115,14 +113,12 @@ export default function ProductionPage() {
   const [editingProduction, setEditingProduction] = useState<Production | null>(null);
   const [message, setMessage] = useState("");
 
-  // Import CSV states
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Valider tout state
   const [validateAllLoading, setValidateAllLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -179,17 +175,16 @@ export default function ProductionPage() {
     setShowForm(false);
   };
 
-  // --- VALIDER TOUT (SUPERADMIN UNIQUEMENT) ---
   const handleValidateAll = async () => {
     const enAttente = visibleProductions.filter(p => p.statut === "EN_ATTENTE");
     if (enAttente.length === 0) {
-      alert("Aucune production en attente Ã  valider.");
+      alert("Aucune production en attente a valider.");
       return;
     }
 
     if (!confirm(`Valider ${enAttente.length} production(s) en attente ?
 
-Cette action est irrÃ©versible.`)) {
+Cette action est irreversible.`)) {
       return;
     }
 
@@ -215,7 +210,7 @@ Cette action est irrÃ©versible.`)) {
         }
       }
 
-      alert(`${success} production(s) validÃ©e(s) avec succÃ¨s !${errors > 0 ? `
+      alert(`${success} production(s) validee(s) avec succes !${errors > 0 ? `
 ${errors} erreur(s).` : ""}`);
       fetchAllData();
     } catch (error) {
@@ -225,7 +220,6 @@ ${errors} erreur(s).` : ""}`);
     }
   };
 
-  // --- IMPORT CSV FUNCTIONS ---
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -254,8 +248,8 @@ ${errors} erreur(s).` : ""}`);
   };
 
   const parseCSV = (text: string): Record<string, string>[] => {
-    const lines = text.split(/?
-/).filter(line => line.trim());
+    const lines = text.split("
+").map(l => l.replace("", "")).filter(line => line.trim());
     if (lines.length < 2) return [];
 
     const headers = lines[0].split(",").map(h => h.trim().replace(/^["']|["']$/g, ""));
@@ -312,7 +306,7 @@ ${errors} erreur(s).` : ""}`);
           const entExists = enterprises.find(e => e.id === entrepriseId);
           if (!entExists) {
             results.errors++;
-            results.details.push({ row: rowNum, status: "error", message: `Entreprise ID ${entrepriseId} non trouvÃ©e` });
+            results.details.push({ row: rowNum, status: "error", message: `Entreprise ID ${entrepriseId} non trouvee` });
             continue;
           }
 
@@ -335,7 +329,7 @@ ${errors} erreur(s).` : ""}`);
 
           if (res.ok) {
             results.success++;
-            results.details.push({ row: rowNum, status: "success", message: `${entExists.denomination} - ${annee}-T${trimestre} importÃ©` });
+            results.details.push({ row: rowNum, status: "success", message: `${entExists.denomination} - ${annee}-T${trimestre} importe` });
           } else {
             const err = await res.json().catch(() => ({}));
             results.errors++;
@@ -759,7 +753,6 @@ ${errors} erreur(s).` : ""}`);
         </div>
       </div>
 
-      {/* MODAL IMPORT CSV */}
       {showImportModal && (
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
@@ -778,7 +771,7 @@ ${errors} erreur(s).` : ""}`);
                 </div>
                 <div>
                   <h2 style={{ fontSize: "18px", fontWeight: "600", margin: 0 }}>Importer des productions</h2>
-                  <p style={{ fontSize: "13px", color: "#6b7280", margin: "2px 0 0 0" }}>Fichier CSV avec les donnÃ©es trimestrielles</p>
+                  <p style={{ fontSize: "13px", color: "#6b7280", margin: "2px 0 0 0" }}>Fichier CSV avec les donnees trimestrielles</p>
                 </div>
               </div>
               <button
@@ -794,7 +787,7 @@ ${errors} erreur(s).` : ""}`);
                 <p style={{ fontWeight: "600", margin: "0 0 8px 0", color: "#374151" }}>Format attendu :</p>
                 <code style={{ display: "block", padding: "8px 12px", background: "#1f2937", color: "#e5e7eb", borderRadius: "6px", fontSize: "12px", overflow: "auto" }}>
                   entreprise_id,annee,trimestre,production_physique,chiffre_affaires,effectifs,commentaire<br/>
-                  abc-123,2024,1,5000,120,800,DonnÃ©es T1 2024
+                  abc-123,2024,1,5000,120,800,Donnees T1 2024
                 </code>
                 <p style={{ margin: "8px 0 0 0", color: "#6b7280" }}>
                   <span style={{ color: "#ef4444" }}>*</span> entreprise_id, annee, trimestre sont obligatoires
@@ -852,7 +845,7 @@ ${errors} erreur(s).` : ""}`);
                         <AlertCircle size={20} color="#d97706" />
                       )}
                       <span style={{ fontWeight: "600" }}>
-                        {importResult.success} importÃ©(s) / {importResult.errors} erreur(s) sur {importResult.total} ligne(s)
+                        {importResult.success} importe(s) / {importResult.errors} erreur(s) sur {importResult.total} ligne(s)
                       </span>
                     </div>
                   </div>
@@ -958,7 +951,6 @@ ${errors} erreur(s).` : ""}`);
         </div>
       )}
 
-      {/* BOUTON VALIDER TOUT - SUPERADMIN UNIQUEMENT */}
       {isSuperAdmin && enAttenteCount > 0 && (
         <div style={{ marginBottom: "16px", display: "flex", justifyContent: "flex-end" }}>
           <button
@@ -1093,7 +1085,6 @@ ${errors} erreur(s).` : ""}`);
                             )}
                           </span>
                         )}
-                        {/* BADGE PREVISION */}
                         {isPrevision(p.annee, p.trimestre) && (
                           <span style={{
                             padding: "2px 8px",
@@ -1105,7 +1096,7 @@ ${errors} erreur(s).` : ""}`);
                             alignItems: "center",
                             gap: "4px"
                           }}>
-                            <Eye size={12} /> PrÃ©vision
+                            <Eye size={12} /> Prevision
                           </span>
                         )}
                       </div>
