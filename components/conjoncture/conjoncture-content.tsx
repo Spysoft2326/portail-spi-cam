@@ -56,7 +56,7 @@ function safeNumber(value: number | null | undefined): number {
 }
 
 function safeLocaleString(value: number | null | undefined): string {
-  return (value ?? 0).toLocaleString();
+  return (value ?? 0).toLocaleString('fr-FR');
 }
 
 export default function ConjonctureContent() {
@@ -291,9 +291,10 @@ export default function ConjonctureContent() {
         </div>
       ) : (
         <>
-          {/* KPIs */}
+          {/* KPIs - Style identique à la page Production */}
           {stats && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              {/* Productions */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -302,8 +303,10 @@ export default function ConjonctureContent() {
                   <span className="text-sm text-gray-500">Productions</span>
                 </div>
                 <div className="text-2xl font-bold">{safeLocaleString(stats.totalProductions)}</div>
+                <div className="text-sm text-gray-400 mt-1">saisies enregistrées</div>
               </div>
 
+              {/* Chiffre d'affaires */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -311,9 +314,13 @@ export default function ConjonctureContent() {
                   </div>
                   <span className="text-sm text-gray-500">Chiffre d'affaires</span>
                 </div>
-                <div className="text-2xl font-bold">{(safeNumber(stats.totalCA) / 1000000).toFixed(1)}M FCFA</div>
+                <div className="text-2xl font-bold">
+                  {safeLocaleString(stats.totalCA)}
+                </div>
+                <div className="text-sm text-gray-400 mt-1">milliards de FCFA</div>
               </div>
 
+              {/* Emplois */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -322,8 +329,10 @@ export default function ConjonctureContent() {
                   <span className="text-sm text-gray-500">Emplois</span>
                 </div>
                 <div className="text-2xl font-bold">{safeLocaleString(stats.totalEmplois)}</div>
+                <div className="text-sm text-gray-400 mt-1">employés au total</div>
               </div>
 
+              {/* Investissements */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -331,7 +340,10 @@ export default function ConjonctureContent() {
                   </div>
                   <span className="text-sm text-gray-500">Investissements</span>
                 </div>
-                <div className="text-2xl font-bold">{(safeNumber(stats.totalInvestissements) / 1000000).toFixed(1)}M FCFA</div>
+                <div className="text-2xl font-bold">
+                  {safeLocaleString(stats.totalInvestissements)}
+                </div>
+                <div className="text-sm text-gray-400 mt-1">milliards de FCFA</div>
               </div>
             </div>
           )}
@@ -418,7 +430,7 @@ export default function ConjonctureContent() {
                         <td className="py-3 px-4 text-right">{p.effectifs ?? 0}</td>
                         <td className="py-3 px-4 text-center">
                           <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                            p.statut === 'VALIDEE' ? 'bg-green-100 text-green-800' :
+                            p.statut === 'VALIDE' ? 'bg-green-100 text-green-800' :
                             p.statut === 'EN_ATTENTE' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>
