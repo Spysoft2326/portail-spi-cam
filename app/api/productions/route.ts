@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     }
 
     // ✅ Agent ne voit que ses propres productions
-    if (userRole === "AGENT_SAISIE" && mesProductions === "true") {
+    if (userRole === "AGENT_SAISIE" && mesProductions === "true" && userId) {
       where.saisiePar = userId;
     }
 
@@ -44,6 +44,14 @@ export async function GET(request: Request) {
             id: true,
             denomination: true,
             sigle: true,
+            secteurActivite: true,
+          },
+        },
+        agentSaisie: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
           },
         },
       },
@@ -53,7 +61,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Erreur GET productions:", error);
     return NextResponse.json(
-      { error: "Erreur lors de la récupération des productions" },
+      { error: "Erreur lors de la recuperation des productions" },
       { status: 500 }
     );
   }
@@ -65,22 +73,37 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const userRole = session.user.role;
     const userId = session.user.id;
 
     if (!userRole) {
-      return NextResponse.json({ error: "Rôle non défini" }, { status: 403 });
+      return NextResponse.json({ error: "Role non defini" }, { status: 403 });
     }
 
     const allowedRoles = ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"];
     if (!allowedRoles.includes(userRole)) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     const body = await request.json();
+
+    // ✅ Validation des champs obligatoires
+    if (!body.entrepriseId) {
+      return NextResponse.json(
+        { error: "L'entreprise est obligatoire" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Convertir trimestre "T1" → 1
+    let trimestreNum: number | null = null;
+    if (body.trimestre) {
+      const trimMap: Record<string, number> = { "T1": 1, "T2": 2, "T3": 3, "T4": 4 };
+      trimestreNum = trimMap[body.trimestre] || parseInt(body.trimestre) || null;
+    }
 
     const production = await prisma.production.create({
       data: {
@@ -90,7 +113,7 @@ export async function POST(request: Request) {
         unite: body.unite?.trim() || null,
         periode: body.periode?.trim() || null,
         annee: body.annee ? parseInt(body.annee) : null,
-        trimestre: body.trimestre ? parseInt(body.trimestre) : null,
+        trimestre: trimestreNum,
         productionPhysique: body.productionPhysique ? parseFloat(body.productionPhysique) : null,
         // ✅ Nouveaux champs
         chiffreAffaires: body.chiffreAffaires ? parseFloat(body.chiffreAffaires) : null,
@@ -102,10 +125,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(production, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur POST production:", error);
     return NextResponse.json(
-      { error: "Erreur lors de la création de la production" },
+      { error: "Erreur lors de la creation de la production" },
       { status: 500 }
     );
   }

@@ -43,12 +43,14 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // ← AJOUTÉ : mot de passe hashé pour les utilisateurs créés manuellement
+  password      String?   // mot de passe hashé pour les utilisateurs créés manuellement
   role          String    @default("USER")
   accounts      Account[]
   sessions      Session[]
   entreprises   Entreprise[] @relation("AgentEntreprises")
   auditLogs     AuditLog[]
+  productionsSaisies Production[] @relation("SaisiePar")
+  productionsValidees Production[] @relation("ValidePar")
 }
 
 model VerificationToken {
@@ -93,13 +95,23 @@ model Production {
   id                String     @id @default(uuid())
   entrepriseId      String
   entreprise        Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
-  produit           String
+  produit           String?
   quantite          Float?
   unite             String?
   periode           String?
   annee             Int?
   trimestre         Int?
   productionPhysique Float?
+  // ✅ NOUVEAUX CHAMPS — workflow validation Agent → Admin
+  chiffreAffaires   Float?
+  effectifs         Int?
+  commentaire       String?
+  statut            String     @default("EN_ATTENTE") // EN_ATTENTE, VALIDE, REJETE
+  saisiePar         String?    // ID de l'agent qui a saisi
+  agentSaisie       User?      @relation("SaisiePar", fields: [saisiePar], references: [id])
+  validePar         String?    // ID de l'admin qui a validé
+  adminValidation   User?      @relation("ValidePar", fields: [validePar], references: [id])
+  dateValidation    DateTime?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 }
