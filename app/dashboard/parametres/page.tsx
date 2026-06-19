@@ -2,11 +2,13 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Settings, Users, Bell, Shield, Database } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Settings, Users, Bell, Shield, Database, UserCircle } from "lucide-react";
 import UsersContent from "@/components/parametres/users-content";
 import NotificationsContent from "@/components/parametres/notifications-content";
 import SecurityContent from "@/components/parametres/security-content";
 import DataContent from "@/components/parametres/data-content";
+import MonCompteContent from "@/components/parametres/mon-compte-content";
 
 export const dynamic = 'force-dynamic';
 
@@ -18,18 +20,14 @@ interface User {
   emailVerified: Date | null;
 }
 
-const tabs = [
-  { id: "general", label: "General", icon: Settings },
-  { id: "users", label: "Utilisateurs", icon: Users },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "security", label: "Securite", icon: Shield },
-  { id: "data", label: "Donnees", icon: Database },
-];
-
 function ParametresContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "general");
+  const { data: session } = useSession();
+  const role = session?.user?.role || "AGENT_SAISIE";
+  const isAgent = role === "AGENT_SAISIE";
+
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || (isAgent ? "mon-compte" : "general"));
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [generalSettings, setGeneralSettings] = useState({
@@ -39,11 +37,23 @@ function ParametresContent() {
     fuseauHoraire: "Africa/Douala",
   });
 
+  // Onglets selon le rôle
+  const allTabs = [
+    { id: "general", label: "General", icon: Settings, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { id: "users", label: "Utilisateurs", icon: Users, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { id: "notifications", label: "Notifications", icon: Bell, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { id: "security", label: "Securite", icon: Shield, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { id: "data", label: "Donnees", icon: Database, roles: ["ADMIN", "SUPER_ADMIN"] },
+    { id: "mon-compte", label: "Mon compte", icon: UserCircle, roles: ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"] },
+  ];
+
+  const visibleTabs = allTabs.filter((tab) => tab.roles.includes(role));
+
   useEffect(() => {
-    if (activeTab === "users") {
+    if (activeTab === "users" && !isAgent) {
       fetchUsers();
     }
-  }, [activeTab]);
+  }, [activeTab, isAgent]);
 
   const fetchUsers = async () => {
     try {
@@ -72,12 +82,17 @@ function ParametresContent() {
   return (
     <div>
       <div style={{ marginBottom: "24px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Parametres</h1>
-        <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Configuration du portail SPI-CAM</p>
+        <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>
+          {isAgent ? "Mon compte" : "Parametres"}
+        </h1>
+        <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>
+          {isAgent ? "Gestion de votre profil et mot de passe" : "Configuration du portail SPI-CAM"}
+        </p>
       </div>
 
-      <div style={{ display: "flex", gap: "4px", marginBottom: "24px", borderBottom: "1px solid #e5e7eb" }}>
-        {tabs.map((tab) => {
+      {/* Onglets visibles selon le rôle */}
+      <div style={{ display: "flex", gap: "4px", marginBottom: "24px", borderBottom: "1px solid #e5e7eb", flexWrap: "wrap" }}>
+        {visibleTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
@@ -107,7 +122,8 @@ function ParametresContent() {
       </div>
 
       <div>
-        {activeTab === "general" && (
+        {/* General — ADMIN/SUPER_ADMIN uniquement */}
+        {activeTab === "general" && !isAgent && (
           <div style={{ maxWidth: "800px" }}>
             <h3 style={{ fontSize: "18px", fontWeight: "600", margin: "0 0 20px 0" }}>Parametres generaux</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
@@ -164,7 +180,8 @@ function ParametresContent() {
           </div>
         )}
 
-        {activeTab === "users" && (
+        {/* Utilisateurs — ADMIN/SUPER_ADMIN uniquement */}
+        {activeTab === "users" && !isAgent && (
           <>
             {loadingUsers ? (
               <div style={{ textAlign: "center", padding: "40px" }}>
@@ -177,11 +194,17 @@ function ParametresContent() {
           </>
         )}
 
-        {activeTab === "notifications" && <NotificationsContent />}
+        {/* Notifications — ADMIN/SUPER_ADMIN uniquement */}
+        {activeTab === "notifications" && !isAgent && <NotificationsContent />}
 
-        {activeTab === "security" && <SecurityContent />}
+        {/* Securite — ADMIN/SUPER_ADMIN uniquement */}
+        {activeTab === "security" && !isAgent && <SecurityContent />}
 
-        {activeTab === "data" && <DataContent />}
+        {/* Donnees — ADMIN/SUPER_ADMIN uniquement */}
+        {activeTab === "data" && !isAgent && <DataContent />}
+
+        {/* Mon compte — TOUS les rôles (Agent voit seulement celui-ci) */}
+        {activeTab === "mon-compte" && <MonCompteContent />}
       </div>
     </div>
   );
