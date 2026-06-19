@@ -438,6 +438,7 @@ export default function ProductionPage() {
   const enAttenteCount = visibleProductions.filter(p => p.statut === "EN_ATTENTE").length;
   const valideCount = visibleProductions.filter(p => p.statut === "VALIDE").length;
   const rejeteCount = visibleProductions.filter(p => p.statut === "REJETE").length;
+  const estimationCount = visibleProductions.filter(p => isPrevision(p.annee, p.trimestre)).length;
 
   if (loading) {
     return (
@@ -504,6 +505,15 @@ export default function ProductionPage() {
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
               <Calendar size={18} /> Periode
             </div>
+            {isPrevision(parseInt(formData.annee), parseInt(formData.trimestre.replace("T", ""))) && (
+              <div style={{ padding: "12px 16px", borderRadius: "8px", background: "#fef3c7", border: "1px solid #fbbf24", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <Eye size={18} color="#d97706" />
+                <div>
+                  <p style={{ margin: 0, fontWeight: "600", color: "#92400e", fontSize: "14px" }}>Donnees d&apos;estimation</p>
+                  <p style={{ margin: "2px 0 0 0", color: "#b45309", fontSize: "13px" }}>Cette periode est future. Les donnees seront marquees comme estimation.</p>
+                </div>
+              </div>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
@@ -704,7 +714,7 @@ export default function ProductionPage() {
       )}
 
       {isAdmin && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "24px" }}>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#d97706" }}>{enAttenteCount}</p>
             <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}><Clock size={12} /> En attente</p>
@@ -716,6 +726,10 @@ export default function ProductionPage() {
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fee2e2", background: "#fee2e2", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#dc2626" }}>{rejeteCount}</p>
             <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}><XCircle size={12} /> Rejetes</p>
+          </div>
+          <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
+            <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#d97706" }}>{estimationCount}</p>
+            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}><Eye size={12} /> Estimations</p>
           </div>
         </div>
       )}
@@ -793,8 +807,8 @@ export default function ProductionPage() {
                           </span>
                         )}
                         {isPrevision(p.annee, p.trimestre) && (
-                          <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "12px", background: "#e0e7ff", color: "#4338ca", display: "flex", alignItems: "center", gap: "4px" }}>
-                            <Eye size={12} /> Prevision
+                          <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "12px", background: "#fef3c7", color: "#d97706", display: "flex", alignItems: "center", gap: "4px" }}>
+                            <Eye size={12} /> Estimation
                           </span>
                         )}
                       </div>
