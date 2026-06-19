@@ -200,6 +200,7 @@ export default function ProductionPage() {
     }
   };
 
+  // Fonction pour enlever les guillemets au debut et a la fin
   const stripQuotes = (s: string): string => {
     let result = s;
     while (result.length > 0 && (result.charAt(0) === '"' || result.charAt(0) === "'")) {
@@ -212,11 +213,13 @@ export default function ProductionPage() {
   };
 
   const parseCSV = (text: string): Record<string, string>[] => {
-    const rawLines = text.split("\\n");
+    // Decouper par lignes (gerer les retours a la ligne Windows et Unix)
+    const rawLines = text.split("\n");
     const lines: string[] = [];
     for (const rawLine of rawLines) {
       let line = rawLine;
-      if (line.length > 0 && line.charAt(line.length - 1) === "\\r") {
+      // Enlever le retour chariot Windows a la fin si present
+      if (line.length > 0 && line.charAt(line.length - 1) === "\r") {
         line = line.substring(0, line.length - 1);
       }
       if (line.trim().length > 0) {
@@ -618,7 +621,7 @@ export default function ProductionPage() {
           </div>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
-          <button onClick={() => { const csv = [["Entreprise", "Annee", "Trimestre", "Production", "CA (FCFA)", "Employes", "Statut"].join(","), ...visibleProductions.map((p) => [getEnterpriseName(p.entrepriseId), p.annee || "", formatTrimestre(p.trimestre), p.productionPhysique || 0, p.chiffreAffaires || 0, p.effectifs || 0, p.statut || "EN_ATTENTE"].join(","))].join("\\n"); const blob = new Blob([csv], { type: "text/csv" }); const url = window.URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "productions_" + new Date().toISOString().split("T")[0] + ".csv"; a.click(); }} style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
+          <button onClick={() => { const csv = [["Entreprise", "Annee", "Trimestre", "Production", "CA (FCFA)", "Employes", "Statut"].join(","), ...visibleProductions.map((p) => [getEnterpriseName(p.entrepriseId), p.annee || "", formatTrimestre(p.trimestre), p.productionPhysique || 0, p.chiffreAffaires || 0, p.effectifs || 0, p.statut || "EN_ATTENTE"].join(","))].join("\n"); const blob = new Blob([csv], { type: "text/csv" }); const url = window.URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "productions_" + new Date().toISOString().split("T")[0] + ".csv"; a.click(); }} style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
             <Download size={16} /> Exporter CSV
           </button>
           <button onClick={() => { setShowImportModal(true); setImportFile(null); setImportResult(null); }} style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px", color: "#374151" }}>
