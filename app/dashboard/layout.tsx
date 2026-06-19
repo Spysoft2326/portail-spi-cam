@@ -15,8 +15,17 @@ export default function DashboardLayout({
   const { data: session } = useSession();
   const role = session?.user?.role || "AGENT_SAISIE";
 
-  // Ne pas afficher le lien si on est déjà sur la page Paramètres
-  const isParametresPage = pathname === "/dashboard/parametres" || pathname?.startsWith("/dashboard/parametres/");
+  // Pages où on ne veut PAS afficher le lien "Retour aux paramètres"
+  const noBackLinkPages = [
+    "/dashboard/parametres",
+    "/dashboard/production",
+    "/dashboard/entreprises",
+    "/dashboard/tableau-de-bord",
+  ];
+
+  const isNoBackLinkPage = noBackLinkPages.some((page) =>
+    pathname === page || pathname?.startsWith(`${page}/`)
+  );
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -25,8 +34,8 @@ export default function DashboardLayout({
         {/* Header harmonisé */}
         <div className="bg-white border-b px-8 py-6">
           <div className="max-w-7xl mx-auto">
-            {/* Lien conditionnel: ne s'affiche pas sur Paramètres */}
-            {!isParametresPage && (
+            {/* Lien conditionnel: ne s'affiche pas sur certaines pages */}
+            {!isNoBackLinkPage && (
               <Link
                 href="/dashboard/parametres"
                 className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm"

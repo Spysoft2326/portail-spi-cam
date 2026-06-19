@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
+import { useSession } from "next-auth/react";
 
 interface Enterprise {
   id: string;
@@ -13,7 +14,7 @@ interface Production {
   id: string;
   entrepriseId: string;
   annee: number;
-  trimestre: number; // Int en base (1, 2, 3, 4)
+  trimestre: number;
   productionPhysique: number;
   chiffreAffaires: number;
   effectifs: number;
@@ -22,23 +23,29 @@ interface Production {
   saisiePar?: string;
   validePar?: string | null;
   dateValidation?: string | null;
+  createdAt?: string;
 }
 
-// ✅ Convertir trimestre int → string pour affichage
 function formatTrimestre(t: number): string {
   const map: Record<number, string> = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
   return map[t] || `T${t}`;
 }
 
 export default function ProductionPage() {
+  const { data: session } = useSession();
+  const userRole = session?.user?.role || "";
+  const userId = session?.user?.id || "";
+  const isAgent = userRole === "AGENT_SAISIE";
+  const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+
   const [showForm, setShowForm] = useState(false);
   const [productions, setProductions] = useState<Production[]>([]);
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [userRole, setUserRole] = useState<string>("");
   const [validatingId, setValidatingId] = useState<string | null>(null);
+  const [editingProduction, setEditingProduction] = useState<Production | null>(null);
 
   const [formData, setFormData] = useState({
     entrepriseId: "",
@@ -58,44 +65,57 @@ export default function ProductionPage() {
     try {
       setLoading(true);
 
-      let allEnterprises: Enterprise[] = [];
-      let page = 1;
-      let hasMore = true;
-      const limit = 100;
-
-      while (hasMore) {
-        const entRes = await fetch(`/api/entreprises?page=${page}&limit=${limit}`);
-        if (entRes.ok) {
-          const entData = await entRes.json();
-          const entList = entData.entreprises || [];
-          allEnterprises = [...allEnterprises, ...entList];
-          hasMore = entList.length === limit && page < (entData.totalPages || 1);
-          page++;
-          if (page > 10) hasMore = false;
-        } else {
-          hasMore = false;
-        }
+      // ✅ FIX: Appel sans pagination — la route retourne un tableau direct
+      const entRes = await fetch("/api/entreprises");
+      if (entRes.ok) {
+        const entData = await entRes.json();
+        // La route retourne un tableau direct ou un objet avec entreprises
+        const entList = Array.isArray(entData) ? entData : (entData.entreprises || []);
+        setEnterprises(entList);
       }
 
-      setEnterprises(Array.isArray(allEnterprises) ? allEnterprises : []);
-
-      const prodRes = await fetch("/api/production");
+      // ✅ FIX: Récupérer les productions selon le rôle
+      const prodUrl = isAgent ? "/api/production?mesProductions=true" : "/api/production";
+      const prodRes = await fetch(prodUrl);
       if (prodRes.ok) {
         const prodData = await prodRes.json();
-        const prodList = prodData.productions || prodData;
-        setProductions(Array.isArray(prodList) ? prodList : []);
-      }
-
-      const sessionRes = await fetch("/api/auth/session");
-      if (sessionRes.ok) {
-        const sessionData = await sessionRes.json();
-        setUserRole(sessionData?.user?.role || "");
+        const prodList = Array.isArray(prodData) ? prodData : (prodData.productions || []);
+        setProductions(prodList);
       }
     } catch (error) {
       console.error("Erreur:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      entrepriseId: "", annee: "2026", trimestre: "T1",
+      productionPhysique: "", chiffreAffaires: "", nombreEmployes: "", commentaire: "",
+    });
+    setEditingProduction(null);
+    setShowForm(false);
+  };
+
+  const handleEdit = (production: Production) => {
+    // Agent ne peut modifier que ses propres productions EN_ATTENTE
+    if (isAgent && production.statut !== "EN_ATTENTE") {
+      alert("Vous ne pouvez modifier que les productions en attente de validation.");
+      return;
+    }
+
+    setEditingProduction(production);
+    setFormData({
+      entrepriseId: production.entrepriseId,
+      annee: production.annee.toString(),
+      trimestre: formatTrimestre(production.trimestre),
+      productionPhysique: production.productionPhysique?.toString() || "",
+      chiffreAffaires: production.chiffreAffaires?.toString() || "",
+      nombreEmployes: production.effectifs?.toString() || "",
+      commentaire: production.commentaire || "",
+    });
+    setShowForm(true);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -107,13 +127,16 @@ export default function ProductionPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/production", {
-        method: "POST",
+      const url = editingProduction ? `/api/production/${editingProduction.id}` : "/api/production";
+      const method = editingProduction ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           entrepriseId: formData.entrepriseId,
           annee: parseInt(formData.annee),
-          trimestre: formData.trimestre, // "T1" - l'API convertira
+          trimestre: formData.trimestre,
           productionPhysique: parseFloat(formData.productionPhysique) || 0,
           chiffreAffaires: parseFloat(formData.chiffreAffaires) || 0,
           effectifs: parseInt(formData.nombreEmployes) || 0,
@@ -122,12 +145,8 @@ export default function ProductionPage() {
       });
 
       if (res.ok) {
-        alert("Production enregistrée !");
-        setShowForm(false);
-        setFormData({
-          entrepriseId: "", annee: "2026", trimestre: "T1",
-          productionPhysique: "", chiffreAffaires: "", nombreEmployes: "", commentaire: "",
-        });
+        alert(editingProduction ? "Production modifiée !" : "Production enregistrée !");
+        resetForm();
         fetchAllData();
       } else {
         const err = await res.json().catch(() => ({}));
@@ -148,7 +167,8 @@ export default function ProductionPage() {
         alert("Production supprimée");
         fetchAllData();
       } else {
-        alert("Erreur");
+        const err = await res.json().catch(() => ({}));
+        alert("Erreur : " + (err.error || "Suppression non autorisée"));
       }
     } catch (error) {
       alert("Erreur de connexion");
@@ -177,19 +197,19 @@ export default function ProductionPage() {
   };
 
   const getEnterpriseName = (id: string) => {
-    if (!Array.isArray(enterprises)) return "Entreprise inconnue";
     const ent = enterprises.find((e) => e.id === id);
     return ent ? `${ent.denomination}${ent.sigle ? ` (${ent.sigle})` : ""}` : "Entreprise inconnue";
   };
 
   const getEnterpriseSecteur = (id: string) => {
-    if (!Array.isArray(enterprises)) return "N/A";
     const ent = enterprises.find((e) => e.id === id);
     return ent?.secteurActivite || "N/A";
   };
 
-  const filteredProductions = Array.isArray(productions) 
+  // ✅ Agent ne voit que ses propres productions (filtrage côté client en plus de l'API)
+  const visibleProductions = Array.isArray(productions)
     ? productions.filter((p) => {
+        if (isAgent && p.saisiePar && p.saisiePar !== userId) return false;
         if (!searchTerm) return true;
         const searchLower = searchTerm.toLowerCase();
         return getEnterpriseName(p.entrepriseId).toLowerCase().includes(searchLower) ||
@@ -198,15 +218,13 @@ export default function ProductionPage() {
       })
     : [];
 
-  const totalProduction = filteredProductions.reduce((sum, p) => sum + (p.productionPhysique || 0), 0);
-  const totalCA = filteredProductions.reduce((sum, p) => sum + (p.chiffreAffaires || 0), 0);
-  const totalEmployes = filteredProductions.reduce((sum, p) => sum + (p.effectifs || 0), 0);
+  const totalProduction = visibleProductions.reduce((sum, p) => sum + (p.productionPhysique || 0), 0);
+  const totalCA = visibleProductions.reduce((sum, p) => sum + (p.chiffreAffaires || 0), 0);
+  const totalEmployes = visibleProductions.reduce((sum, p) => sum + (p.effectifs || 0), 0);
 
-  const enAttenteCount = productions.filter(p => p.statut === "EN_ATTENTE").length;
-  const valideCount = productions.filter(p => p.statut === "VALIDE").length;
-  const rejeteCount = productions.filter(p => p.statut === "REJETE").length;
-
-  const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+  const enAttenteCount = visibleProductions.filter(p => p.statut === "EN_ATTENTE").length;
+  const valideCount = visibleProductions.filter(p => p.statut === "VALIDE").length;
+  const rejeteCount = visibleProductions.filter(p => p.statut === "REJETE").length;
 
   if (loading) {
     return (
@@ -223,7 +241,7 @@ export default function ProductionPage() {
     return (
       <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
         <button
-          onClick={() => setShowForm(false)}
+          onClick={() => resetForm()}
           style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
         >
           ← Retour aux productions
@@ -232,7 +250,9 @@ export default function ProductionPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
           <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>🏭</div>
           <div>
-            <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Nouvelle saisie</h1>
+            <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>
+              {editingProduction ? "Modifier la saisie" : "Nouvelle saisie"}
+            </h1>
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>Production trimestrielle</p>
           </div>
         </div>
@@ -250,9 +270,10 @@ export default function ProductionPage() {
                 value={formData.entrepriseId}
                 onChange={(e) => setFormData({ ...formData, entrepriseId: e.target.value })}
                 style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px", background: "white" }}
+                disabled={!!editingProduction}
               >
                 <option value="">Choisir une entreprise...</option>
-                {Array.isArray(enterprises) && enterprises.map((ent) => (
+                {enterprises.map((ent) => (
                   <option key={ent.id} value={ent.id}>{ent.denomination}{ent.sigle ? ` (${ent.sigle})` : ""}</option>
                 ))}
               </select>
@@ -374,7 +395,7 @@ export default function ProductionPage() {
           <div style={{ display: "flex", gap: "12px", paddingTop: "16px" }}>
             <button
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={() => resetForm()}
               style={{ padding: "10px 20px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}
             >
               Annuler
@@ -396,7 +417,7 @@ export default function ProductionPage() {
                 opacity: submitting || !formData.entrepriseId ? 0.5 : 1
               }}
             >
-              💾 {submitting ? "Enregistrement..." : "Enregistrer"}
+              💾 {submitting ? "Enregistrement..." : (editingProduction ? "Modifier" : "Enregistrer")}
             </button>
           </div>
         </form>
@@ -419,11 +440,12 @@ export default function ProductionPage() {
             onClick={() => {
               const csv = [
                 ["Entreprise", "Année", "Trimestre", "Production", "CA (FCFA)", "Employés", "Statut"].join(","),
-                ...filteredProductions.map((p) => [
+                ...visibleProductions.map((p) => [
                   getEnterpriseName(p.entrepriseId), p.annee, formatTrimestre(p.trimestre),
                   p.productionPhysique, p.chiffreAffaires, p.effectifs, p.statut || "EN_ATTENTE"
                 ].join(","))
-              ].join("\n");
+              ].join("
+");
               const blob = new Blob([csv], { type: "text/csv" });
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement("a"); a.href = url;
@@ -461,7 +483,7 @@ export default function ProductionPage() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
         {[
-          { label: "Total productions", value: filteredProductions.length, sub: "saisies enregistrées", color: "#059669", bg: "#d1fae5" },
+          { label: "Total productions", value: visibleProductions.length, sub: "saisies enregistrées", color: "#059669", bg: "#d1fae5" },
           { label: "Production physique", value: totalProduction.toLocaleString(), sub: "tonnes / unités", color: "#2563eb", bg: "#dbeafe" },
           { label: "Chiffre d'affaires", value: `${totalCA.toLocaleString()} FCFA`, sub: "cumulé", color: "#d97706", bg: "#fef3c7" },
           { label: "Emplois créés", value: totalEmployes.toLocaleString(), sub: "employés au total", color: "#7c3aed", bg: "#ede9fe" },
@@ -497,10 +519,10 @@ export default function ProductionPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600" }}>
             📊 Historique des saisies
           </div>
-          <p style={{ fontSize: "13px", color: "#6b7280", margin: "4px 0 0 0" }}>{filteredProductions.length} résultat{filteredProductions.length > 1 ? "s" : ""}</p>
+          <p style={{ fontSize: "13px", color: "#6b7280", margin: "4px 0 0 0" }}>{visibleProductions.length} résultat{visibleProductions.length > 1 ? "s" : ""}</p>
         </div>
         <div style={{ padding: "16px" }}>
-          {filteredProductions.length === 0 ? (
+          {visibleProductions.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px" }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏭</div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune production enregistrée</h3>
@@ -514,7 +536,7 @@ export default function ProductionPage() {
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {filteredProductions.map((p) => (
+              {visibleProductions.map((p) => (
                 <div
                   key={p.id}
                   style={{
@@ -538,9 +560,9 @@ export default function ProductionPage() {
                           {getEnterpriseSecteur(p.entrepriseId)}
                         </span>
                         {p.statut && (
-                          <span style={{ 
-                            padding: "2px 8px", 
-                            borderRadius: "4px", 
+                          <span style={{
+                            padding: "2px 8px",
+                            borderRadius: "4px",
                             fontSize: "12px",
                             background: p.statut === "VALIDE" ? "#d1fae5" : p.statut === "EN_ATTENTE" ? "#fef3c7" : "#fee2e2",
                             color: p.statut === "VALIDE" ? "#059669" : p.statut === "EN_ATTENTE" ? "#d97706" : "#dc2626"
@@ -563,47 +585,65 @@ export default function ProductionPage() {
                       <p style={{ fontSize: "12px", color: "#9ca3af", margin: "2px 0 0 0" }}>{(p.effectifs || 0).toLocaleString()} employés</p>
                     </div>
 
-                    {/* ✅ Boutons Valider/Rejeter pour Admin - CORRIGÉ */}
-                    {isAdmin && p.statut === "EN_ATTENTE" && (
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        {validatingId === p.id ? (
-                          <div style={{ display: "flex", gap: "4px" }}>
-                            <button
-                              onClick={() => handleValidate(p.id, "VALIDE")}
-                              style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px" }}
-                            >
-                              ✅ Valider
-                            </button>
-                            <button
-                              onClick={() => handleValidate(p.id, "REJETE")}
-                              style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px" }}
-                            >
-                              ❌ Rejeter
-                            </button>
-                            <button
-                              onClick={() => setValidatingId(null)}
-                              style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px" }}
-                            >
-                              Annuler
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setValidatingId(p.id)}
-                            style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151" }}
-                          >
-                            ⚙️ Valider
-                          </button>
-                        )}
-                      </div>
-                    )}
+                    {/* Boutons d'action */}
+                    <div style={{ display: "flex", gap: "4px" }}>
+                      {/* Modifier — Agent peut modifier ses EN_ATTENTE, Admin peut tout */}
+                      {(isAdmin || (isAgent && p.statut === "EN_ATTENTE")) && (
+                        <button
+                          onClick={() => handleEdit(p)}
+                          title="Modifier"
+                          style={{ padding: "6px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}
+                        >
+                          ✏️
+                        </button>
+                      )}
 
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      style={{ padding: "6px", border: "none", background: "none", cursor: "pointer", color: "#ef4444", fontSize: "16px" }}
-                    >
-                      🗑️
-                    </button>
+                      {/* Supprimer — Agent peut supprimer ses EN_ATTENTE, Admin peut tout */}
+                      {(isAdmin || (isAgent && p.statut === "EN_ATTENTE")) && (
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          title="Supprimer"
+                          style={{ padding: "6px", border: "1px solid #ef4444", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", color: "#ef4444" }}
+                        >
+                          🗑️
+                        </button>
+                      )}
+
+                      {/* Valider/Rejeter — ADMIN/SUPER_ADMIN uniquement */}
+                      {isAdmin && p.statut === "EN_ATTENTE" && (
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          {validatingId === p.id ? (
+                            <>
+                              <button
+                                onClick={() => handleValidate(p.id, "VALIDE")}
+                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px" }}
+                              >
+                                ✅ Valider
+                              </button>
+                              <button
+                                onClick={() => handleValidate(p.id, "REJETE")}
+                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px" }}
+                              >
+                                ❌ Rejeter
+                              </button>
+                              <button
+                                onClick={() => setValidatingId(null)}
+                                style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px" }}
+                              >
+                                Annuler
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => setValidatingId(p.id)}
+                              style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151" }}
+                            >
+                              ⚙️ Valider
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
