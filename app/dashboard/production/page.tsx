@@ -2,6 +2,28 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { useSession } from "next-auth/react";
+import {
+  Factory,
+  Plus,
+  Download,
+  Search,
+  BarChart3,
+  Building2,
+  Calendar,
+  Package,
+  DollarSign,
+  Users,
+  MessageSquare,
+  Save,
+  ArrowLeft,
+  Pencil,
+  Trash2,
+  Settings,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  ChevronDown,
+} from "lucide-react";
 
 interface Enterprise {
   id: string;
@@ -258,12 +280,12 @@ export default function ProductionPage() {
           onClick={() => resetForm()}
           style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}
         >
-          &larr; Retour aux productions
+          <ArrowLeft size={16} /> Retour aux productions
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
-          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>
-            [USINE]
+          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px" }}>
+            <Factory size={28} color="#059669" />
           </div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>
@@ -276,7 +298,7 @@ export default function ProductionPage() {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              [ENTREPRISE] Entreprise
+              <Building2 size={18} /> Entreprise
             </div>
             <div style={{ marginBottom: "12px" }}>
               <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
@@ -310,7 +332,7 @@ export default function ProductionPage() {
 
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              [CALENDRIER] Periode
+              <Calendar size={18} /> Periode
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
@@ -350,12 +372,12 @@ export default function ProductionPage() {
 
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontWeight: "600", color: "#374151" }}>
-              [GRAPHIQUE] Donnees de production
+              <BarChart3 size={18} /> Donnees de production
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  [COLIS] Production physique
+                  <Package size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Production physique
                 </label>
                 <input
                   type="number"
@@ -369,7 +391,7 @@ export default function ProductionPage() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  [ARGENT] Chiffre d'affaires
+                  <DollarSign size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Chiffre d&apos;affaires
                 </label>
                 <input
                   type="number"
@@ -383,7 +405,7 @@ export default function ProductionPage() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                  [GROUPE] Nombre d'employes
+                  <Users size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Nombre d&apos;employes
                 </label>
                 <input
                   type="number"
@@ -399,7 +421,7 @@ export default function ProductionPage() {
 
           <div style={{ marginBottom: "32px" }}>
             <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-              [BULLE] Commentaire (optionnel)
+              <MessageSquare size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> Commentaire (optionnel)
             </label>
             <textarea
               placeholder="Notes additionnelles..."
@@ -435,7 +457,7 @@ export default function ProductionPage() {
                 opacity: submitting || !formData.entrepriseId ? 0.5 : 1
               }}
             >
-              [DISQUETTE] {submitting ? "Enregistrement..." : (editingProduction ? "Modifier" : "Enregistrer")}
+              <Save size={16} /> {submitting ? "Enregistrement..." : (editingProduction ? "Modifier" : "Enregistrer")}
             </button>
           </div>
         </form>
@@ -453,8 +475,8 @@ export default function ProductionPage() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px", fontSize: "24px" }}>
-            [USINE]
+          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px" }}>
+            <Factory size={28} color="#059669" />
           </div>
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Production</h1>
@@ -478,13 +500,13 @@ export default function ProductionPage() {
             }}
             style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            [TELECHARGER] Exporter CSV
+            <Download size={16} /> Exporter CSV
           </button>
           <button
             onClick={() => setShowForm(true)}
             style={{ padding: "8px 16px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            [PLUS] Nouvelle saisie
+            <Plus size={16} /> Nouvelle saisie
           </button>
         </div>
       </div>
@@ -493,20 +515,20 @@ export default function ProductionPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fef3c7", background: "#fef3c7", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#d97706" }}>{enAttenteCount}</p>
-            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0" }}>
-              [HORLOGE] En attente
+            <p style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+              <Clock size={12} /> En attente
             </p>
           </div>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #d1fae5", background: "#d1fae5", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#059669" }}>{valideCount}</p>
-            <p style={{ fontSize: "12px", color: "#065f46", margin: "4px 0 0 0" }}>
-              [COCHE] Valides
+            <p style={{ fontSize: "12px", color: "#065f46", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+              <CheckCircle2 size={12} /> Valides
             </p>
           </div>
           <div style={{ padding: "12px", borderRadius: "8px", border: "1px solid #fee2e2", background: "#fee2e2", textAlign: "center" }}>
             <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#dc2626" }}>{rejeteCount}</p>
-            <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0" }}>
-              [CROIX] Rejetes
+            <p style={{ fontSize: "12px", color: "#991b1b", margin: "4px 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+              <XCircle size={12} /> Rejetes
             </p>
           </div>
         </div>
@@ -516,7 +538,7 @@ export default function ProductionPage() {
         {[
           { label: "Total productions", value: visibleProductions.length, sub: "saisies enregistrees", color: "#059669", bg: "#d1fae5" },
           { label: "Production physique", value: totalProduction.toLocaleString(), sub: "tonnes / unites", color: "#2563eb", bg: "#dbeafe" },
-          { label: "Chiffre d'affaires", value: totalCA.toLocaleString() + " FCFA", sub: "cumule", color: "#d97706", bg: "#fef3c7" },
+          { label: "Chiffre d&apos;affaires", value: totalCA.toLocaleString() + " FCFA", sub: "cumule", color: "#d97706", bg: "#fef3c7" },
           { label: "Emplois crees", value: totalEmployes.toLocaleString(), sub: "employes au total", color: "#7c3aed", bg: "#ede9fe" },
         ].map((item) => (
           <div key={item.label} style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "linear-gradient(135deg, " + item.bg + ", white)" }}>
@@ -529,12 +551,12 @@ export default function ProductionPage() {
 
       <div style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", marginBottom: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", fontWeight: "600", fontSize: "14px" }}>
-          [LOUPE] Filtres
+          <Search size={16} /> Filtres
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
           <div style={{ position: "relative" }}>
             <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px" }}>
-              [LOUPE]
+              <Search size={16} color="#9ca3af" />
             </span>
             <input
               type="text"
@@ -550,7 +572,7 @@ export default function ProductionPage() {
       <div style={{ borderRadius: "8px", border: "1px solid #e5e7eb", background: "white" }}>
         <div style={{ padding: "16px", borderBottom: "1px solid #e5e7eb" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600" }}>
-            [GRAPHIQUE] Historique des saisies
+            <BarChart3 size={16} /> Historique des saisies
           </div>
           <p style={{ fontSize: "13px", color: "#6b7280", margin: "4px 0 0 0" }}>{visibleProductions.length} resultat{visibleProductions.length > 1 ? "s" : ""}</p>
         </div>
@@ -558,7 +580,7 @@ export default function ProductionPage() {
           {visibleProductions.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px" }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>
-                [USINE]
+                <Factory size={48} color="#9ca3af" />
               </div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", margin: "0 0 8px 0" }}>Aucune production enregistree</h3>
               <p style={{ color: "#6b7280", margin: 0 }}>Commencez par ajouter votre premiere saisie.</p>
@@ -566,7 +588,7 @@ export default function ProductionPage() {
                 onClick={() => setShowForm(true)}
                 style={{ marginTop: "16px", padding: "10px 20px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
-                [PLUS] Nouvelle saisie
+                <Plus size={16} /> Nouvelle saisie
               </button>
             </div>
           ) : (
@@ -584,8 +606,8 @@ export default function ProductionPage() {
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
-                    <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "6px", fontSize: "18px" }}>
-                      [USINE]
+                    <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "6px" }}>
+                      <Factory size={20} color="#059669" />
                     </div>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: "600", margin: 0, color: "#111827" }}>{getEnterpriseName(p.entrepriseId)}</p>
@@ -605,18 +627,18 @@ export default function ProductionPage() {
                             color: p.statut === "VALIDE" ? "#059669" : p.statut === "EN_ATTENTE" ? "#d97706" : "#dc2626"
                           }}>
                             {p.statut === "VALIDE" ? (
-                              <span>[COCHE] Valide</span>
+                              <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={12} /> Valide</span>
                             ) : p.statut === "EN_ATTENTE" ? (
-                              <span>[HORLOGE] En attente</span>
+                              <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Clock size={12} /> En attente</span>
                             ) : (
-                              <span>[CROIX] Rejete</span>
+                              <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={12} /> Rejete</span>
                             )}
                           </span>
                         )}
                       </div>
                       {p.commentaire && (
                         <p style={{ fontSize: "12px", color: "#9ca3af", margin: "4px 0 0 0", fontStyle: "italic" }}>
-                          [BULLE] {p.commentaire}
+                          <MessageSquare size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} /> {p.commentaire}
                         </p>
                       )}
                     </div>
@@ -635,7 +657,7 @@ export default function ProductionPage() {
                           title="Modifier"
                           style={{ padding: "6px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px" }}
                         >
-                          [CRAYON]
+                          <Pencil size={14} color="#374151" />
                         </button>
                       )}
 
@@ -645,7 +667,7 @@ export default function ProductionPage() {
                           title="Supprimer"
                           style={{ padding: "6px", border: "1px solid #ef4444", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "14px", color: "#ef4444" }}
                         >
-                          [POUBELLE]
+                          <Trash2 size={14} />
                         </button>
                       )}
 
@@ -655,15 +677,15 @@ export default function ProductionPage() {
                             <>
                               <button
                                 onClick={() => handleValidate(p.id, "VALIDE")}
-                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px" }}
+                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#059669", color: "white", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
                               >
-                                [COCHE] Valider
+                                <CheckCircle2 size={12} /> Valider
                               </button>
                               <button
                                 onClick={() => handleValidate(p.id, "REJETE")}
-                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px" }}
+                                style={{ padding: "6px 12px", border: "none", borderRadius: "6px", background: "#dc2626", color: "white", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
                               >
-                                [CROIX] Rejeter
+                                <XCircle size={12} /> Rejeter
                               </button>
                               <button
                                 onClick={() => setValidatingId(null)}
@@ -675,9 +697,9 @@ export default function ProductionPage() {
                           ) : (
                             <button
                               onClick={() => setValidatingId(p.id)}
-                              style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151" }}
+                              style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", background: "white", cursor: "pointer", fontSize: "12px", color: "#374151", display: "flex", alignItems: "center", gap: "4px" }}
                             >
-                              [ENGRENAGE] Valider
+                              <Settings size={12} /> Valider
                             </button>
                           )}
                         </div>
