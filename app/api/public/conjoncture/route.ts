@@ -44,7 +44,8 @@ export async function GET(request: Request) {
     const totalProductions = productions.length;
     const totalCA = productions.reduce((sum, p) => sum + (p.chiffreAffaires || 0), 0);
     const totalEmplois = productions.reduce((sum, p) => sum + (p.effectifs || 0), 0);
-    const totalInvestissements = productions.reduce((sum, p) => sum + (p.investissements || 0), 0);
+    // investissements n'existe pas dans le modèle Prisma - mis à 0
+    const totalInvestissements = 0;
 
     // Regrouper par secteur
     const secteurMap = new Map<string, number>();
