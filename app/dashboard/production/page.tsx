@@ -175,9 +175,7 @@ export default function ProductionPage() {
 
     setSubmitting(true);
     try {
-      const url = editingProduction ? `/api/productions/${editingProduction.id}` : "/api/productions";
-      const method = editingProduction ? "PATCH" : "POST";
-
+      const url = editingProduction ? `/api/production/${editingProduction.id}` : "/api/productions";
       // Convertir les valeurs saisies en unités de base avant envoi
       const productionPhysiqueTonnes = parseFloat(formData.productionPhysique) * TONNES_FACTOR;
       const chiffreAffairesFCFA = parseFloat(formData.chiffreAffaires) * FCFA_FACTOR;
@@ -214,7 +212,7 @@ export default function ProductionPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette production ?")) return;
     try {
-      const res = await fetch(`/api/productions/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/production/${id}`, { method: "DELETE" });
       if (res.ok) {
         alert("Production supprimee");
         fetchAllData();
@@ -229,11 +227,11 @@ export default function ProductionPage() {
 
   const handleValidate = async (id: string, statut: "VALIDE" | "REJETE") => {
     try {
-      const res = await fetch(`/api/productions/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statut }),
-      });
+     const res = await fetch(`/api/admin/productions/${id}/validate`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ statut }),
+});
 
       if (res.ok) {
         alert(statut === "VALIDE" ? "Production validee !" : "Production rejetee.");
