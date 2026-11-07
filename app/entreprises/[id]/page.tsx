@@ -37,6 +37,15 @@ interface Entreprise {
   statut: string;
   createdAt: string;
   updatedAt: string;
+  referenceSPI: string;
+  champIndustriel: boolean;
+  activite: { code: string; libelle: string; section: string } | null;
+  filiere: { code: string; libelle: string } | null;
+  produits: { id: string; nom: string; unite: string }[];
+  etablissements: {
+    id: string; nom: string | null; principal: boolean; ville: string | null; region: string | null;
+    quartier: string | null; lieuDit: string | null; classeEtablissement: string | null;
+  }[];
 }
 
 // ============================================================
@@ -91,7 +100,15 @@ export default function EntrepriseDetailPage() {
           return;
         }
         const data = await res.json();
-        setEntreprise(data);
+        setEntreprise({
+          ...data,
+          nom: data.denomination,
+          // Secteur affiché = filière déduite de l'activité codée
+          secteurActivite: data.filiere?.libelle || (data.activiteCode ? "Hors filière" : data.secteurActivite),
+          description: data.produitsPrincipaux || null,
+          produits: data.produits || [],
+          etablissements: data.etablissements || [],
+        });
       } catch (err) {
         setError("Erreur de connexion");
       } finally {
@@ -216,7 +233,7 @@ export default function EntrepriseDetailPage() {
                 </div>
               </div>
               <span className="text-xs text-gray-400 font-mono bg-white/80 px-3 py-1 rounded-lg">
-                {entreprise.id}
+                {entreprise.referenceSPI}
               </span>
             </div>
           </div>
@@ -231,9 +248,28 @@ export default function EntrepriseDetailPage() {
                   Informations générales
                 </h2>
 
+                {entreprise.activite && (
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Activité principale (nomenclature CITI / NACAM)</p>
+                    <p className="text-gray-800"><span className="font-mono font-semibold">{entreprise.activite.code}</span> — {entreprise.activite.libelle}</p>
+                    {!entreprise.champIndustriel && <p className="text-xs text-gray-500 mt-1">Activité hors champ industriel</p>}
+                  </div>
+                )}
+
                 {entreprise.description && (
                   <div className="bg-gray-50 rounded-xl p-4">
                     <p className="text-gray-700 leading-relaxed">{entreprise.description}</p>
+                  </div>
+                )}
+
+                {entreprise.produits.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 mb-2">Produits fabriqués</p>
+                    <div className="flex flex-wrap gap-2">
+                      {entreprise.produits.map((p) => (
+                        <span key={p.id} className="px-3 py-1 text-sm bg-[#007A3D]/10 text-[#007A3D] rounded-full">{p.nom}</span>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -310,8 +346,8 @@ export default function EntrepriseDetailPage() {
 
                 <div className="bg-gray-50 rounded-xl p-6 space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">Identifiant</span>
-                    <span className="text-sm font-mono text-gray-700">{entreprise.id}</span>
+                    <span className="text-sm text-gray-500">Référence SPI</span>
+                    <span className="text-sm font-mono text-gray-700">{entreprise.referenceSPI}</span>
                   </div>
 
                   <div className="border-t border-gray-200" />
@@ -331,7 +367,7 @@ export default function EntrepriseDetailPage() {
                     <>
                       <div className="border-t border-gray-200" />
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Secteur</span>
+                        <span className="text-sm text-gray-500">Filière</span>
                         <span className="text-sm font-medium text-gray-700">{entreprise.secteurActivite}</span>
                       </div>
                     </>
@@ -377,6 +413,33 @@ export default function EntrepriseDetailPage() {
                     </span>
                   </div>
                 </div>
+
+                {entreprise.etablissements.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                      <MapPin className="w-5 h-5 text-[#007A3D]" />
+                      Établissements ({entreprise.etablissements.length})
+                    </h2>
+                    <div className="space-y-2">
+                      {entreprise.etablissements.map((et) => (
+                        <div key={et.id} className="bg-gray-50 rounded-xl p-4">
+                          <p className="text-sm font-medium text-gray-900">
+                            {et.nom || "Site"}
+                            {et.principal && <span className="ml-2 text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">principal</span>}
+                            {et.classeEtablissement && (
+                              <span className="ml-2 text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">
+                                Établissement classé {et.classeEtablissement === "1" ? "1re" : "2e"} classe
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {[et.quartier, et.lieuDit, et.ville, et.region].filter(Boolean).join(" · ") || "Adresse non renseignée"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Bouton retour */}
                 <Link

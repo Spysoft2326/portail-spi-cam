@@ -4,59 +4,32 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Search, Building2, TrendingUp, FileText, MapPin, Users, ArrowRight, Globe, Mail } from "lucide-react";
 
-const HOME_SECTORS = [
-  { name: "BTP / Matériaux", code: "BTP / Matériaux", emoji: "🏗️", color: "bg-orange-100", border: "border-orange-300", text: "text-orange-700", aliases: ["BTP", "CONSTRUCTION", "MATÉRIAUX", "MATERIAUX"] },
-  { name: "Télécoms / IT", code: "Télécommunications / IT", emoji: "📡", color: "bg-indigo-100", border: "border-indigo-300", text: "text-indigo-700", aliases: ["TÉLÉCOMMUNICATIONS", "TELECOMMUNICATIONS", "IT", "TECHNOLOGIE", "TECHNOLOGIES", "INFORMATIQUE"] },
-  { name: "Transport / Logistique", code: "Transport / Logistique", emoji: "🚛", color: "bg-red-100", border: "border-red-300", text: "text-red-700", aliases: ["TRANSPORT", "LOGISTIQUE", "TRANSPORTS"] },
-  { name: "Énergie", code: "Énergie", emoji: "⚡", color: "bg-yellow-100", border: "border-yellow-300", text: "text-yellow-700", aliases: ["ENERGIE", "ÉNERGIE", "ÉLECTRICITÉ", "ELECTRICITE"] },
-  { name: "Métallurgie", code: "Métallurgie", emoji: "⚙️", color: "bg-slate-100", border: "border-slate-300", text: "text-slate-700", aliases: ["METALLURGIE", "MÉTALLURGIE", "MÉTAL", "METAL"] },
-  { name: "Finance", code: "Finance", emoji: "🏦", color: "bg-cyan-100", border: "border-cyan-300", text: "text-cyan-700", aliases: ["FINANCE", "FINANCES", "BANQUE", "BANQUES"] },
-  { name: "Pharmaceutique", code: "Pharmaceutique", emoji: "💊", color: "bg-purple-100", border: "border-purple-300", text: "text-purple-700", aliases: ["PHARMACEUTIQUE", "PHARMACIE", "MÉDICAL", "MEDICAL"] },
-  { name: "Sécurité / Défense", code: "Sécurité / Défense", emoji: "🛡️", color: "bg-gray-100", border: "border-gray-300", text: "text-gray-700", aliases: ["SÉCURITÉ", "SECURITE", "DÉFENSE", "DEFENSE", "ARMÉE", "ARMEE"] },
-  { name: "Tourisme / Hôtellerie", code: "Tourisme / Hôtellerie", emoji: "🏖️", color: "bg-pink-100", border: "border-pink-300", text: "text-pink-700", aliases: ["TOURISME", "HÔTELLERIE", "HOTELLERIE", "HÔTEL", "HOTEL"] },
-  { name: "Forêt / Bois", code: "Forêt / Bois", emoji: "🌲", color: "bg-green-100", border: "border-green-300", text: "text-green-700", aliases: ["FORÊT", "FORET", "BOIS", "FORESTERIE", "SYLVICULTURE"] },
-  { name: "Chimie / Plastique", code: "Chimie / Plastique", emoji: "🧪", color: "bg-blue-100", border: "border-blue-300", text: "text-blue-700", aliases: ["CHIMIE", "PLASTIQUE", "PLASTIQUES", "CHIMIQUE"] },
-  { name: "Environnement / Déchets", code: "Environnement / Déchets", emoji: "♻️", color: "bg-teal-100", border: "border-teal-300", text: "text-teal-700", aliases: ["ENVIRONNEMENT", "DÉCHETS", "DECHETS", "RECYCLAGE", "ÉCOLOGIE", "ECOLOGIE"] },
-  { name: "Textile / Habillement", code: "Textile / Habillement", emoji: "👕", color: "bg-rose-100", border: "border-rose-300", text: "text-rose-700", aliases: ["TEXTILE", "HABILLEMENT", "MODE", "VÊTEMENT", "VETEMENT"] },
-  { name: "Agriculture / Agro", code: "Agriculture / Agro-industrie", emoji: "🌾", color: "bg-emerald-100", border: "border-emerald-300", text: "text-emerald-700", aliases: ["AGRICULTURE", "AGRO", "AGRO-INDUSTRIE", "AGROINDUSTRIE", "AGROALIMENTAIRE"] },
-  { name: "Commerce", code: "Commerce", emoji: "🛒", color: "bg-gray-100", border: "border-gray-300", text: "text-gray-700", aliases: ["COMMERCE", "COMMERCES", "VENTE", "DISTRIBUTION"] },
-  { name: "Industrie légère", code: "Industrie légère", emoji: "🏭", color: "bg-amber-100", border: "border-amber-300", text: "text-amber-700", aliases: ["INDUSTRIE", "INDUSTRIE LÉGÈRE", "INDUSTRIE LEGERE", "MANUFACTURE", "FABRICATION"] },
-];
+// Apparence de chaque filière (codes du référentiel prisma/referentiels/filieres.json)
+const STYLE_FILIERE: Record<string, { emoji: string; color: string; border: string; text: string }> = {
+  AGRO: { emoji: "🌾", color: "bg-emerald-100", border: "border-emerald-300", text: "text-emerald-700" },
+  FORET_BOIS: { emoji: "🌲", color: "bg-green-100", border: "border-green-300", text: "text-green-700" },
+  TEXTILE: { emoji: "👕", color: "bg-rose-100", border: "border-rose-300", text: "text-rose-700" },
+  MINES_METAL: { emoji: "⚙️", color: "bg-slate-100", border: "border-slate-300", text: "text-slate-700" },
+  HYDROCARBURES: { emoji: "🛢️", color: "bg-stone-100", border: "border-stone-300", text: "text-stone-700" },
+  CHIMIE_PHARMA: { emoji: "🧪", color: "bg-blue-100", border: "border-blue-300", text: "text-blue-700" },
+  ENERGIE: { emoji: "⚡", color: "bg-yellow-100", border: "border-yellow-300", text: "text-yellow-700" },
+  NUMERIQUE: { emoji: "📡", color: "bg-indigo-100", border: "border-indigo-300", text: "text-indigo-700" },
+  MATERIAUX_BTP: { emoji: "🏗️", color: "bg-orange-100", border: "border-orange-300", text: "text-orange-700" },
+  PLASTIQUE: { emoji: "♻️", color: "bg-cyan-100", border: "border-cyan-300", text: "text-cyan-700" },
+  PAPIER: { emoji: "📄", color: "bg-lime-100", border: "border-lime-300", text: "text-lime-700" },
+  EQUIPEMENTS: { emoji: "🔧", color: "bg-sky-100", border: "border-sky-300", text: "text-sky-700" },
+  EAU_DECHETS: { emoji: "💧", color: "bg-teal-100", border: "border-teal-300", text: "text-teal-700" },
+  AUTRES_MANUF: { emoji: "🏭", color: "bg-amber-100", border: "border-amber-300", text: "text-amber-700" },
+};
+const STYLE_DEFAUT = { emoji: "🏭", color: "bg-gray-100", border: "border-gray-300", text: "text-gray-700" };
 
-function matchSector(rawValue: string): string | null {
-  if (!rawValue) return null;
-  const normalized = rawValue.trim().toUpperCase();
-  for (const sector of HOME_SECTORS) {
-    if (sector.code.toUpperCase() === normalized) return sector.code;
-    if (sector.name.toUpperCase() === normalized) return sector.code;
-    for (const alias of sector.aliases) {
-      if (alias === normalized) return sector.code;
-      if (normalized.includes(alias) || alias.includes(normalized)) return sector.code;
-    }
-  }
-  return null;
-}
+interface FiliereCompte { code: string; libelle: string; prioritaire: boolean; count: number }
 
-function aggregateSectors(rawData: Record<string, number>): Record<string, number> {
-  const result: Record<string, number> = {};
-  for (const [rawKey, count] of Object.entries(rawData)) {
-    const matchedCode = matchSector(rawKey);
-    if (matchedCode) {
-      result[matchedCode] = (result[matchedCode] || 0) + count;
-    } else {
-      result["AUTRE"] = (result["AUTRE"] || 0) + count;
-    }
-  }
-  return result;
-}
-
-function SecteursGrid({ sectorsCount }: { sectorsCount: Record<string, number> }) {
-  const [ready, setReady] = useState(false);
-  useEffect(() => { const timer = setTimeout(() => setReady(true), 150); return () => clearTimeout(timer); }, []);
-  if (!ready) {
+function FilieresGrid({ filieres }: { filieres: FiliereCompte[] }) {
+  if (filieres.length === 0) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {Array.from({ length: 16 }).map((_, i) => (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        {Array.from({ length: 14 }).map((_, i) => (
           <div key={i} className="p-5 bg-white rounded-2xl border border-gray-200 animate-pulse">
             <div className="w-14 h-14 bg-gray-200 rounded-2xl mx-auto mb-4"></div>
             <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
@@ -66,16 +39,17 @@ function SecteursGrid({ sectorsCount }: { sectorsCount: Record<string, number> }
     );
   }
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-      {HOME_SECTORS.map((secteur) => {
-        const count = sectorsCount[secteur.code] || 0;
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      {filieres.map((f) => {
+        const st = STYLE_FILIERE[f.code] || STYLE_DEFAUT;
         return (
-          <Link key={secteur.name} href={`/entreprises?sector=${encodeURIComponent(secteur.code)}`} className={`group p-5 bg-white rounded-2xl border ${secteur.border} hover:shadow-xl transition-all duration-300 text-center hover:border-[#007A3D] relative`}>
-            <div className={`w-14 h-14 ${secteur.color} rounded-2xl flex items-center justify-center mb-3 mx-auto group-hover:scale-110 transition-transform duration-300`}>
-              <span className="text-3xl">{secteur.emoji}</span>
+          <Link key={f.code} href={`/entreprises?filiere=${f.code}`} className={`group p-5 bg-white rounded-2xl border ${st.border} hover:shadow-xl transition-all duration-300 text-center hover:border-[#007A3D] relative`}>
+            {f.prioritaire && <span title="Sous-secteur prioritaire de la SND30" className="absolute top-2 right-2 text-xs text-amber-500">★</span>}
+            <div className={`w-14 h-14 ${st.color} rounded-2xl flex items-center justify-center mb-3 mx-auto group-hover:scale-110 transition-transform duration-300`}>
+              <span className="text-3xl">{st.emoji}</span>
             </div>
-            <h4 className={`font-semibold text-sm ${secteur.text} group-hover:text-[#007A3D] transition-colors leading-tight mb-1`}>{secteur.name}</h4>
-            <p className="text-xs text-gray-400">{count > 0 ? `${count} entreprise${count > 1 ? "s" : ""}` : "Aucune entreprise"}</p>
+            <h4 className={`font-semibold text-sm ${st.text} group-hover:text-[#007A3D] transition-colors leading-tight mb-1`}>{f.libelle}</h4>
+            <p className="text-xs text-gray-400">{f.count > 0 ? `${f.count} entreprise${f.count > 1 ? "s" : ""}` : "Aucune entreprise"}</p>
           </Link>
         );
       })}
@@ -84,39 +58,33 @@ function SecteursGrid({ sectorsCount }: { sectorsCount: Record<string, number> }
 }
 
 export default function HomePage() {
-  const [stats, setStats] = useState({ totalEntreprises: 0, totalSecteurs: 16, totalRegions: 10, totalEmplois: 45000 });
-  const [rawSectorsCount, setRawSectorsCount] = useState<Record<string, number>>({});
+  const [stats, setStats] = useState({ totalEntreprises: 0, totalFilieres: 0, totalRegions: 0, totalEmplois: 0 });
+  const [filieres, setFilieres] = useState<FiliereCompte[]>([]);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => { setMounted(true); }, []);
-
   const fetchTotal = useCallback(async () => {
     try {
       const res = await fetch("/api/entreprises/count");
       if (!res.ok) return;
       const data = await res.json();
-      setStats((prev) => ({ ...prev, totalEntreprises: data.count || 0 }));
+      setStats((prev) => ({ ...prev, totalEntreprises: data.count || 0, totalRegions: data.regions || 0, totalEmplois: data.emplois || 0 }));
     } catch { }
   }, []);
-
-  const fetchSectorsCount = useCallback(async () => {
+  const fetchFilieres = useCallback(async () => {
     try {
       const res = await fetch("/api/entreprises/sectors");
       if (!res.ok) return;
       const data = await res.json();
-      setRawSectorsCount(data);
+      setFilieres(data.filieres || []);
+      setStats((prev) => ({ ...prev, totalFilieres: (data.filieres || []).length }));
     } catch { }
   }, []);
-
   useEffect(() => {
     if (mounted) {
-      Promise.all([fetchTotal(), fetchSectorsCount()]).finally(() => { setLoading(false); });
+      Promise.all([fetchTotal(), fetchFilieres()]).finally(() => { setLoading(false); });
     }
-  }, [mounted, fetchTotal, fetchSectorsCount]);
-
-  const sectorsCount = aggregateSectors(rawSectorsCount);
-
+  }, [mounted, fetchTotal, fetchFilieres]);
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <header className="bg-[#007A3D] text-white">
@@ -157,16 +125,16 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 -mt-10 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard icon={<Building2 className="w-6 h-6" />} value={mounted ? stats.totalEntreprises.toString() : "--"} label="Entreprises répertoriées" color="bg-[#007A3D]" />
-          <StatCard icon={<TrendingUp className="w-6 h-6" />} value={stats.totalSecteurs.toString()} label="Secteurs d'activité" color="bg-[#CE1126]" />
-          <StatCard icon={<MapPin className="w-6 h-6" />} value={stats.totalRegions.toString()} label="Régions couvertes" color="bg-[#FCD116] text-black" />
-          <StatCard icon={<Users className="w-6 h-6" />} value={stats.totalEmplois.toLocaleString() + "+"} label="Emplois industriels" color="bg-slate-700" />
+          <StatCard icon={<TrendingUp className="w-6 h-6" />} value={mounted && stats.totalFilieres ? stats.totalFilieres.toString() : "--"} label="Filières industrielles" color="bg-[#CE1126]" />
+          <StatCard icon={<MapPin className="w-6 h-6" />} value={mounted && stats.totalRegions ? stats.totalRegions.toString() : "--"} label="Régions couvertes" color="bg-[#FCD116] text-black" />
+          <StatCard icon={<Users className="w-6 h-6" />} value={mounted && stats.totalEmplois ? stats.totalEmplois.toLocaleString("fr-FR") : "--"} label="Emplois déclarés" color="bg-slate-700" />
         </div>
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <h3 className="text-2xl font-bold text-center mb-4">Secteurs industriels couverts</h3>
-        <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">Découvrez les entreprises camerounaises par secteur d'activité. Cliquez sur un secteur pour explorer.</p>
-        <SecteursGrid sectorsCount={sectorsCount} />
+        <h3 className="text-2xl font-bold text-center mb-4">Filières industrielles</h3>
+        <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">Découvrez les entreprises camerounaises par filière (★ : sous-secteur prioritaire de la SND30). Cliquez sur une filière pour explorer.</p>
+        <FilieresGrid filieres={filieres} />
       </section>
 
       <section className="bg-white py-16">

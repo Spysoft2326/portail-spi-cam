@@ -17,8 +17,11 @@ export async function GET(request: Request) {
         entreprise: {
           select: {
             denomination: true,
+            filiere: { select: { libelle: true } },
           },
         },
+        agentSaisie: { select: { name: true, email: true } },
+        _count: { select: { lignes: true } },
       },
       orderBy: {
         createdAt: "desc",

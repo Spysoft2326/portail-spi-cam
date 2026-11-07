@@ -23,16 +23,17 @@ export async function GET() {
       avecDocuments,
     ] = await Promise.all([
       prisma.entreprise.count(),
-      prisma.entreprise.findMany({
-        where: { productions: { some: {} } },
-      }).then((e: any[]) => e.length),
-      prisma.entreprise.groupBy({
-        by: ["secteurActivite"],
-        _count: { id: true },
-      }).then((data: any[]) => data.map((item: any) => ({
-        name: item.secteurActivite,
-        count: item._count.id,
-      }))),
+      prisma.entreprise.count({ where: { productions: { some: {} } } }),
+      // Répartition par filière (déduite de l'activité codée)
+      Promise.all([
+        prisma.entreprise.groupBy({ by: ["filiereCode"], _count: { id: true } }),
+        prisma.filiere.findMany({ select: { code: true, libelle: true } }),
+      ]).then(([data, filieres]) => {
+        const lib = new Map(filieres.map((f) => [f.code, f.libelle]));
+        return data
+          .map((item) => ({ name: item.filiereCode ? lib.get(item.filiereCode) || item.filiereCode : "Hors filière / non codée", count: item._count.id }))
+          .sort((a, b) => b.count - a.count);
+      }),
       prisma.entreprise.groupBy({
         by: ["region"],
         _count: { id: true },
@@ -70,8 +71,15 @@ export async function GET() {
       }),
     ]);
 
+    const [champIndustriel, nonCodees] = await Promise.all([
+      prisma.entreprise.count({ where: { champIndustriel: true, activiteCode: { not: null } } }),
+      prisma.entreprise.count({ where: { activiteCode: null } }),
+    ]);
+
     return NextResponse.json({
       totalEntreprises,
+      champIndustriel,
+      nonCodees,
       avecProduction,
       parSecteur,
       parRegion,

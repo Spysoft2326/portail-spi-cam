@@ -29,16 +29,15 @@ interface Production {
   id: string;
   annee: number;
   trimestre: number;
-  productionPhysique: number;
-  chiffreAffaires: number;
-  effectifs: number;
+  chiffreAffaires: number | null;
+  effectifs: number | null;
   statut: string;
   entreprise: {
     denomination: string;
+    filiere: { libelle: string } | null;
   };
-  agent: {
-    name: string | null;
-  };
+  agentSaisie: { name: string | null; email: string | null } | null;
+  _count: { lignes: number };
   createdAt: string;
 }
 
@@ -109,10 +108,21 @@ export default function AnalyticsContent() {
     }
   };
 
+  // Validation / rejet (motif obligatoire pour un rejet) via la route de décision commune
   const validateProduction = async (id: string, action: "validate" | "reject") => {
+    let motif: string | null = null;
+    if (action === "reject") {
+      motif = window.prompt("Motif du rejet (obligatoire) :");
+      if (!motif || !motif.trim()) return;
+    }
     try {
-      const res = await fetch(`/api/admin/productions/${id}/${action}`, { method: "POST" });
+      const res = await fetch(`/api/admin/productions/${id}/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statut: action === "validate" ? "VALIDE" : "REJETE", motif }),
+      });
       if (res.ok) fetchData();
+      else alert("Erreur : " + ((await res.json().catch(() => ({}))).error || "opération impossible"));
     } catch (err) { console.error(err); }
   };
 
@@ -226,7 +236,7 @@ export default function AnalyticsContent() {
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Entreprise</th>
                     <th className="text-left py-3 px-4">Période</th>
-                    <th className="text-right py-3 px-4">Production</th>
+                    <th className="text-right py-3 px-4">Produits</th>
                     <th className="text-right py-3 px-4">CA</th>
                     <th className="text-left py-3 px-4">Agent</th>
                     <th className="text-center py-3 px-4">Actions</th>
@@ -237,9 +247,9 @@ export default function AnalyticsContent() {
                     <tr key={p.id} className="border-b hover:bg-gray-50">
                       <td className="py-3 px-4">{p.entreprise.denomination}</td>
                       <td className="py-3 px-4">{p.annee} T{p.trimestre}</td>
-                      <td className="py-3 px-4 text-right">{p.productionPhysique.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right">{p.chiffreAffaires.toLocaleString()}</td>
-                      <td className="py-3 px-4">{p.agent.name || "N/A"}</td>
+                      <td className="py-3 px-4 text-right">{p._count?.lignes ?? 0}</td>
+                      <td className="py-3 px-4 text-right">{(p.chiffreAffaires ?? 0).toLocaleString("fr-FR")}</td>
+                      <td className="py-3 px-4">{p.agentSaisie?.name || p.agentSaisie?.email || "N/A"}</td>
                       <td className="py-3 px-4">
                         <div className="flex justify-center gap-2">
                           <button onClick={() => validateProduction(p.id, "validate")} className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition" title="Valider">
@@ -335,7 +345,7 @@ export default function AnalyticsContent() {
                 <tr className="border-b">
                   <th className="text-left py-3 px-4">Entreprise</th>
                   <th className="text-left py-3 px-4">Période</th>
-                  <th className="text-right py-3 px-4">Production</th>
+                  <th className="text-right py-3 px-4">Produits</th>
                   <th className="text-right py-3 px-4">CA</th>
                   <th className="text-right py-3 px-4">Effectifs</th>
                   <th className="text-left py-3 px-4">Agent</th>
@@ -348,13 +358,13 @@ export default function AnalyticsContent() {
                   <tr key={p.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">{p.entreprise.denomination}</td>
                     <td className="py-3 px-4">{p.annee} T{p.trimestre}</td>
-                    <td className="py-3 px-4 text-right">{p.productionPhysique.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right">{p.chiffreAffaires.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right">{p.effectifs}</td>
-                    <td className="py-3 px-4">{p.agent.name || "N/A"}</td>
+                    <td className="py-3 px-4 text-right">{p._count?.lignes ?? 0}</td>
+                    <td className="py-3 px-4 text-right">{(p.chiffreAffaires ?? 0).toLocaleString("fr-FR")}</td>
+                    <td className="py-3 px-4 text-right">{p.effectifs ?? "-"}</td>
+                    <td className="py-3 px-4">{p.agentSaisie?.name || p.agentSaisie?.email || "N/A"}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                        p.statut === 'VALIDEE' ? 'bg-green-100 text-green-800' :
+                        p.statut === 'VALIDE' ? 'bg-green-100 text-green-800' :
                         p.statut === 'EN_ATTENTE' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
                       }`}>{p.statut}</span>
                     </td>

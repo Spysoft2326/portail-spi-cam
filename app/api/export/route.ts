@@ -39,7 +39,12 @@ export async function GET(request: Request) {
           referenceSPI: true,
           denomination: true,
           sigle: true,
-          secteurActivite: true,
+          numContribuable: true,
+          activiteCode: true,
+          champIndustriel: true,
+          taille: true,
+          activite: { select: { libelle: true } },
+          filiere: { select: { libelle: true } },
           ville: true,
           region: true,
           telephone: true,
@@ -51,12 +56,17 @@ export async function GET(request: Request) {
         orderBy: { createdAt: "desc" },
       });
 
-      const headers = ["Reference SPI", "Denomination", "Sigle", "Secteur", "Ville", "Region", "Telephone", "Email", "Contact", "Statut", "Date creation"];
+      const headers = ["Reference SPI", "Denomination", "Sigle", "NIU", "Code CITI", "Activite", "Filiere", "Champ industriel", "Taille", "Ville", "Region", "Telephone", "Email", "Contact", "Statut", "Date creation"];
       const data = entreprises.map((e) => ({
         "Reference SPI": e.referenceSPI,
         "Denomination": e.denomination,
         "Sigle": e.sigle || "",
-        "Secteur": e.secteurActivite,
+        "NIU": e.numContribuable || "",
+        "Code CITI": e.activiteCode || "",
+        "Activite": e.activite?.libelle || "",
+        "Filiere": e.filiere?.libelle || "",
+        "Champ industriel": e.champIndustriel ? "oui" : "non",
+        "Taille": e.taille || "",
         "Ville": e.ville || "",
         "Region": e.region || "",
         "Telephone": e.telephone || "",
@@ -94,24 +104,35 @@ export async function GET(request: Request) {
     }
 
     if (entity === "productions" || entity === "all") {
+      // Une ligne par produit déclaré (déclarations multi-produits)
       const productions = await prisma.production.findMany({
         include: {
-          entreprise: { select: { denomination: true } },
+          entreprise: { select: { referenceSPI: true, denomination: true, activiteCode: true, filiere: { select: { libelle: true } } } },
+          lignes: { orderBy: { produit: "asc" } },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ annee: "desc" }, { trimestre: "desc" }],
       });
 
-      const headers = ["Entreprise", "Produit", "Quantite", "Unite", "Periode", "Annee", "Trimestre", "Date creation"];
-      const data = productions.map((p) => ({
-        "Entreprise": p.entreprise?.denomination || "",
-        "Produit": p.produit,
-        "Quantite": p.quantite || "",
-        "Unite": p.unite || "",
-        "Periode": p.periode || "",
-        "Annee": p.annee || "",
-        "Trimestre": p.trimestre || "",
-        "Date creation": p.createdAt.toISOString().split("T")[0],
-      }));
+      const headers = ["Reference SPI", "Entreprise", "Code CITI", "Filiere", "Annee", "Trimestre", "Produit", "Quantite", "Unite", "CA (FCFA)", "Effectifs", "Statut", "Date creation"];
+      const data = productions.flatMap((p) => {
+        const base = {
+          "Reference SPI": p.entreprise?.referenceSPI || "",
+          "Entreprise": p.entreprise?.denomination || "",
+          "Code CITI": p.entreprise?.activiteCode || "",
+          "Filiere": p.entreprise?.filiere?.libelle || "",
+          "Annee": p.annee || "",
+          "Trimestre": p.trimestre ? "T" + p.trimestre : "",
+        };
+        const fin = {
+          "CA (FCFA)": p.chiffreAffaires ?? "",
+          "Effectifs": p.effectifs ?? "",
+          "Statut": p.statut,
+          "Date creation": p.createdAt.toISOString().split("T")[0],
+        };
+        const lignes: { produit: string; quantite: number | string; unite: string }[] =
+          p.lignes.length ? p.lignes : [{ produit: "", quantite: "", unite: "" }];
+        return lignes.map((l) => ({ ...base, "Produit": l.produit, "Quantite": l.quantite, "Unite": l.unite, ...fin }));
+      });
 
       csv += "=== PRODUCTIONS ===\n" + toCSV(data, headers) + "\n\n";
       if (!filename) filename = "productions_" + new Date().toISOString().split("T")[0] + ".csv";

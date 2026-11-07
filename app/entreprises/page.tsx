@@ -33,32 +33,37 @@ interface Entreprise {
   telephone: string | null;
   email: string | null;
   nomContact: string | null;
-  description: string | null;
+  description: string | null; // activité codée (code CITI · libellé) ou, à défaut, produits principaux
   statut: string;
+  filiereCode: string | null;
+  champIndustriel: boolean;
+  referenceSPI: string;
 }
 
-// ============================================================
-// SECTEURS (statiques car définis par le métier)
-// ============================================================
-const SECTEURS = [
-  { label: "Tous les secteurs", value: "" },
-  { label: "Agriculture / Agro-industrie", value: "Agriculture / Agro-industrie" },
-  { label: "BTP / Matériaux", value: "BTP / Matériaux" },
-  { label: "Chimie / Plastique", value: "Chimie / Plastique" },
-  { label: "Commerce", value: "Commerce" },
-  { label: "Énergie", value: "Énergie" },
-  { label: "Environnement / Déchets", value: "Environnement / Déchets" },
-  { label: "Finance", value: "Finance" },
-  { label: "Forêt / Bois", value: "Forêt / Bois" },
-  { label: "Industrie légère", value: "Industrie légère" },
-  { label: "Métallurgie", value: "Métallurgie" },
-  { label: "Pharmaceutique", value: "Pharmaceutique" },
-  { label: "Sécurité / Défense", value: "Sécurité / Défense" },
-  { label: "Télécommunications / IT", value: "Télécommunications / IT" },
-  { label: "Textile / Habillement", value: "Textile / Habillement" },
-  { label: "Tourisme / Hôtellerie", value: "Tourisme / Hôtellerie" },
-  { label: "Transport / Logistique", value: "Transport / Logistique" },
-];
+// Réponse de /api/entreprises -> forme utilisée par l'annuaire
+function versAnnuaire(e: any): Entreprise {
+  return {
+    id: e.id,
+    nom: e.denomination,
+    sigle: e.sigle,
+    // Le secteur affiché est la filière (déduite de l'activité codée)
+    secteurActivite: e.filiere?.libelle || (e.activiteCode ? "Hors filière" : e.secteurActivite),
+    region: e.region,
+    ville: e.ville,
+    adresse: e.adresse,
+    telephone: e.telephone,
+    email: e.email,
+    nomContact: e.nomContact,
+    description: e.activite ? `${e.activite.code} · ${e.activite.libelle}` : e.produitsPrincipaux || null,
+    statut: e.statut,
+    filiereCode: e.filiereCode || null,
+    champIndustriel: !!e.champIndustriel,
+    referenceSPI: e.referenceSPI,
+  };
+}
+
+const normaliser = (s: string | null | undefined) =>
+  (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 // ============================================================
 // COULEURS SECTEUR
@@ -66,7 +71,13 @@ const SECTEURS = [
 function getSectorColor(sector: string | null): string {
   if (!sector) return "bg-gray-100 text-gray-700 border-gray-300";
   const s = sector.toUpperCase();
-  if (s.includes("BTP") || s.includes("CONSTRUCTION")) return "bg-orange-100 text-orange-700 border-orange-300";
+  if (s.includes("HYDROCARBURE")) return "bg-stone-100 text-stone-700 border-stone-300";
+  if (s.includes("NUMÉRIQUE") || s.includes("NUMERIQUE")) return "bg-indigo-100 text-indigo-700 border-indigo-300";
+  if (s.includes("PAPIER") || s.includes("IMPRIMERIE")) return "bg-lime-100 text-lime-700 border-lime-300";
+  if (s.includes("ÉQUIPEMENT") || s.includes("EQUIPEMENT")) return "bg-sky-100 text-sky-700 border-sky-300";
+  if (s.includes("EAU")) return "bg-teal-100 text-teal-700 border-teal-300";
+  if (s.includes("MINES")) return "bg-slate-100 text-slate-700 border-slate-300";
+  if (s.includes("MATÉRIAUX") || s.includes("MATERIAUX") || s.includes("BTP") || s.includes("CONSTRUCTION")) return "bg-orange-100 text-orange-700 border-orange-300";
   if (s.includes("TÉLÉCOM") || s.includes("TELECOM") || s.includes("IT") || s.includes("TECHNO")) return "bg-indigo-100 text-indigo-700 border-indigo-300";
   if (s.includes("TRANSPORT") || s.includes("LOGISTIQUE")) return "bg-red-100 text-red-700 border-red-300";
   if (s.includes("ÉNERGIE") || s.includes("ENERGIE")) return "bg-yellow-100 text-yellow-700 border-yellow-300";
@@ -91,12 +102,30 @@ function getSectorColor(sector: string | null): string {
 export default function AnnuairePage() {
   const [sectorParam, setSectorParam] = useState("");
 
+  // Filières (référentiel) pour le filtre
+  const [filieres, setFilieres] = useState<{ code: string; libelle: string; prioritaire: boolean }[]>([]);
+  const [industriesSeules, setIndustriesSeules] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/referentiels")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setFilieres(d.filieres))
+      .catch(() => {});
+  }, []);
+
+  // ?filiere=CODE (liens de la page d'accueil) ou ancien ?sector=libellé
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      setSectorParam(params.get("sector") || "");
+      setSectorParam(params.get("filiere") || params.get("sector") || "");
     }
   }, []);
+
+  const SECTEURS = useMemo(() => [
+    { label: "Toutes les filières", value: "" },
+    ...filieres.map((f) => ({ label: f.libelle + (f.prioritaire ? " ★" : ""), value: f.libelle })),
+    { label: "Hors filière", value: "Hors filière" },
+  ], [filieres]);
 
   const [entreprises, setEntreprises] = useState<Entreprise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,12 +135,12 @@ export default function AnnuairePage() {
   const [searchText, setSearchText] = useState("");
   const [selectedSector, setSelectedSector] = useState(sectorParam || "");
 
-  // Synchroniser selectedSector quand sectorParam change (depuis URL)
+  // Synchroniser le filtre avec l'URL : code de filière ou libellé (sans accents ni casse)
   useEffect(() => {
-    if (sectorParam) {
-      setSelectedSector(sectorParam);
-    }
-  }, [sectorParam]);
+    if (!sectorParam) return;
+    const f = filieres.find((x) => x.code === sectorParam || normaliser(x.libelle) === normaliser(sectorParam));
+    setSelectedSector(f ? f.libelle : sectorParam);
+  }, [sectorParam, filieres]);
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedVille, setSelectedVille] = useState("");
   const [regionText, setRegionText] = useState("");   // saisie libre région
@@ -128,7 +157,8 @@ export default function AnnuairePage() {
       const res = await fetch("/api/entreprises");
       if (!res.ok) throw new Error("Erreur de chargement");
       const data = await res.json();
-      setEntreprises(data.entreprises || data || []);
+      // Annuaire public : fiches validées uniquement, même pour un utilisateur connecté
+      setEntreprises((data.entreprises || data || []).filter((e: any) => e.statut === "ACTIF").map(versAnnuaire));
     } catch (err) {
       setError("Impossible de charger les entreprises");
     } finally {
@@ -167,16 +197,12 @@ export default function AnnuairePage() {
   // ─── FILTRAGE ───
   const filtered = useMemo(() => {
     return entreprises.filter((e) => {
-      // Texte libre (nom, sigle, description, contact)
-      const matchText =
-        !searchText ||
-        e.nom?.toLowerCase().includes(searchText.toLowerCase()) ||
-        e.sigle?.toLowerCase().includes(searchText.toLowerCase()) ||
-        e.description?.toLowerCase().includes(searchText.toLowerCase()) ||
-        e.nomContact?.toLowerCase().includes(searchText.toLowerCase());
+      // Texte libre (nom, sigle, activité, filière, contact) — sans accents ni casse
+      const q = normaliser(searchText);
+      const matchText = !q || [e.nom, e.sigle, e.description, e.secteurActivite, e.nomContact].some((v) => normaliser(v).includes(q));
 
-      // Secteur (dropdown exact)
-      const matchSector = !selectedSector || e.secteurActivite === selectedSector;
+      // Filière
+      const matchSector = (!selectedSector || e.secteurActivite === selectedSector) && (!industriesSeules || e.champIndustriel);
 
       // Région : dropdown OU saisie libre
       const matchRegion =
@@ -190,14 +216,15 @@ export default function AnnuairePage() {
 
       return matchText && matchSector && matchRegion && matchVille;
     });
-  }, [entreprises, searchText, selectedSector, selectedRegion, selectedVille, regionText, villeText]);
+  }, [entreprises, searchText, selectedSector, industriesSeules, selectedRegion, selectedVille, regionText, villeText]);
 
   // Reset
   const hasActiveFilters =
-    searchText || selectedSector || selectedRegion || selectedVille || regionText || villeText;
+    searchText || selectedSector || industriesSeules || selectedRegion || selectedVille || regionText || villeText;
   const clearFilters = () => {
     setSearchText("");
     setSelectedSector("");
+    setIndustriesSeules(false);
     setSelectedRegion("");
     setSelectedVille("");
     setRegionText("");
@@ -206,6 +233,7 @@ export default function AnnuairePage() {
 
   const activeFilterCount = [
     selectedSector,
+    industriesSeules,
     selectedRegion,
     selectedVille,
     regionText,
@@ -332,7 +360,7 @@ export default function AnnuairePage() {
               {/* Filtre secteur (dropdown statique car métier) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="relative">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Secteur d'activité</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Filière industrielle</label>
                   <select
                     value={selectedSector}
                     onChange={(e) => setSelectedSector(e.target.value)}
@@ -345,6 +373,10 @@ export default function AnnuairePage() {
                     ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-[2.1rem] w-4 h-4 text-gray-400 pointer-events-none" />
+                  <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                    <input type="checkbox" checked={industriesSeules} onChange={(e) => setIndustriesSeules(e.target.checked)} />
+                    Industries uniquement (extraction, fabrication, énergie, eau-déchets)
+                  </label>
                 </div>
 
                 {/* Région : dropdown dynamique + saisie libre */}
@@ -607,7 +639,7 @@ export default function AnnuairePage() {
 
                           <div className="flex md:flex-col gap-2">
                             <span className="text-xs text-gray-400 font-mono">
-                              {entreprise.id}
+                              {entreprise.referenceSPI}
                             </span>
                           </div>
                         </div>
@@ -690,7 +722,7 @@ export default function AnnuairePage() {
 
                         <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
                           <span className="text-xs text-gray-400 font-mono">
-                            {entreprise.id}
+                            {entreprise.referenceSPI}
                           </span>
                           {entreprise.nomContact && (
                             <span className="text-xs text-gray-500 flex items-center gap-1">

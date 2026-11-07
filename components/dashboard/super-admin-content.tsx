@@ -36,7 +36,7 @@ export default function SuperAdminContent() {
   const exportCSV = () => {
     if (!stats) return;
     const rows = [
-      ["Secteur", "Nombre"],
+      ["Filière", "Nombre"],
       ...stats.parSecteur.map((s) => [s.name, s.count.toString()]),
       [],
       ["Region", "Nombre"],
@@ -147,7 +147,7 @@ export default function SuperAdminContent() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
-                {tab === "secteur" && "Par secteur"}
+                {tab === "secteur" && "Par filière"}
                 {tab === "region" && "Par région"}
                 {tab === "ville" && "Par ville"}
                 {tab === "statut" && "Par statut"}
@@ -185,11 +185,11 @@ export default function SuperAdminContent() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Top secteurs */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">🏭 Top secteurs</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">🏭 Top filières</h3>
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                <th className="text-left py-2 text-sm font-medium text-gray-500">Secteur</th>
+                <th className="text-left py-2 text-sm font-medium text-gray-500">Filière</th>
                 <th className="text-right py-2 text-sm font-medium text-gray-500">Entreprises</th>
                 <th className="text-right py-2 text-sm font-medium text-gray-500">%</th>
               </tr>

@@ -101,7 +101,7 @@ export default function EntrepriseDashboard() {
               <p className="font-medium text-gray-900">{e.numContribuable || "—"}</p>
             </div>
             <div>
-              <span className="text-sm text-gray-500">Secteur</span>
+              <span className="text-sm text-gray-500">Filière</span>
               <p className="font-medium text-gray-900">{e.secteurActivite}</p>
             </div>
             <div>
