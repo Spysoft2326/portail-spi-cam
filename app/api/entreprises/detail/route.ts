@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiRole } from "@/lib/api-guard";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +9,10 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/entreprises/detail?id=...
 export async function GET(request: NextRequest) {
+  // Données internes : connexion obligatoire
+  const auth = await requireApiRole();
+  if (auth.error) return auth.error;
+
   try {
     // API publique - pas d authentification requise
 

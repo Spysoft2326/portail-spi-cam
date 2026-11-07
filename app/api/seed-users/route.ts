@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireSeedAccess } from "@/lib/api-guard";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
+  // Sécurité : route désactivée en production sauf ALLOW_SEED_ROUTES=true + SUPER_ADMIN
+  const auth = await requireSeedAccess();
+  if (auth.error) return auth.error;
+
   try {
     // Supprime les users existants (pour recréer avec hash)
     await prisma.user.deleteMany();

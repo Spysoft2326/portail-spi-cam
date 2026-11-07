@@ -1,5 +1,6 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import { getServerSession } from "next-auth/next";
 import type { NextAuthOptions } from "next-auth";
@@ -25,14 +26,16 @@ export const authOptions: NextAuthOptions = {
             where: { email: validated.email },
           });
 
-          if (!user) {
-            console.error("User not found:", validated.email);
+          // Utilisateur inconnu ou sans mot de passe : refus (même message, sans dire lequel)
+          if (!user || !user.password) {
             return null;
           }
 
-          // ❌ REMOVED: isActive n'existe pas dans le modèle Prisma User
-          // ❌ REMOVED: password n'existe pas dans le modèle Prisma User
-          // L'authentification se fait via OAuth/Kimi, pas par mot de passe local
+          // Vérification du mot de passe haché (bcrypt)
+          const passwordOk = await bcrypt.compare(validated.password, user.password);
+          if (!passwordOk) {
+            return null;
+          }
 
           // Retourner l'utilisateur avec le role
           return {

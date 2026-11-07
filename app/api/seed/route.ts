@@ -1,8 +1,13 @@
 ﻿import { NextResponse } from "next/server";
+import { requireSeedAccess } from "@/lib/api-guard";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export async function POST() {
+  // Sécurité : route désactivée en production sauf ALLOW_SEED_ROUTES=true + SUPER_ADMIN
+  const auth = await requireSeedAccess();
+  if (auth.error) return auth.error;
+
   try {
     const users = [
       {

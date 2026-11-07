@@ -1,11 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { requireApiRole } from "@/lib/api-guard";
+
+const ALLOWED_ROLES = ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"];
 
 export async function POST(request: NextRequest) {
+  // Création de comptes réservée aux administrateurs connectés
+  const auth = await requireApiRole(["ADMIN", "SUPER_ADMIN"]);
+  if (auth.error) return auth.error;
+
   try {
     const body = await request.json();
-    const { name, email, password, role } = body;
+    const { name, email, password } = body;
+    const role = body.role || "AGENT_SAISIE";
+
+    if (!ALLOWED_ROLES.includes(role)) {
+      return NextResponse.json({ error: "Rôle invalide" }, { status: 400 });
+    }
+    // Seul un SUPER_ADMIN peut créer un ADMIN ou un SUPER_ADMIN
+    if (role !== "AGENT_SAISIE" && auth.session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Seul un Super Admin peut attribuer ce rôle" }, { status: 403 });
+    }
 
     // Validation des champs obligatoires
     if (!name || !email || !password) {
@@ -36,7 +52,7 @@ export async function POST(request: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        role: role || "AGENT_SAISIE",
+        role,
       },
       select: {
         id: true,

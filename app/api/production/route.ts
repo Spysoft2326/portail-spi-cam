@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
+import { requireApiRole } from "@/lib/api-guard";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // GET — Liste des productions
 export async function GET(request: Request) {
+  // Données internes : connexion obligatoire
+  const auth = await requireApiRole();
+  if (auth.error) return auth.error;
+
   try {
     const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);

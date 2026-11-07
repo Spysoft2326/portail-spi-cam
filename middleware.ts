@@ -6,9 +6,20 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const path = req.nextUrl.pathname;
 
-  // Routes publiques - toujours autoriser
-  const publicPaths = ["/", "/login", "/register", "/api/auth", "/entreprises", "/about", "/contact"];
-  if (publicPaths.some((p) => path.startsWith(p))) {
+  // Les routes API vérifient elles-mêmes la session (réponse JSON 401/403,
+  // pas de redirection HTML vers /login qui casserait les fetch).
+  if (path.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
+  // Routes publiques. "/" uniquement en correspondance exacte : avec startsWith,
+  // toutes les URL commençant par "/", la protection était désactivée partout.
+  const matches = (p: string) => path === p || path.startsWith(p + "/");
+  const isPublic =
+    path === "/" ||
+    (["/login", "/register", "/entreprises", "/conjoncture", "/about", "/contact"].some(matches) &&
+      !matches("/entreprises/manage"));
+  if (isPublic) {
     return NextResponse.next();
   }
 
@@ -55,8 +66,7 @@ export async function middleware(req: NextRequest) {
   if (
     path.startsWith("/dashboard/admin") ||
     path.startsWith("/parametres") ||
-    path.startsWith("/entreprises/manage") ||
-    path.startsWith("/conjoncture")
+    path.startsWith("/entreprises/manage")
   ) {
     if (!["ADMIN", "SUPER_ADMIN"].includes(role)) {
       return NextResponse.redirect(new URL("/dashboard/agent-saisie", req.url));

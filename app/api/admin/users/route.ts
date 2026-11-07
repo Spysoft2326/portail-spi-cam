@@ -48,9 +48,21 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "ID et rôle requis" }, { status: 400 });
     }
 
+    if (!["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"].includes(role)) {
+      return NextResponse.json({ error: "Rôle invalide" }, { status: 400 });
+    }
+    // Un ADMIN ne peut ni attribuer ADMIN/SUPER_ADMIN, ni modifier un compte admin
+    if (session.user.role !== "SUPER_ADMIN") {
+      const target = await prisma.user.findUnique({ where: { id }, select: { role: true } });
+      if (role !== "AGENT_SAISIE" || (target && target.role !== "AGENT_SAISIE")) {
+        return NextResponse.json({ error: "Seul un Super Admin peut gérer les rôles administrateurs" }, { status: 403 });
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id },
       data: { role },
+      select: { id: true, name: true, email: true, role: true }, // jamais le mot de passe haché
     });
 
     return NextResponse.json(user);
@@ -76,6 +88,17 @@ export async function DELETE(request: Request) {
 
     if (!id) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
+    }
+
+    if (id === session.user.id) {
+      return NextResponse.json({ error: "Vous ne pouvez pas supprimer votre propre compte" }, { status: 400 });
+    }
+    // Un ADMIN ne peut supprimer que des agents
+    if (session.user.role !== "SUPER_ADMIN") {
+      const target = await prisma.user.findUnique({ where: { id }, select: { role: true } });
+      if (target && target.role !== "AGENT_SAISIE") {
+        return NextResponse.json({ error: "Seul un Super Admin peut supprimer un administrateur" }, { status: 403 });
+      }
     }
 
     await prisma.user.delete({ where: { id } });
