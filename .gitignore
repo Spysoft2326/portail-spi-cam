@@ -31,3 +31,4 @@ prisma/local-test.db
 prisma/local-test.db-journal
 *.tsbuildinfo
 .claude/
+local-test/data/

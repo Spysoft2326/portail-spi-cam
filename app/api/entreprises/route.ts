@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/declarations";
 import { normaliser, nettoyerProduits } from "@/lib/referentiels";
+import { champsClassement, NomenclatureError } from "@/lib/nomenclature";
 
 // ✅ GET — Liste des entreprises (filtrée par rôle, recherche, secteur, région, ville)
 export async function GET(request: Request) {
@@ -61,14 +62,25 @@ export async function GET(request: Request) {
       where.ville = { equals: ville, mode: "insensitive" };
     }
 
+    // Filtres de nomenclature : ?filiere=AGRO, ?activite=1073 (ou préfixe 10, 107), ?champ=industriel|hors
+    const filiere = searchParams.get("filiere");
+    const activite = searchParams.get("activite");
+    const champ = searchParams.get("champ");
+    if (filiere) where.filiereCode = filiere;
+    if (activite) where.activiteCode = { startsWith: activite };
+    if (champ === "industriel") where.champIndustriel = true;
+    if (champ === "hors") where.champIndustriel = false;
+
     if (and.length) where.AND = and;
 
     const entreprises = await prisma.entreprise.findMany({
       where,
       orderBy: { denomination: "asc" },
       include: {
+        activite: { select: { code: true, libelle: true, section: true } },
+        filiere: { select: { code: true, libelle: true, prioritaire: true } },
         _count: {
-          select: { productions: true, produits: true },
+          select: { productions: true, produits: true, etablissements: true },
         },
       },
     });
@@ -129,6 +141,20 @@ export async function POST(request: Request) {
     // Produits fabriqués par l'entreprise (catalogue) : [{ nom, unite }]
     const produits = nettoyerProduits(body.produits);
 
+    // Activité principale codée (classe CITI Rév.4) -> filière et champ industriel.
+    // Seul un administrateur peut imposer une filière différente de celle déduite.
+    if (!body.activiteCode) {
+      return NextResponse.json({ error: "L'activité principale (code de la nomenclature) est obligatoire" }, { status: 400 });
+    }
+    const classement = await champsClassement(body.activiteCode, userRole === "AGENT_SAISIE" ? null : body.filiereCode);
+
+    // NIU : unique s'il est renseigné
+    const niu = body.numContribuable?.trim() || null;
+    if (niu && (await prisma.entreprise.findFirst({ where: { numContribuable: niu }, select: { id: true } }))) {
+      return NextResponse.json({ error: `Le NIU ${niu} est déjà attribué à une autre entreprise` }, { status: 409 });
+    }
+    const taille = ["GE", "PME", "TPE"].includes(body.taille) ? body.taille : null;
+
     const entreprise = await prisma.entreprise.create({
       data: {
         referenceSPI: body.referenceSPI?.trim() || `SPI-${Date.now()}`,
@@ -144,8 +170,9 @@ export async function POST(request: Request) {
         email: body.email?.trim() || null,
         nomContact: body.nomContact?.trim() || null,
         siteWeb: body.siteWeb?.trim() || null,
-        numContribuable: body.numContribuable?.trim() || null,
-        secteurActivite: body.secteurActivite || "AUTRE",
+        numContribuable: niu,
+        taille,
+        ...classement,
         sousSecteur: body.sousSecteur?.trim() || null,
         produitsPrincipaux: body.produitsPrincipaux?.trim() || produits.map((p) => p.nom).join(", ") || null,
         statut,
@@ -154,13 +181,28 @@ export async function POST(request: Request) {
         nomZoneIndustrielle: body.nomZoneIndustrielle?.trim() || null,
         agentId: userRole === "AGENT_SAISIE" ? session.user.id : null,
         produits: { create: produits },
+        // Établissement principal créé à partir de l'adresse de la fiche
+        etablissements: {
+          create: {
+            principal: true,
+            nom: "Siège / site principal",
+            activiteCode: classement.activiteCode,
+            region: body.region?.trim() || null,
+            ville: body.ville?.trim() || null,
+            adresse: body.adresse?.trim() || null,
+            telephone: body.telephone?.trim() || null,
+          },
+        },
       },
-      include: { produits: true },
+      include: { produits: true, filiere: true, activite: true },
     });
 
     await logAudit(session.user.id, "ENTREPRISE_CREEE", "Entreprise", entreprise.id, `${denomination} (${statut})`);
     return NextResponse.json(entreprise, { status: 201 });
   } catch (error) {
+    if (error instanceof NomenclatureError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("❌ Erreur POST entreprise:", error);
     return NextResponse.json(
       { error: "Erreur lors de la création de l'entreprise" },

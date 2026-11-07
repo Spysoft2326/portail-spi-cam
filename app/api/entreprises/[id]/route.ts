@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/declarations";
+import { champsClassement, NomenclatureError } from "@/lib/nomenclature";
 
 // ✅ GET — Détails d'une entreprise
 export async function GET(
@@ -19,6 +20,9 @@ export async function GET(
           select: { productions: true },
         },
         produits: { where: { actif: true }, orderBy: { nom: "asc" }, select: { id: true, nom: true, unite: true } },
+        activite: { select: { code: true, libelle: true, section: true } },
+        filiere: { select: { code: true, libelle: true } },
+        etablissements: { orderBy: [{ principal: "desc" }, { createdAt: "asc" }] },
       },
     });
 
@@ -134,7 +138,17 @@ export async function PATCH(
       updateData.denomination = body.denomination.trim();
     }
     if (body.sigle !== undefined) updateData.sigle = body.sigle?.trim() || null;
-    if (body.secteurActivite !== undefined) updateData.secteurActivite = body.secteurActivite;
+    // Le secteur n'est plus saisi librement : il découle de l'activité codée et de la filière.
+    if (body.activiteCode !== undefined || body.filiereCode !== undefined) {
+      const activiteCode = body.activiteCode !== undefined ? body.activiteCode : existing.activiteCode;
+      // Filière imposée : administrateurs uniquement ; sinon on conserve une filière manuelle existante
+      const filiereImposee = isAgent
+        ? (existing.filiereManuelle ? existing.filiereCode : null)
+        : body.filiereCode !== undefined ? (body.filiereCode || null) : (existing.filiereManuelle ? existing.filiereCode : null);
+      Object.assign(updateData, await champsClassement(activiteCode, filiereImposee));
+      if (!filiereImposee) updateData.filiereManuelle = false;
+    }
+    if (body.taille !== undefined) updateData.taille = ["GE", "PME", "TPE"].includes(body.taille) ? body.taille : null;
     if (body.ville !== undefined) updateData.ville = body.ville?.trim() || null;
     // region est obligatoire dans le schéma : on ne la vide jamais
     if (body.region !== undefined && body.region?.trim()) updateData.region = body.region.trim();
@@ -146,7 +160,13 @@ export async function PATCH(
     if (body.formeJuridique !== undefined) updateData.formeJuridique = body.formeJuridique?.trim() || null;
     if (body.capitalSocial !== undefined) updateData.capitalSocial = body.capitalSocial ? parseFloat(body.capitalSocial) : null;
     if (body.departement !== undefined) updateData.departement = body.departement?.trim() || null;
-    if (body.numContribuable !== undefined) updateData.numContribuable = body.numContribuable?.trim() || null;
+    if (body.numContribuable !== undefined) {
+      const niu = body.numContribuable?.trim() || null;
+      if (niu && (await prisma.entreprise.findFirst({ where: { numContribuable: niu, NOT: { id } }, select: { id: true } }))) {
+        return NextResponse.json({ error: `Le NIU ${niu} est déjà attribué à une autre entreprise` }, { status: 409 });
+      }
+      updateData.numContribuable = niu;
+    }
     if (body.sousSecteur !== undefined) updateData.sousSecteur = body.sousSecteur?.trim() || null;
     if (body.produitsPrincipaux !== undefined) updateData.produitsPrincipaux = body.produitsPrincipaux?.trim() || null;
     if (body.estExportateur !== undefined) updateData.estExportateur = body.estExportateur;
@@ -156,11 +176,18 @@ export async function PATCH(
     const entreprise = await prisma.entreprise.update({
       where: { id },
       data: updateData,
+      include: { filiere: true, activite: true },
     });
 
-    await logAudit(session.user.id, auditAction, "Entreprise", id, updateData.motifRejet || undefined);
+    const detailAudit = updateData.motifRejet
+      || (updateData.activiteCode !== undefined && updateData.activiteCode !== existing.activiteCode
+        ? `Activité ${existing.activiteCode || "—"} -> ${updateData.activiteCode}` : undefined);
+    await logAudit(session.user.id, auditAction, "Entreprise", id, detailAudit);
     return NextResponse.json(entreprise);
   } catch (error) {
+    if (error instanceof NomenclatureError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("❌ Erreur PATCH entreprise:", error);
     return NextResponse.json(
       { error: "Erreur lors de la modification de l'entreprise" },

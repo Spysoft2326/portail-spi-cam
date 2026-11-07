@@ -1,0 +1,4598 @@
+[
+{
+"code": "A",
+"libelle": "Agriculture, sylviculture et pêche",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "01",
+"libelle": "Culture et production animale, chasse et activités de services connexes",
+"niveau": "DIVISION",
+"parent": "A"
+},
+{
+"code": "011",
+"libelle": "Cultures temporaires",
+"niveau": "GROUPE",
+"parent": "01"
+},
+{
+"code": "0111",
+"libelle": "Culture de céréales (à l’exception du riz), de légumineuses et de graines oléagineuses",
+"niveau": "CLASSE",
+"parent": "011"
+},
+{
+"code": "0112",
+"libelle": "Culture du riz",
+"niveau": "CLASSE",
+"parent": "011"
+},
+{
+"code": "0113",
+"libelle": "Culture de légumes et de melons, de racines et tubercules",
+"niveau": "CLASSE",
+"parent": "011"
+},
+{
+"code": "0114",
+"libelle": "Culture de canne à sucre",
+"niveau": "CLASSE",
+"parent": "011"
+},
+{
+"code": "0115",
+"libelle": "Culture de tabac",
+"niveau": "CLASSE",
+"parent": "011"
+},
+{
+"code": "0116",
+"libelle": "Culture de plantes à fibres textiles",
+"niveau": "CLASSE",
+"parent": "011"
+},
+{
+"code": "0119",
+"libelle": "Autres cultures temporaires",
+"niveau": "CLASSE",
+"parent": "011"
+},
+{
+"code": "012",
+"libelle": "Cultures permanentes",
+"niveau": "GROUPE",
+"parent": "01"
+},
+{
+"code": "0121",
+"libelle": "Culture de raisin",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "0122",
+"libelle": "Culture de fruits tropicaux et subtropicaux",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "0123",
+"libelle": "Culture d’agrumes",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "0124",
+"libelle": "Culture de fruits à pépins et de fruits à noyaux",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "0125",
+"libelle": "Culture d’autres fruits sur arbres et arbustes, et de fruits à coque",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "0126",
+"libelle": "Culture de fruits oléagineux",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "0127",
+"libelle": "Culture de plantes pour boisson",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "0128",
+"libelle": "Culture de plantes pour épices, de plantes aromatiques et de plantes pour médicaments et produits pharmaceutiques",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "0129",
+"libelle": "Autres cultures permanentes",
+"niveau": "CLASSE",
+"parent": "012"
+},
+{
+"code": "013",
+"libelle": "Prolifération végétale",
+"niveau": "GROUPE",
+"parent": "01"
+},
+{
+"code": "0130",
+"libelle": "Prolifération végétale",
+"niveau": "CLASSE",
+"parent": "013"
+},
+{
+"code": "014",
+"libelle": "Production animale",
+"niveau": "GROUPE",
+"parent": "01"
+},
+{
+"code": "0141",
+"libelle": "Élevage de bovins et de buffles",
+"niveau": "CLASSE",
+"parent": "014"
+},
+{
+"code": "0142",
+"libelle": "Élevage de chevaux et autres équidés",
+"niveau": "CLASSE",
+"parent": "014"
+},
+{
+"code": "0143",
+"libelle": "Élevage de chameaux et autres camélidés",
+"niveau": "CLASSE",
+"parent": "014"
+},
+{
+"code": "0144",
+"libelle": "Élevage de moutons et de chèvres",
+"niveau": "CLASSE",
+"parent": "014"
+},
+{
+"code": "0145",
+"libelle": "Élevage de porcins",
+"niveau": "CLASSE",
+"parent": "014"
+},
+{
+"code": "0146",
+"libelle": "Élevage de volailles",
+"niveau": "CLASSE",
+"parent": "014"
+},
+{
+"code": "0149",
+"libelle": "Élevage d’autres animaux",
+"niveau": "CLASSE",
+"parent": "014"
+},
+{
+"code": "015",
+"libelle": "Exploitation mixte",
+"niveau": "GROUPE",
+"parent": "01"
+},
+{
+"code": "0150",
+"libelle": "Exploitation mixte",
+"niveau": "CLASSE",
+"parent": "015"
+},
+{
+"code": "016",
+"libelle": "Activités d’appui à l’agriculture et activités consécutives à la récolte",
+"niveau": "GROUPE",
+"parent": "01"
+},
+{
+"code": "0161",
+"libelle": "Activités d’appui à la culture",
+"niveau": "CLASSE",
+"parent": "016"
+},
+{
+"code": "0162",
+"libelle": "Activités d’appui à la production animale",
+"niveau": "CLASSE",
+"parent": "016"
+},
+{
+"code": "0163",
+"libelle": "Activités consécutives à la récolte",
+"niveau": "CLASSE",
+"parent": "016"
+},
+{
+"code": "0164",
+"libelle": "Préparation des semences aux fins de propagation",
+"niveau": "CLASSE",
+"parent": "016"
+},
+{
+"code": "017",
+"libelle": "Chasse, piégeage et activités de services connexes",
+"niveau": "GROUPE",
+"parent": "01"
+},
+{
+"code": "0170",
+"libelle": "Chasse, piégeage et activités de services connexes",
+"niveau": "CLASSE",
+"parent": "017"
+},
+{
+"code": "02",
+"libelle": "Sylviculture et exploitation forestière",
+"niveau": "DIVISION",
+"parent": "A"
+},
+{
+"code": "021",
+"libelle": "Sylviculture et autres activités d’exploitation forestière",
+"niveau": "GROUPE",
+"parent": "02"
+},
+{
+"code": "0210",
+"libelle": "Sylviculture et autres activités d’exploitation forestière",
+"niveau": "CLASSE",
+"parent": "021"
+},
+{
+"code": "022",
+"libelle": "Exploitation forestière",
+"niveau": "GROUPE",
+"parent": "02"
+},
+{
+"code": "0220",
+"libelle": "Exploitation forestière",
+"niveau": "CLASSE",
+"parent": "022"
+},
+{
+"code": "023",
+"libelle": "Récolte de produits forestiers autres que le bois",
+"niveau": "GROUPE",
+"parent": "02"
+},
+{
+"code": "0230",
+"libelle": "Récolte de produits forestiers autres que le bois",
+"niveau": "CLASSE",
+"parent": "023"
+},
+{
+"code": "024",
+"libelle": "Services d’appui à la sylviculture",
+"niveau": "GROUPE",
+"parent": "02"
+},
+{
+"code": "0240",
+"libelle": "Services d’appui à la sylviculture",
+"niveau": "CLASSE",
+"parent": "024"
+},
+{
+"code": "03",
+"libelle": "Pêche et aquaculture",
+"niveau": "DIVISION",
+"parent": "A"
+},
+{
+"code": "031",
+"libelle": "Pêche",
+"niveau": "GROUPE",
+"parent": "03"
+},
+{
+"code": "0311",
+"libelle": "Pêche en mer",
+"niveau": "CLASSE",
+"parent": "031"
+},
+{
+"code": "0312",
+"libelle": "Pêche en eau douce",
+"niveau": "CLASSE",
+"parent": "031"
+},
+{
+"code": "032",
+"libelle": "Aquaculture",
+"niveau": "GROUPE",
+"parent": "03"
+},
+{
+"code": "0321",
+"libelle": "Aquaculture en mer",
+"niveau": "CLASSE",
+"parent": "032"
+},
+{
+"code": "0322",
+"libelle": "Aquaculture en eau douce",
+"niveau": "CLASSE",
+"parent": "032"
+},
+{
+"code": "B",
+"libelle": "Activités extractives",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "05",
+"libelle": "Extraction de charbon et de lignite",
+"niveau": "DIVISION",
+"parent": "B"
+},
+{
+"code": "051",
+"libelle": "Extraction de houille",
+"niveau": "GROUPE",
+"parent": "05"
+},
+{
+"code": "0510",
+"libelle": "Extraction de houille",
+"niveau": "CLASSE",
+"parent": "051"
+},
+{
+"code": "052",
+"libelle": "Extraction de lignite",
+"niveau": "GROUPE",
+"parent": "05"
+},
+{
+"code": "0520",
+"libelle": "Extraction de lignite",
+"niveau": "CLASSE",
+"parent": "052"
+},
+{
+"code": "06",
+"libelle": "Extraction de pétrole brut et de gaz naturel",
+"niveau": "DIVISION",
+"parent": "B"
+},
+{
+"code": "061",
+"libelle": "Extraction de pétrole brut",
+"niveau": "GROUPE",
+"parent": "06"
+},
+{
+"code": "0610",
+"libelle": "Extraction de pétrole brut",
+"niveau": "CLASSE",
+"parent": "061"
+},
+{
+"code": "062",
+"libelle": "Extraction de gaz naturel",
+"niveau": "GROUPE",
+"parent": "06"
+},
+{
+"code": "0620",
+"libelle": "Extraction de gaz naturel",
+"niveau": "CLASSE",
+"parent": "062"
+},
+{
+"code": "07",
+"libelle": "Extraction de minerais métalliques",
+"niveau": "DIVISION",
+"parent": "B"
+},
+{
+"code": "071",
+"libelle": "Extraction de minerais métalliques",
+"niveau": "GROUPE",
+"parent": "07"
+},
+{
+"code": "0710",
+"libelle": "Extraction de minerais métalliques",
+"niveau": "CLASSE",
+"parent": "071"
+},
+{
+"code": "072",
+"libelle": "Extraction de métaux non ferreux",
+"niveau": "GROUPE",
+"parent": "07"
+},
+{
+"code": "0721",
+"libelle": "Extraction de minerais d’uranium et de thorium",
+"niveau": "CLASSE",
+"parent": "072"
+},
+{
+"code": "0729",
+"libelle": "Extraction de minerais et d’autres métaux non ferreux",
+"niveau": "CLASSE",
+"parent": "072"
+},
+{
+"code": "08",
+"libelle": "Autres activités extractives",
+"niveau": "DIVISION",
+"parent": "B"
+},
+{
+"code": "081",
+"libelle": "Extraction de pierres, de sables et d’argiles",
+"niveau": "GROUPE",
+"parent": "08"
+},
+{
+"code": "0810",
+"libelle": "Extraction de pierres, de sables et d’argiles",
+"niveau": "CLASSE",
+"parent": "081"
+},
+{
+"code": "089",
+"libelle": "Activités extractives, n.c.a.",
+"niveau": "GROUPE",
+"parent": "08"
+},
+{
+"code": "0891",
+"libelle": "Extraction de minerais pour l’industrie chimique et d’engrais naturels",
+"niveau": "CLASSE",
+"parent": "089"
+},
+{
+"code": "0892",
+"libelle": "Extraction de tourbe",
+"niveau": "CLASSE",
+"parent": "089"
+},
+{
+"code": "0893",
+"libelle": "Extraction de sel",
+"niveau": "CLASSE",
+"parent": "089"
+},
+{
+"code": "0899",
+"libelle": "Autres activités extractives, n.c.a.",
+"niveau": "CLASSE",
+"parent": "089"
+},
+{
+"code": "09",
+"libelle": "Activités annexes de l’extraction",
+"niveau": "DIVISION",
+"parent": "B"
+},
+{
+"code": "091",
+"libelle": "Activités annexes à l’extraction de pétrole et de gaz naturel",
+"niveau": "GROUPE",
+"parent": "09"
+},
+{
+"code": "0910",
+"libelle": "Activités annexes à l’extraction de pétrole et de gaz naturel",
+"niveau": "CLASSE",
+"parent": "091"
+},
+{
+"code": "099",
+"libelle": "Activités annexes d’autres activités extractives",
+"niveau": "GROUPE",
+"parent": "09"
+},
+{
+"code": "0990",
+"libelle": "Activités annexes d’autres activités extractives",
+"niveau": "CLASSE",
+"parent": "099"
+},
+{
+"code": "C",
+"libelle": "Activités de fabrication",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "10",
+"libelle": "Fabrication de produits alimentaires et de boissons",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "101",
+"libelle": "Traitement et conservation de viande",
+"niveau": "GROUPE",
+"parent": "10"
+},
+{
+"code": "1010",
+"libelle": "Traitement et conservation de viande",
+"niveau": "CLASSE",
+"parent": "101"
+},
+{
+"code": "102",
+"libelle": "Traitement et conservation de poissons, crustacés et mollusques",
+"niveau": "GROUPE",
+"parent": "10"
+},
+{
+"code": "1020",
+"libelle": "Traitement et conservation de poissons, crustacés et mollusques",
+"niveau": "CLASSE",
+"parent": "102"
+},
+{
+"code": "103",
+"libelle": "Traitement et conservation de fruits et légumes",
+"niveau": "GROUPE",
+"parent": "10"
+},
+{
+"code": "1030",
+"libelle": "Traitement et conservation de fruits et légumes",
+"niveau": "CLASSE",
+"parent": "103"
+},
+{
+"code": "104",
+"libelle": "Fabrication d’huiles et graisses végétales et animales",
+"niveau": "GROUPE",
+"parent": "10"
+},
+{
+"code": "1040",
+"libelle": "Fabrication d’huiles et graisses végétales et animales",
+"niveau": "CLASSE",
+"parent": "104"
+},
+{
+"code": "105",
+"libelle": "Fabrication de produits laitiers",
+"niveau": "GROUPE",
+"parent": "10"
+},
+{
+"code": "1050",
+"libelle": "Fabrication de produits laitiers",
+"niveau": "CLASSE",
+"parent": "105"
+},
+{
+"code": "106",
+"libelle": "Travail des grains et fabrication de produits amylacés",
+"niveau": "GROUPE",
+"parent": "10"
+},
+{
+"code": "1061",
+"libelle": "Travail des grains",
+"niveau": "CLASSE",
+"parent": "106"
+},
+{
+"code": "1062",
+"libelle": "Fabrication de produits amylacés",
+"niveau": "CLASSE",
+"parent": "106"
+},
+{
+"code": "107",
+"libelle": "Fabrication d’autres produits alimentaires",
+"niveau": "GROUPE",
+"parent": "10"
+},
+{
+"code": "1071",
+"libelle": "Boulangerie, pâtisserie, biscuiterie",
+"niveau": "CLASSE",
+"parent": "107"
+},
+{
+"code": "1072",
+"libelle": "Fabrication de sucre",
+"niveau": "CLASSE",
+"parent": "107"
+},
+{
+"code": "1073",
+"libelle": "Fabrication de cacao, chocolat et confiserie",
+"niveau": "CLASSE",
+"parent": "107"
+},
+{
+"code": "1074",
+"libelle": "Fabrication de pâtes alimentaires, de couscous et de produits farineux similaires",
+"niveau": "CLASSE",
+"parent": "107"
+},
+{
+"code": "1075",
+"libelle": "Fabrication de plats préparés",
+"niveau": "CLASSE",
+"parent": "107"
+},
+{
+"code": "1079",
+"libelle": "Fabrication d’autres produits alimentaires, n.c.a.",
+"niveau": "CLASSE",
+"parent": "107"
+},
+{
+"code": "108",
+"libelle": "Fabrication d’aliments pour animaux",
+"niveau": "GROUPE",
+"parent": "10"
+},
+{
+"code": "1080",
+"libelle": "Fabrication d’aliments pour animaux",
+"niveau": "CLASSE",
+"parent": "108"
+},
+{
+"code": "11",
+"libelle": "Fabrication de boissons",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "110",
+"libelle": "Fabrication de boissons",
+"niveau": "GROUPE",
+"parent": "11"
+},
+{
+"code": "1101",
+"libelle": "Distillation, rectification et mélange de spiritueux",
+"niveau": "CLASSE",
+"parent": "110"
+},
+{
+"code": "1102",
+"libelle": "Fabrication de vins",
+"niveau": "CLASSE",
+"parent": "110"
+},
+{
+"code": "1103",
+"libelle": "Fabrication de boissons alcoolisées à base de malt; production de malt",
+"niveau": "CLASSE",
+"parent": "110"
+},
+{
+"code": "1104",
+"libelle": "Fabrication de boissons non alcoolisées; production d’eaux minérales et autres eaux en bouteille",
+"niveau": "CLASSE",
+"parent": "110"
+},
+{
+"code": "12",
+"libelle": "Fabrication de produits à base de tabac",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "120",
+"libelle": "Fabrication de produits à base de tabac",
+"niveau": "GROUPE",
+"parent": "12"
+},
+{
+"code": "1200",
+"libelle": "Fabrication de produits à base de tabac",
+"niveau": "CLASSE",
+"parent": "120"
+},
+{
+"code": "13",
+"libelle": "Fabrication de textiles",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "131",
+"libelle": "Filature, tissage et achèvement des textiles",
+"niveau": "GROUPE",
+"parent": "13"
+},
+{
+"code": "1311",
+"libelle": "Préparation et filature des fibres textiles",
+"niveau": "CLASSE",
+"parent": "131"
+},
+{
+"code": "1312",
+"libelle": "Tissage des textiles",
+"niveau": "CLASSE",
+"parent": "131"
+},
+{
+"code": "1313",
+"libelle": "Achèvement des textiles",
+"niveau": "CLASSE",
+"parent": "131"
+},
+{
+"code": "139",
+"libelle": "Fabrication d’autres articles textiles",
+"niveau": "GROUPE",
+"parent": "13"
+},
+{
+"code": "1391",
+"libelle": "Fabrication d’étoffes et d’articles de bonneterie",
+"niveau": "CLASSE",
+"parent": "139"
+},
+{
+"code": "1392",
+"libelle": "Fabrication d’articles confectionnés en textiles, sauf l’habillement",
+"niveau": "CLASSE",
+"parent": "139"
+},
+{
+"code": "1393",
+"libelle": "Fabrication de tapis et carpettes",
+"niveau": "CLASSE",
+"parent": "139"
+},
+{
+"code": "1394",
+"libelle": "Fabrication de cordes, câbles, ficelles et filets",
+"niveau": "CLASSE",
+"parent": "139"
+},
+{
+"code": "1399",
+"libelle": "Fabrication d’articles textiles, n.c.a.",
+"niveau": "CLASSE",
+"parent": "139"
+},
+{
+"code": "14",
+"libelle": "Fabrication d’articles d’habillement",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "141",
+"libelle": "Fabrication d’articles d’habillement autre qu’en fourrure",
+"niveau": "GROUPE",
+"parent": "14"
+},
+{
+"code": "1410",
+"libelle": "Fabrication d’articles d’habillement autre qu’en fourrure",
+"niveau": "CLASSE",
+"parent": "141"
+},
+{
+"code": "142",
+"libelle": "Fabrication d’articles en fourrure",
+"niveau": "GROUPE",
+"parent": "14"
+},
+{
+"code": "1420",
+"libelle": "Fabrication d’articles en fourrure",
+"niveau": "CLASSE",
+"parent": "142"
+},
+{
+"code": "143",
+"libelle": "Fabrication d’articles de bonneterie",
+"niveau": "GROUPE",
+"parent": "14"
+},
+{
+"code": "1430",
+"libelle": "Fabrication d’articles de bonneterie",
+"niveau": "CLASSE",
+"parent": "143"
+},
+{
+"code": "15",
+"libelle": "Fabrication de cuir et d’articles de cuir",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "151",
+"libelle": "Apprêt et tannage des cuirs; fabrication d’articles de voyage et de maroquinerie, d’articles de sellerie et de bourrellerie; préparation et teinture des fourrures",
+"niveau": "GROUPE",
+"parent": "15"
+},
+{
+"code": "1511",
+"libelle": "Apprêt et tannage des cuirs; préparation et teinture des fourrures",
+"niveau": "CLASSE",
+"parent": "151"
+},
+{
+"code": "1512",
+"libelle": "Fabrication d’articles de voyage et de maroquinerie, d’articles de sellerie et de bourrellerie",
+"niveau": "CLASSE",
+"parent": "151"
+},
+{
+"code": "152",
+"libelle": "Fabrication de chaussures",
+"niveau": "GROUPE",
+"parent": "15"
+},
+{
+"code": "1520",
+"libelle": "Fabrication de chaussures",
+"niveau": "CLASSE",
+"parent": "152"
+},
+{
+"code": "16",
+"libelle": "Production de bois et d’articles en bois et en liège (sauf fabrication de meubles); fabrication d’articles de vannerie et de sparterie",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "161",
+"libelle": "Sciage et rabotage du bois",
+"niveau": "GROUPE",
+"parent": "16"
+},
+{
+"code": "1610",
+"libelle": "Sciage et rabotage du bois",
+"niveau": "CLASSE",
+"parent": "161"
+},
+{
+"code": "162",
+"libelle": "Fabrication d’articles en bois, liège, vannerie et sparterie",
+"niveau": "GROUPE",
+"parent": "16"
+},
+{
+"code": "1621",
+"libelle": "Fabrication de feuilles de placage et de panneaux à base de bois",
+"niveau": "CLASSE",
+"parent": "162"
+},
+{
+"code": "1622",
+"libelle": "Fabrication d’ouvrages de charpenterie et de menuiserie du bâtiment",
+"niveau": "CLASSE",
+"parent": "162"
+},
+{
+"code": "1623",
+"libelle": "Fabrication d’emballages en bois",
+"niveau": "CLASSE",
+"parent": "162"
+},
+{
+"code": "1629",
+"libelle": "Fabrication d’autres ouvrages en bois; fabrication d’ouvrages en liège, vannerie et sparterie",
+"niveau": "CLASSE",
+"parent": "162"
+},
+{
+"code": "17",
+"libelle": "Fabrication de papier et d’articles en papier",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "170",
+"libelle": "Fabrication de papier et d’articles en papier",
+"niveau": "GROUPE",
+"parent": "17"
+},
+{
+"code": "1701",
+"libelle": "Fabrication de pâte, de papier et de carton",
+"niveau": "CLASSE",
+"parent": "170"
+},
+{
+"code": "1702",
+"libelle": "Fabrication de papier et carton ondulés et d’emballages en papier et carton",
+"niveau": "CLASSE",
+"parent": "170"
+},
+{
+"code": "1709",
+"libelle": "Fabrication d’autres articles en papier et carton",
+"niveau": "CLASSE",
+"parent": "170"
+},
+{
+"code": "18",
+"libelle": "Imprimerie et reproduction de supports enregistrés",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "181",
+"libelle": "Imprimerie et activités annexes",
+"niveau": "GROUPE",
+"parent": "18"
+},
+{
+"code": "1811",
+"libelle": "Imprimerie",
+"niveau": "CLASSE",
+"parent": "181"
+},
+{
+"code": "1812",
+"libelle": "Activités annexes à l’imprimerie",
+"niveau": "CLASSE",
+"parent": "181"
+},
+{
+"code": "182",
+"libelle": "Reproduction de supports enregistrés",
+"niveau": "GROUPE",
+"parent": "18"
+},
+{
+"code": "1820",
+"libelle": "Reproduction de supports enregistrés",
+"niveau": "CLASSE",
+"parent": "182"
+},
+{
+"code": "19",
+"libelle": "Cokéfaction et fabrication de produits pétroliers raffinés",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "191",
+"libelle": "Cokéfaction",
+"niveau": "GROUPE",
+"parent": "19"
+},
+{
+"code": "1910",
+"libelle": "Cokéfaction",
+"niveau": "CLASSE",
+"parent": "191"
+},
+{
+"code": "192",
+"libelle": "Production de produits pétroliers raffinés",
+"niveau": "GROUPE",
+"parent": "19"
+},
+{
+"code": "1920",
+"libelle": "Production de produits pétroliers raffinés",
+"niveau": "CLASSE",
+"parent": "192"
+},
+{
+"code": "20",
+"libelle": "Fabrication de produits chimiques",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "201",
+"libelle": "Fabrication de produits chimiques de base, d’engrais et de produits azotés, de matières plastiques et de caoutchouc synthétique sous formes primaires",
+"niveau": "GROUPE",
+"parent": "20"
+},
+{
+"code": "2011",
+"libelle": "Fabrication de produits chimiques de base",
+"niveau": "CLASSE",
+"parent": "201"
+},
+{
+"code": "2012",
+"libelle": "Fabrication d’engrais et de produits azotés",
+"niveau": "CLASSE",
+"parent": "201"
+},
+{
+"code": "2013",
+"libelle": "Fabrication de matières plastiques et de caoutchouc synthétique sous formes primaires",
+"niveau": "CLASSE",
+"parent": "201"
+},
+{
+"code": "202",
+"libelle": "Fabrication d’autres produits chimiques",
+"niveau": "GROUPE",
+"parent": "20"
+},
+{
+"code": "2021",
+"libelle": "Fabrication de pesticides et d’autres produits agrochimiques",
+"niveau": "CLASSE",
+"parent": "202"
+},
+{
+"code": "2022",
+"libelle": "Fabrication de peintures, vernis et produits similaires, d’encres d’imprimerie et de mastics",
+"niveau": "CLASSE",
+"parent": "202"
+},
+{
+"code": "2023",
+"libelle": "Fabrication de savons et détergents, de produits d’entretien, de parfums et de produits pour la toilette",
+"niveau": "CLASSE",
+"parent": "202"
+},
+{
+"code": "2029",
+"libelle": "Fabrication d’autres produits chimiques, n.c.a.",
+"niveau": "CLASSE",
+"parent": "202"
+},
+{
+"code": "203",
+"libelle": "Fabrication de fibres synthétiques ou artificielles",
+"niveau": "GROUPE",
+"parent": "20"
+},
+{
+"code": "2030",
+"libelle": "Fabrication de fibres synthétiques ou artificielles",
+"niveau": "CLASSE",
+"parent": "203"
+},
+{
+"code": "21",
+"libelle": "Fabrication de préparations pharmaceutiques, de produits chimiques à usage médicinal et de produits d’herboristerie",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "210",
+"libelle": "Fabrication de préparations pharmaceutiques, de produits chimiques à usage",
+"niveau": "GROUPE",
+"parent": "21"
+},
+{
+"code": "2100",
+"libelle": "Fabrication de préparations pharmaceutiques, de produits chimiques à usage médicinal et de produits d’herboristerie",
+"niveau": "CLASSE",
+"parent": "210"
+},
+{
+"code": "22",
+"libelle": "Fabrication d’articles en caoutchouc et en matières plastiques",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "221",
+"libelle": "Fabrication de produits en caoutchouc",
+"niveau": "GROUPE",
+"parent": "22"
+},
+{
+"code": "2211",
+"libelle": "Fabrication de pneumatiques et de chambres à air; rechapage et resculptage de pneumatiques",
+"niveau": "CLASSE",
+"parent": "221"
+},
+{
+"code": "2219",
+"libelle": "Fabrication d’autres articles en caoutchouc",
+"niveau": "CLASSE",
+"parent": "221"
+},
+{
+"code": "222",
+"libelle": "Fabrication d’articles en matières plastiques",
+"niveau": "GROUPE",
+"parent": "22"
+},
+{
+"code": "2220",
+"libelle": "Fabrication d’articles en matières plastiques",
+"niveau": "CLASSE",
+"parent": "222"
+},
+{
+"code": "23",
+"libelle": "Fabrication d’autres produits minéraux non métalliques",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "231",
+"libelle": "Fabrication de verre et d’articles en verre",
+"niveau": "GROUPE",
+"parent": "23"
+},
+{
+"code": "2310",
+"libelle": "Fabrication de verre et d’articles en verre",
+"niveau": "CLASSE",
+"parent": "231"
+},
+{
+"code": "239",
+"libelle": "Fabrication de produits minéraux non métalliques, n.c.a.",
+"niveau": "GROUPE",
+"parent": "23"
+},
+{
+"code": "2391",
+"libelle": "Fabrication de produits réfractaires",
+"niveau": "CLASSE",
+"parent": "239"
+},
+{
+"code": "2392",
+"libelle": "Fabrication de matériaux de construction en argile",
+"niveau": "CLASSE",
+"parent": "239"
+},
+{
+"code": "2393",
+"libelle": "Fabrication d’autres articles en porcelaine et en céramique",
+"niveau": "CLASSE",
+"parent": "239"
+},
+{
+"code": "2394",
+"libelle": "Fabrication de ciment, chaux et plâtre",
+"niveau": "CLASSE",
+"parent": "239"
+},
+{
+"code": "2395",
+"libelle": "Fabrication d’ouvrages en béton, en ciment et en plâtre",
+"niveau": "CLASSE",
+"parent": "239"
+},
+{
+"code": "2396",
+"libelle": "Taille, façonnage et finissage de la pierre",
+"niveau": "CLASSE",
+"parent": "239"
+},
+{
+"code": "2399",
+"libelle": "Fabrication d’autres produits minéraux non métalliques, n.c.a.",
+"niveau": "CLASSE",
+"parent": "239"
+},
+{
+"code": "24",
+"libelle": "Fabrication de produits métallurgiques de base",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "241",
+"libelle": "Sidérurgie et première transformation de l’acier",
+"niveau": "GROUPE",
+"parent": "24"
+},
+{
+"code": "2410",
+"libelle": "Sidérurgie et première transformation de l’acier",
+"niveau": "CLASSE",
+"parent": "241"
+},
+{
+"code": "242",
+"libelle": "Métallurgie et première transformation des métaux précieux et des métaux",
+"niveau": "GROUPE",
+"parent": "24"
+},
+{
+"code": "2420",
+"libelle": "Métallurgie et première transformation des métaux précieux et des métaux non ferreux",
+"niveau": "CLASSE",
+"parent": "242"
+},
+{
+"code": "243",
+"libelle": "Fonderie",
+"niveau": "GROUPE",
+"parent": "24"
+},
+{
+"code": "2431",
+"libelle": "Fonderie de métaux ferreux",
+"niveau": "CLASSE",
+"parent": "243"
+},
+{
+"code": "2432",
+"libelle": "Fonderie de métaux non ferreux",
+"niveau": "CLASSE",
+"parent": "243"
+},
+{
+"code": "25",
+"libelle": "Fabrication d’ouvrages en métaux (sauf machines et matériel)",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "251",
+"libelle": "Construction et menuiserie métalliques; fabrication de citernes, réservoirs et générateurs de vapeur",
+"niveau": "GROUPE",
+"parent": "25"
+},
+{
+"code": "2511",
+"libelle": "Construction et menuiserie métalliques",
+"niveau": "CLASSE",
+"parent": "251"
+},
+{
+"code": "2512",
+"libelle": "Fabrication de réservoirs, citernes et conteneurs métalliques",
+"niveau": "CLASSE",
+"parent": "251"
+},
+{
+"code": "2513",
+"libelle": "Fabrication de générateurs de vapeur (sauf chaudières de chauffage central à eau chaude)",
+"niveau": "CLASSE",
+"parent": "251"
+},
+{
+"code": "252",
+"libelle": "Fabrication d’armes et de munitions",
+"niveau": "GROUPE",
+"parent": "25"
+},
+{
+"code": "2520",
+"libelle": "Fabrication d’armes et de munitions",
+"niveau": "CLASSE",
+"parent": "252"
+},
+{
+"code": "259",
+"libelle": "Fabrication d’autres ouvrages en métaux; activités de services du travail des métaux",
+"niveau": "GROUPE",
+"parent": "25"
+},
+{
+"code": "2591",
+"libelle": "Forgeage, emboutissage, estampage et profilage du métal; métallurgie des poudres",
+"niveau": "CLASSE",
+"parent": "259"
+},
+{
+"code": "2592",
+"libelle": "Traitement et revêtement des métaux; façonnage",
+"niveau": "CLASSE",
+"parent": "259"
+},
+{
+"code": "2593",
+"libelle": "Fabrication de coutellerie, d’outils à main et de quincaillerie générale",
+"niveau": "CLASSE",
+"parent": "259"
+},
+{
+"code": "2599",
+"libelle": "Fabrication d’ouvrages en métaux, n.c.a.",
+"niveau": "CLASSE",
+"parent": "259"
+},
+{
+"code": "26",
+"libelle": "Fabrication d’ordinateurs, d’articles électroniques et optiques",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "261",
+"libelle": "Fabrication de composants électroniques et de dispositifs d’affichage",
+"niveau": "GROUPE",
+"parent": "26"
+},
+{
+"code": "2610",
+"libelle": "Fabrication de composants électroniques et de dispositifs d’affichage",
+"niveau": "CLASSE",
+"parent": "261"
+},
+{
+"code": "262",
+"libelle": "Fabrication d’ordinateurs et de matériel périphérique",
+"niveau": "GROUPE",
+"parent": "26"
+},
+{
+"code": "2620",
+"libelle": "Fabrication d’ordinateurs et de matériel périphérique",
+"niveau": "CLASSE",
+"parent": "262"
+},
+{
+"code": "263",
+"libelle": "Fabrication de matériel de communication",
+"niveau": "GROUPE",
+"parent": "26"
+},
+{
+"code": "2630",
+"libelle": "Fabrication de matériel de communication",
+"niveau": "CLASSE",
+"parent": "263"
+},
+{
+"code": "264",
+"libelle": "Fabrication de matériel électronique grand public",
+"niveau": "GROUPE",
+"parent": "26"
+},
+{
+"code": "2640",
+"libelle": "Fabrication de matériel électronique grand public",
+"niveau": "CLASSE",
+"parent": "264"
+},
+{
+"code": "265",
+"libelle": "Fabrication de matériel pour la mesure, la vérification, la navigation et le contrôle; horlogerie",
+"niveau": "GROUPE",
+"parent": "26"
+},
+{
+"code": "2651",
+"libelle": "Fabrication de matériel pour la mesure, la vérification, la navigation et le contrôle",
+"niveau": "CLASSE",
+"parent": "265"
+},
+{
+"code": "2652",
+"libelle": "Fabrication d’horlogerie",
+"niveau": "CLASSE",
+"parent": "265"
+},
+{
+"code": "266",
+"libelle": "Fabrication de matériel d’irradiation, électromédical et électrothérapeutique.",
+"niveau": "GROUPE",
+"parent": "26"
+},
+{
+"code": "2660",
+"libelle": "Fabrication de matériel d’irradiation, électromédical et électrothérapeutique.",
+"niveau": "CLASSE",
+"parent": "266"
+},
+{
+"code": "267",
+"libelle": "Fabrication d’instruments d’optique et de matériel photographique",
+"niveau": "GROUPE",
+"parent": "26"
+},
+{
+"code": "2670",
+"libelle": "Fabrication d’instruments d’optique et de matériel photographique",
+"niveau": "CLASSE",
+"parent": "267"
+},
+{
+"code": "268",
+"libelle": "Fabrication de supports magnétiques et optiques",
+"niveau": "GROUPE",
+"parent": "26"
+},
+{
+"code": "2680",
+"libelle": "Fabrication de supports magnétiques et optiques",
+"niveau": "CLASSE",
+"parent": "268"
+},
+{
+"code": "27",
+"libelle": "Fabrication de matériels électriques",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "271",
+"libelle": "Fabrication de moteurs, génératrices et transformateurs électriques, de matériel",
+"niveau": "GROUPE",
+"parent": "27"
+},
+{
+"code": "2710",
+"libelle": "Fabrication de moteurs, génératrices et transformateurs électriques, de matériel électrique de distribution et de commandes",
+"niveau": "CLASSE",
+"parent": "271"
+},
+{
+"code": "272",
+"libelle": "Fabrication de batteries et d’accumulateurs",
+"niveau": "GROUPE",
+"parent": "27"
+},
+{
+"code": "2720",
+"libelle": "Fabrication de batteries et d’accumulateurs",
+"niveau": "CLASSE",
+"parent": "272"
+},
+{
+"code": "273",
+"libelle": "Fabrication de câbles et dispositifs de câblage",
+"niveau": "GROUPE",
+"parent": "27"
+},
+{
+"code": "2731",
+"libelle": "Fabrication de câbles de fibres optiques",
+"niveau": "CLASSE",
+"parent": "273"
+},
+{
+"code": "2732",
+"libelle": "Fabrication d’autres fils et câbles électroniques et électriques",
+"niveau": "CLASSE",
+"parent": "273"
+},
+{
+"code": "2733",
+"libelle": "Fabrication de dispositifs de câblage",
+"niveau": "CLASSE",
+"parent": "273"
+},
+{
+"code": "274",
+"libelle": "Fabrication d’appareils électriques d’éclairage",
+"niveau": "GROUPE",
+"parent": "27"
+},
+{
+"code": "2740",
+"libelle": "Fabrication d’appareils électriques d’éclairage",
+"niveau": "CLASSE",
+"parent": "274"
+},
+{
+"code": "275",
+"libelle": "Fabrication d’appareils ménagers",
+"niveau": "GROUPE",
+"parent": "27"
+},
+{
+"code": "2750",
+"libelle": "Fabrication d’appareils ménagers",
+"niveau": "CLASSE",
+"parent": "275"
+},
+{
+"code": "279",
+"libelle": "Fabrication d’autres matériels électriques",
+"niveau": "GROUPE",
+"parent": "27"
+},
+{
+"code": "2790",
+"libelle": "Fabrication d’autres matériels électriques",
+"niveau": "CLASSE",
+"parent": "279"
+},
+{
+"code": "28",
+"libelle": "Fabrication de machines et de matériel, n.c.a.",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "281",
+"libelle": "Fabrication de machines d’usage général",
+"niveau": "GROUPE",
+"parent": "28"
+},
+{
+"code": "2811",
+"libelle": "Fabrication de moteurs et de turbines, sauf moteurs pour avions, automobiles et motocycles",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "2812",
+"libelle": "Fabrication de matériel hydraulique",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "2813",
+"libelle": "Fabrication d’autres pompes, compresseurs, et articles de robinetterie",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "2814",
+"libelle": "Fabrication de paliers, d’engrenages et d’organes mécaniques de transmission",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "2815",
+"libelle": "Fabrication de fours et de brûleurs",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "2816",
+"libelle": "Fabrication de matériel de levage et de manutention",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "2817",
+"libelle": "Fabrication de machines et de matériel de bureau (à l’exception des ordinateurs et du matériel périphérique)",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "2818",
+"libelle": "Fabrication d’outils à main à entraînement mécanique",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "2819",
+"libelle": "Fabrication d’autres machines d’usage général",
+"niveau": "CLASSE",
+"parent": "281"
+},
+{
+"code": "282",
+"libelle": "Fabrication de machines d’usage spécifique",
+"niveau": "GROUPE",
+"parent": "28"
+},
+{
+"code": "2821",
+"libelle": "Fabrication de machines agricoles et forestières",
+"niveau": "CLASSE",
+"parent": "282"
+},
+{
+"code": "2822",
+"libelle": "Fabrication de machines pour le travail des métaux et de machines-outils",
+"niveau": "CLASSE",
+"parent": "282"
+},
+{
+"code": "2823",
+"libelle": "Fabrication de machines pour la métallurgie",
+"niveau": "CLASSE",
+"parent": "282"
+},
+{
+"code": "2824",
+"libelle": "Fabrication de machines pour les mines, les carrières et la construction",
+"niveau": "CLASSE",
+"parent": "282"
+},
+{
+"code": "2825",
+"libelle": "Fabrication de machines pour le traitement des produits alimentaires, des boissons et du tabac",
+"niveau": "CLASSE",
+"parent": "282"
+},
+{
+"code": "2826",
+"libelle": "Fabrication de machines pour les industries du textile, de l’habillement et des cuirs",
+"niveau": "CLASSE",
+"parent": "282"
+},
+{
+"code": "2829",
+"libelle": "Fabrication d’autres machines d’usage spécifique",
+"niveau": "CLASSE",
+"parent": "282"
+},
+{
+"code": "29",
+"libelle": "Construction de véhicules automobiles, de remorques et semi-remorques",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "291",
+"libelle": "Construction de véhicules automobiles",
+"niveau": "GROUPE",
+"parent": "29"
+},
+{
+"code": "2910",
+"libelle": "Construction de véhicules automobiles",
+"niveau": "CLASSE",
+"parent": "291"
+},
+{
+"code": "292",
+"libelle": "Fabrication de carrosseries pour véhicules automobiles; fabrication de remorques",
+"niveau": "GROUPE",
+"parent": "29"
+},
+{
+"code": "2920",
+"libelle": "Fabrication de carrosseries pour véhicules automobiles; fabrication de remorques et de semi-remorques",
+"niveau": "CLASSE",
+"parent": "292"
+},
+{
+"code": "293",
+"libelle": "Fabrication de pièces et accessoires pour véhicules automobiles et leurs moteurs",
+"niveau": "GROUPE",
+"parent": "29"
+},
+{
+"code": "2930",
+"libelle": "Fabrication de pièces et accessoires pour véhicules automobiles et leurs moteurs",
+"niveau": "CLASSE",
+"parent": "293"
+},
+{
+"code": "30",
+"libelle": "Fabrication d’autres matériels de transport",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "301",
+"libelle": "Construction de navires et de bateaux",
+"niveau": "GROUPE",
+"parent": "30"
+},
+{
+"code": "3011",
+"libelle": "Construction de navires et d’engins flottants",
+"niveau": "CLASSE",
+"parent": "301"
+},
+{
+"code": "3012",
+"libelle": "Construction de bateaux de plaisance et de sport",
+"niveau": "CLASSE",
+"parent": "301"
+},
+{
+"code": "302",
+"libelle": "Fabrication de matériel ferroviaire roulant",
+"niveau": "GROUPE",
+"parent": "30"
+},
+{
+"code": "3020",
+"libelle": "Fabrication de matériel ferroviaire roulant",
+"niveau": "CLASSE",
+"parent": "302"
+},
+{
+"code": "303",
+"libelle": "Construction aéronautique et spatiale et de matériel connexe",
+"niveau": "GROUPE",
+"parent": "30"
+},
+{
+"code": "3030",
+"libelle": "Construction aéronautique et spatiale et de matériel connexe",
+"niveau": "CLASSE",
+"parent": "303"
+},
+{
+"code": "304",
+"libelle": "Fabrication de véhicules militaires de combat",
+"niveau": "GROUPE",
+"parent": "30"
+},
+{
+"code": "3040",
+"libelle": "Fabrication de véhicules militaires de combat",
+"niveau": "CLASSE",
+"parent": "304"
+},
+{
+"code": "309",
+"libelle": "Fabrication de matériels de transport, n.c.a.",
+"niveau": "GROUPE",
+"parent": "30"
+},
+{
+"code": "3091",
+"libelle": "Fabrication de motocycles",
+"niveau": "CLASSE",
+"parent": "309"
+},
+{
+"code": "3092",
+"libelle": "Fabrication de bicycles et de véhicules pour invalides",
+"niveau": "CLASSE",
+"parent": "309"
+},
+{
+"code": "3099",
+"libelle": "Fabrication d’autres matériels de transport, n.c.a.",
+"niveau": "CLASSE",
+"parent": "309"
+},
+{
+"code": "31",
+"libelle": "Fabrication de meubles",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "310",
+"libelle": "Fabrication de meubles",
+"niveau": "GROUPE",
+"parent": "31"
+},
+{
+"code": "3100",
+"libelle": "Fabrication de meubles",
+"niveau": "CLASSE",
+"parent": "310"
+},
+{
+"code": "32",
+"libelle": "Autres activités de fabrication",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "321",
+"libelle": "Fabrication de bijouterie et d’articles similaires",
+"niveau": "GROUPE",
+"parent": "32"
+},
+{
+"code": "3211",
+"libelle": "Fabrication de bijouterie et d’articles similaires",
+"niveau": "CLASSE",
+"parent": "321"
+},
+{
+"code": "3212",
+"libelle": "Fabrication de bijouterie de fantaisie et d’articles similaires",
+"niveau": "CLASSE",
+"parent": "321"
+},
+{
+"code": "322",
+"libelle": "Fabrication d’instruments de musique",
+"niveau": "GROUPE",
+"parent": "32"
+},
+{
+"code": "3220",
+"libelle": "Fabrication d’instruments de musique",
+"niveau": "CLASSE",
+"parent": "322"
+},
+{
+"code": "323",
+"libelle": "Fabrication d’articles de sport",
+"niveau": "GROUPE",
+"parent": "32"
+},
+{
+"code": "3230",
+"libelle": "Fabrication d’articles de sport",
+"niveau": "CLASSE",
+"parent": "323"
+},
+{
+"code": "324",
+"libelle": "Fabrication de jeux et jouets",
+"niveau": "GROUPE",
+"parent": "32"
+},
+{
+"code": "3240",
+"libelle": "Fabrication de jeux et jouets",
+"niveau": "CLASSE",
+"parent": "324"
+},
+{
+"code": "325",
+"libelle": "Fabrication d’instruments et appareils médicaux et dentaires",
+"niveau": "GROUPE",
+"parent": "32"
+},
+{
+"code": "3250",
+"libelle": "Fabrication d’instruments et appareils médicaux et dentaires",
+"niveau": "CLASSE",
+"parent": "325"
+},
+{
+"code": "329",
+"libelle": "Autres activités de fabrication, n.c.a.",
+"niveau": "GROUPE",
+"parent": "32"
+},
+{
+"code": "3290",
+"libelle": "Autres activités de fabrication, n.c.a.",
+"niveau": "CLASSE",
+"parent": "329"
+},
+{
+"code": "33",
+"libelle": "Réparation et installation de machines et de matériel",
+"niveau": "DIVISION",
+"parent": "C"
+},
+{
+"code": "331",
+"libelle": "Réparation d’ouvrages en métaux, de machines et matériel",
+"niveau": "GROUPE",
+"parent": "33"
+},
+{
+"code": "3311",
+"libelle": "Réparation d’ouvrages en métaux",
+"niveau": "CLASSE",
+"parent": "331"
+},
+{
+"code": "3312",
+"libelle": "Réparation de machines",
+"niveau": "CLASSE",
+"parent": "331"
+},
+{
+"code": "3313",
+"libelle": "Réparation de matériel électronique et optique",
+"niveau": "CLASSE",
+"parent": "331"
+},
+{
+"code": "3314",
+"libelle": "Réparation de matériel électrique",
+"niveau": "CLASSE",
+"parent": "331"
+},
+{
+"code": "3315",
+"libelle": "Réparation de matériel de transport, à l’exception des véhicules à moteur",
+"niveau": "CLASSE",
+"parent": "331"
+},
+{
+"code": "3319",
+"libelle": "Réparation d’autres matériels",
+"niveau": "CLASSE",
+"parent": "331"
+},
+{
+"code": "332",
+"libelle": "Installation de machines et de matériel pour l’industrie",
+"niveau": "GROUPE",
+"parent": "33"
+},
+{
+"code": "3320",
+"libelle": "Installation de machines et de matériel pour l’industrie",
+"niveau": "CLASSE",
+"parent": "332"
+},
+{
+"code": "D",
+"libelle": "Production et distribution d’électricité, de gaz, de vapeur et climatisation",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "35",
+"libelle": "Production et distribution d’électricité, de gaz, de vapeur et climatisation",
+"niveau": "DIVISION",
+"parent": "D"
+},
+{
+"code": "351",
+"libelle": "Production, transport et distribution d’électricité",
+"niveau": "GROUPE",
+"parent": "35"
+},
+{
+"code": "3510",
+"libelle": "Production, transport et distribution d’électricité",
+"niveau": "CLASSE",
+"parent": "351"
+},
+{
+"code": "352",
+"libelle": "Fabrication de gaz, distribution par conduites de combustibles gazeux",
+"niveau": "GROUPE",
+"parent": "35"
+},
+{
+"code": "3520",
+"libelle": "Fabrication de gaz, distribution par conduites de combustibles gazeux",
+"niveau": "CLASSE",
+"parent": "352"
+},
+{
+"code": "353",
+"libelle": "Production et distribution de vapeur et climatisation",
+"niveau": "GROUPE",
+"parent": "35"
+},
+{
+"code": "3530",
+"libelle": "Production et distribution de vapeur et climatisation",
+"niveau": "CLASSE",
+"parent": "353"
+},
+{
+"code": "E",
+"libelle": "Distribution d’eau; réseau d’assainissement; gestion des déchets et activités de remise en état",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "36",
+"libelle": "Collecte et traitement des eaux, distribution d’eau",
+"niveau": "DIVISION",
+"parent": "E"
+},
+{
+"code": "360",
+"libelle": "Collecte et traitement des eaux, distribution d’eau",
+"niveau": "GROUPE",
+"parent": "36"
+},
+{
+"code": "3600",
+"libelle": "Collecte et traitement des eaux, distribution d’eau",
+"niveau": "CLASSE",
+"parent": "360"
+},
+{
+"code": "37",
+"libelle": "Réseau d’assainissement",
+"niveau": "DIVISION",
+"parent": "E"
+},
+{
+"code": "370",
+"libelle": "Réseau d’assainissement",
+"niveau": "GROUPE",
+"parent": "37"
+},
+{
+"code": "3700",
+"libelle": "Réseau d’assainissement",
+"niveau": "CLASSE",
+"parent": "370"
+},
+{
+"code": "38",
+"libelle": "Collecte des déchets, activités de traitement et d’évacuation; récupération des matières",
+"niveau": "DIVISION",
+"parent": "E"
+},
+{
+"code": "381",
+"libelle": "Collecte des déchets",
+"niveau": "GROUPE",
+"parent": "38"
+},
+{
+"code": "3811",
+"libelle": "Collecte de déchets non dangereux",
+"niveau": "CLASSE",
+"parent": "381"
+},
+{
+"code": "3812",
+"libelle": "Collecte de déchets dangereux",
+"niveau": "CLASSE",
+"parent": "381"
+},
+{
+"code": "382",
+"libelle": "Traitement et évacuation des déchets",
+"niveau": "GROUPE",
+"parent": "38"
+},
+{
+"code": "3821",
+"libelle": "Traitement et évacuation des déchets non dangereux",
+"niveau": "CLASSE",
+"parent": "382"
+},
+{
+"code": "3822",
+"libelle": "Traitement et évacuation des déchets dangereux",
+"niveau": "CLASSE",
+"parent": "382"
+},
+{
+"code": "383",
+"libelle": "Récupération des matières",
+"niveau": "GROUPE",
+"parent": "38"
+},
+{
+"code": "3830",
+"libelle": "Récupération des matières",
+"niveau": "CLASSE",
+"parent": "383"
+},
+{
+"code": "39",
+"libelle": "Activités de remise en état et autres services de traitement des déchets",
+"niveau": "DIVISION",
+"parent": "E"
+},
+{
+"code": "390",
+"libelle": "Activités de remise en état et autres services de traitement des déchets",
+"niveau": "GROUPE",
+"parent": "39"
+},
+{
+"code": "3900",
+"libelle": "Activités de remise en état et autres services de traitement des déchets",
+"niveau": "CLASSE",
+"parent": "390"
+},
+{
+"code": "F",
+"libelle": "Construction",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "41",
+"libelle": "Construction de bâtiments",
+"niveau": "DIVISION",
+"parent": "F"
+},
+{
+"code": "410",
+"libelle": "Construction de bâtiments",
+"niveau": "GROUPE",
+"parent": "41"
+},
+{
+"code": "4100",
+"libelle": "Construction de bâtiments",
+"niveau": "CLASSE",
+"parent": "410"
+},
+{
+"code": "42",
+"libelle": "Génie civil",
+"niveau": "DIVISION",
+"parent": "F"
+},
+{
+"code": "421",
+"libelle": "Construction de routes et de voies ferrées",
+"niveau": "GROUPE",
+"parent": "42"
+},
+{
+"code": "4210",
+"libelle": "Construction de routes et de voies ferrées",
+"niveau": "CLASSE",
+"parent": "421"
+},
+{
+"code": "422",
+"libelle": "Projets d’installation d’équipements collectifs",
+"niveau": "GROUPE",
+"parent": "42"
+},
+{
+"code": "4220",
+"libelle": "Projets d’installation d’équipements collectifs",
+"niveau": "CLASSE",
+"parent": "422"
+},
+{
+"code": "429",
+"libelle": "Autres projets de génie civil",
+"niveau": "GROUPE",
+"parent": "42"
+},
+{
+"code": "4290",
+"libelle": "Autres projets de génie civil",
+"niveau": "CLASSE",
+"parent": "429"
+},
+{
+"code": "43",
+"libelle": "Activités de construction spécialisées",
+"niveau": "DIVISION",
+"parent": "F"
+},
+{
+"code": "431",
+"libelle": "Démolition et préparation des sites",
+"niveau": "GROUPE",
+"parent": "43"
+},
+{
+"code": "4311",
+"libelle": "Démolition",
+"niveau": "CLASSE",
+"parent": "431"
+},
+{
+"code": "4312",
+"libelle": "Préparation des sites",
+"niveau": "CLASSE",
+"parent": "431"
+},
+{
+"code": "432",
+"libelle": "Travaux d’installations d’électricité et de plomberie et autres travaux d’installation",
+"niveau": "GROUPE",
+"parent": "43"
+},
+{
+"code": "4321",
+"libelle": "Installation d’électricité",
+"niveau": "CLASSE",
+"parent": "432"
+},
+{
+"code": "4322",
+"libelle": "Installation de matériel de plomberie, chauffage et climatisation",
+"niveau": "CLASSE",
+"parent": "432"
+},
+{
+"code": "4329",
+"libelle": "Autres travaux d’installation",
+"niveau": "CLASSE",
+"parent": "432"
+},
+{
+"code": "433",
+"libelle": "Travaux de finition",
+"niveau": "GROUPE",
+"parent": "43"
+},
+{
+"code": "4330",
+"libelle": "Travaux de finition",
+"niveau": "CLASSE",
+"parent": "433"
+},
+{
+"code": "439",
+"libelle": "Autres activités de construction spécialisées",
+"niveau": "GROUPE",
+"parent": "43"
+},
+{
+"code": "4390",
+"libelle": "Autres activités de construction spécialisées",
+"niveau": "CLASSE",
+"parent": "439"
+},
+{
+"code": "G",
+"libelle": "Commerce de gros et de détail, réparations de véhicules automobiles et de motocycles",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "45",
+"libelle": "Commerce de gros et de détail, réparation de véhicules automobiles et de motocycles",
+"niveau": "DIVISION",
+"parent": "G"
+},
+{
+"code": "451",
+"libelle": "Vente de véhicules automobiles",
+"niveau": "GROUPE",
+"parent": "45"
+},
+{
+"code": "4510",
+"libelle": "Vente de véhicules automobiles",
+"niveau": "CLASSE",
+"parent": "451"
+},
+{
+"code": "452",
+"libelle": "Entretien et réparation de véhicules automobiles",
+"niveau": "GROUPE",
+"parent": "45"
+},
+{
+"code": "4520",
+"libelle": "Entretien et réparation de véhicules automobiles",
+"niveau": "CLASSE",
+"parent": "452"
+},
+{
+"code": "453",
+"libelle": "Commerce de pièces et accessoires de véhicules automobiles",
+"niveau": "GROUPE",
+"parent": "45"
+},
+{
+"code": "4530",
+"libelle": "Commerce de pièces et accessoires de véhicules automobiles",
+"niveau": "CLASSE",
+"parent": "453"
+},
+{
+"code": "454",
+"libelle": "Commerce, entretien et réparation de motocycles et de leurs pièces et accessoires",
+"niveau": "GROUPE",
+"parent": "45"
+},
+{
+"code": "4540",
+"libelle": "Commerce, entretien et réparation de motocycles et de leurs pièces et accessoires",
+"niveau": "CLASSE",
+"parent": "454"
+},
+{
+"code": "46",
+"libelle": "Commerce de gros à l’exception des véhicules automobiles et des motocycles",
+"niveau": "DIVISION",
+"parent": "G"
+},
+{
+"code": "461",
+"libelle": "Activités d’intermédiaires de commerce de gros",
+"niveau": "GROUPE",
+"parent": "46"
+},
+{
+"code": "4610",
+"libelle": "Activités d’intermédiaires de commerce de gros",
+"niveau": "CLASSE",
+"parent": "461"
+},
+{
+"code": "462",
+"libelle": "Commerce de gros de produits agricoles bruts et d’animaux vivants",
+"niveau": "GROUPE",
+"parent": "46"
+},
+{
+"code": "4620",
+"libelle": "Commerce de gros de produits agricoles bruts et d’animaux vivants",
+"niveau": "CLASSE",
+"parent": "462"
+},
+{
+"code": "463",
+"libelle": "Commerce de gros de produits alimentaires, boissons et tabac",
+"niveau": "GROUPE",
+"parent": "46"
+},
+{
+"code": "4630",
+"libelle": "Commerce de gros de produits alimentaires, boissons et tabac",
+"niveau": "CLASSE",
+"parent": "463"
+},
+{
+"code": "464",
+"libelle": "Commerce de gros d’articles de ménage",
+"niveau": "GROUPE",
+"parent": "46"
+},
+{
+"code": "4641",
+"libelle": "Commerce de gros de textiles, habillement et chaussures",
+"niveau": "CLASSE",
+"parent": "464"
+},
+{
+"code": "4649",
+"libelle": "Commerce de gros d’autres articles de ménage",
+"niveau": "CLASSE",
+"parent": "464"
+},
+{
+"code": "465",
+"libelle": "Commerce de gros de machines, équipements et fournitures",
+"niveau": "GROUPE",
+"parent": "46"
+},
+{
+"code": "4651",
+"libelle": "Commerce de gros d’ordinateurs, de matériel périphérique et de logiciels d’ordinateurs",
+"niveau": "CLASSE",
+"parent": "465"
+},
+{
+"code": "4652",
+"libelle": "Commerce de gros de parties et d’équipements électroniques et de télécommunication",
+"niveau": "CLASSE",
+"parent": "465"
+},
+{
+"code": "4653",
+"libelle": "Commerce de gros de machines, équipement et fournitures agricoles",
+"niveau": "CLASSE",
+"parent": "465"
+},
+{
+"code": "4659",
+"libelle": "Commerces de gros d’autres machines et équipements",
+"niveau": "CLASSE",
+"parent": "465"
+},
+{
+"code": "466",
+"libelle": "Autres commerces de gros spécialisés",
+"niveau": "GROUPE",
+"parent": "46"
+},
+{
+"code": "4661",
+"libelle": "Commerce de gros de combustibles solides, liquides et gazeux et de produits dérivés",
+"niveau": "CLASSE",
+"parent": "466"
+},
+{
+"code": "4662",
+"libelle": "Commerce de gros de métaux et de minerais métalliques",
+"niveau": "CLASSE",
+"parent": "466"
+},
+{
+"code": "4663",
+"libelle": "Commerce de gros de matériaux de construction et d’équipement, et fournitures de quincaillerie, plomberie et chauffage",
+"niveau": "CLASSE",
+"parent": "466"
+},
+{
+"code": "4669",
+"libelle": "Commerce de gros de déchets et débris et autres produits, n.c.a.",
+"niveau": "CLASSE",
+"parent": "466"
+},
+{
+"code": "469",
+"libelle": "Commerce de gros non spécialisé",
+"niveau": "GROUPE",
+"parent": "46"
+},
+{
+"code": "4690",
+"libelle": "Commerce de gros non spécialisé",
+"niveau": "CLASSE",
+"parent": "469"
+},
+{
+"code": "47",
+"libelle": "Commerce de détail à l’exception des véhicules automobiles et des motocycles",
+"niveau": "DIVISION",
+"parent": "G"
+},
+{
+"code": "471",
+"libelle": "Commerce de détail en magasins non spécialisés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4711",
+"libelle": "Commerce de détail en magasins non spécialisés, avec vente prédominante de produits alimentaires, boissons et tabacs",
+"niveau": "CLASSE",
+"parent": "471"
+},
+{
+"code": "4719",
+"libelle": "Autres commerces de détail en magasins non spécialisés",
+"niveau": "CLASSE",
+"parent": "471"
+},
+{
+"code": "472",
+"libelle": "Commerce de détail de produits alimentaires, boissons et tabacs en magasins spécialisés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4721",
+"libelle": "Commerce de détail de produits alimentaires en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "472"
+},
+{
+"code": "4722",
+"libelle": "Commerce de détail de boissons en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "472"
+},
+{
+"code": "4723",
+"libelle": "Commerce de détail de tabacs en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "472"
+},
+{
+"code": "473",
+"libelle": "Commerce de détail de carburants automobiles en magasins spécialisés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4730",
+"libelle": "Commerce de détail de carburants automobiles en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "473"
+},
+{
+"code": "474",
+"libelle": "Commerce de détail d’équipement d’information et de communication en magasins spécialisés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4741",
+"libelle": "Commerce de détail d’ordinateurs, d’unités périphériques, de logiciels et de matériel de télécommunications en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "474"
+},
+{
+"code": "4742",
+"libelle": "Commerce de détail de matériel audio et vidéo en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "474"
+},
+{
+"code": "475",
+"libelle": "Commerce de détail d’autres équipements ménagers en magasins spécialisés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4751",
+"libelle": "Commerce de détail de textiles en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "475"
+},
+{
+"code": "4752",
+"libelle": "Commerce de détail de quincaillerie, peinture et verrerie en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "475"
+},
+{
+"code": "4753",
+"libelle": "Commerce de détail de moquette, tapis, revêtements de murs et sols en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "475"
+},
+{
+"code": "4759",
+"libelle": "Commerce de détail d’appareils électroménagers, de meubles de maison, d’articles d’éclairage et d’autres articles ménagers en magasins spécialisés.",
+"niveau": "CLASSE",
+"parent": "475"
+},
+{
+"code": "476",
+"libelle": "Commerce de détail d’articles pour la culture et les loisirs, en magasins spécialisés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4761",
+"libelle": "Commerce de détail de livres, journaux et articles de papeterie en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "476"
+},
+{
+"code": "4762",
+"libelle": "Commerce de détail d’enregistrements musicaux et vidéo en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "476"
+},
+{
+"code": "4763",
+"libelle": "Commerce de détail de matériel pour le sport en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "476"
+},
+{
+"code": "4764",
+"libelle": "Commerce de détail de jeux et jouets en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "476"
+},
+{
+"code": "477",
+"libelle": "Commerce de détail d’autres articles en magasins spécialisés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4771",
+"libelle": "Commerce de détail de vêtements, de chaussures et d’articles de cuir en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "477"
+},
+{
+"code": "4772",
+"libelle": "Commerce de détail de produits pharmaceutiques et médicaux, de produits de beauté et d’articles de toilette",
+"niveau": "CLASSE",
+"parent": "477"
+},
+{
+"code": "4773",
+"libelle": "Autres commerces de détail d’articles neufs en magasins spécialisés",
+"niveau": "CLASSE",
+"parent": "477"
+},
+{
+"code": "4774",
+"libelle": "Vente de détail d’articles d’occasion",
+"niveau": "CLASSE",
+"parent": "477"
+},
+{
+"code": "478",
+"libelle": "Vente de détail sur éventaires et marchés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4781",
+"libelle": "Vente de détail sur éventaires et marchés de produits alimentaires, boissons et tabac",
+"niveau": "CLASSE",
+"parent": "478"
+},
+{
+"code": "4782",
+"libelle": "Vente de détail sur éventaires et marchés de textiles, habillement et chaussures",
+"niveau": "CLASSE",
+"parent": "478"
+},
+{
+"code": "4789",
+"libelle": "Vente de détail sur éventaires et marchés d’autres articles",
+"niveau": "CLASSE",
+"parent": "478"
+},
+{
+"code": "479",
+"libelle": "Vente de détail autre qu’en magasins, éventaires ou marchés",
+"niveau": "GROUPE",
+"parent": "47"
+},
+{
+"code": "4791",
+"libelle": "Vente de détail par les entreprises de vente par correspondance, ou sur Internet",
+"niveau": "CLASSE",
+"parent": "479"
+},
+{
+"code": "4799",
+"libelle": "Autres commerces de détail autres qu’en magasin, sur éventaires ou marchés",
+"niveau": "CLASSE",
+"parent": "479"
+},
+{
+"code": "H",
+"libelle": "Transport et entreposage",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "49",
+"libelle": "Transports terrestres, transport par conduites",
+"niveau": "DIVISION",
+"parent": "H"
+},
+{
+"code": "491",
+"libelle": "Transports par chemin de fer",
+"niveau": "GROUPE",
+"parent": "49"
+},
+{
+"code": "4911",
+"libelle": "Transport de voyageurs par chemin de fer interurbain",
+"niveau": "CLASSE",
+"parent": "491"
+},
+{
+"code": "4912",
+"libelle": "Transport de marchandises par chemin de fer",
+"niveau": "CLASSE",
+"parent": "491"
+},
+{
+"code": "492",
+"libelle": "Autres transports terrestres",
+"niveau": "GROUPE",
+"parent": "49"
+},
+{
+"code": "4921",
+"libelle": "Transports terrestres de voyageurs par des réseaux urbains et suburbains",
+"niveau": "CLASSE",
+"parent": "492"
+},
+{
+"code": "4922",
+"libelle": "Autres transports terrestres de voyageurs",
+"niveau": "CLASSE",
+"parent": "492"
+},
+{
+"code": "4923",
+"libelle": "Transports routiers de marchandises",
+"niveau": "CLASSE",
+"parent": "492"
+},
+{
+"code": "493",
+"libelle": "Transports par conduites",
+"niveau": "GROUPE",
+"parent": "49"
+},
+{
+"code": "4930",
+"libelle": "Transports par conduites",
+"niveau": "CLASSE",
+"parent": "493"
+},
+{
+"code": "50",
+"libelle": "Transports par eau",
+"niveau": "DIVISION",
+"parent": "H"
+},
+{
+"code": "501",
+"libelle": "Transports maritimes et côtiers",
+"niveau": "GROUPE",
+"parent": "50"
+},
+{
+"code": "5011",
+"libelle": "Transports maritimes et côtiers de voyageurs",
+"niveau": "CLASSE",
+"parent": "501"
+},
+{
+"code": "5012",
+"libelle": "Transports maritimes et côtiers de marchandises",
+"niveau": "CLASSE",
+"parent": "501"
+},
+{
+"code": "502",
+"libelle": "Transports par voies navigables intérieures",
+"niveau": "GROUPE",
+"parent": "50"
+},
+{
+"code": "5021",
+"libelle": "Transport de voyageurs par voies navigables intérieures",
+"niveau": "CLASSE",
+"parent": "502"
+},
+{
+"code": "5022",
+"libelle": "Transport de marchandises par voies navigables intérieures",
+"niveau": "CLASSE",
+"parent": "502"
+},
+{
+"code": "51",
+"libelle": "Transports aériens",
+"niveau": "DIVISION",
+"parent": "H"
+},
+{
+"code": "511",
+"libelle": "Transport aérien de voyageurs",
+"niveau": "GROUPE",
+"parent": "51"
+},
+{
+"code": "5110",
+"libelle": "Transport aérien de voyageurs",
+"niveau": "CLASSE",
+"parent": "511"
+},
+{
+"code": "512",
+"libelle": "Transport aérien de marchandises",
+"niveau": "GROUPE",
+"parent": "51"
+},
+{
+"code": "5120",
+"libelle": "Transport aérien de marchandises",
+"niveau": "CLASSE",
+"parent": "512"
+},
+{
+"code": "52",
+"libelle": "Magasinage et activités annexes des transports",
+"niveau": "DIVISION",
+"parent": "H"
+},
+{
+"code": "521",
+"libelle": "Magasinage et entreposage",
+"niveau": "GROUPE",
+"parent": "52"
+},
+{
+"code": "5210",
+"libelle": "Magasinage et entreposage",
+"niveau": "CLASSE",
+"parent": "521"
+},
+{
+"code": "522",
+"libelle": "Activités annexes des transports",
+"niveau": "GROUPE",
+"parent": "52"
+},
+{
+"code": "5221",
+"libelle": "Activités de services annexes des transports terrestres",
+"niveau": "CLASSE",
+"parent": "522"
+},
+{
+"code": "5222",
+"libelle": "Activités de services annexes des transports par eau",
+"niveau": "CLASSE",
+"parent": "522"
+},
+{
+"code": "5223",
+"libelle": "Activités de services annexes des transports aériens",
+"niveau": "CLASSE",
+"parent": "522"
+},
+{
+"code": "5224",
+"libelle": "Manutention",
+"niveau": "CLASSE",
+"parent": "522"
+},
+{
+"code": "5229",
+"libelle": "Autres activités annexes des transports",
+"niveau": "CLASSE",
+"parent": "522"
+},
+{
+"code": "53",
+"libelle": "Activités de poste et de courrier",
+"niveau": "DIVISION",
+"parent": "H"
+},
+{
+"code": "531",
+"libelle": "Activités de poste",
+"niveau": "GROUPE",
+"parent": "53"
+},
+{
+"code": "5310",
+"libelle": "Activités de poste",
+"niveau": "CLASSE",
+"parent": "531"
+},
+{
+"code": "532",
+"libelle": "Activités de courrier",
+"niveau": "GROUPE",
+"parent": "53"
+},
+{
+"code": "5320",
+"libelle": "Activités de courrier",
+"niveau": "CLASSE",
+"parent": "532"
+},
+{
+"code": "I",
+"libelle": "Activités d’hébergement et de restauration",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "55",
+"libelle": "Hébergement",
+"niveau": "DIVISION",
+"parent": "I"
+},
+{
+"code": "551",
+"libelle": "Activités d’hébergement temporaire",
+"niveau": "GROUPE",
+"parent": "55"
+},
+{
+"code": "5510",
+"libelle": "Activités d’hébergement temporaire",
+"niveau": "CLASSE",
+"parent": "551"
+},
+{
+"code": "552",
+"libelle": "Terrains de camping, parcs pour véhicules de loisirs et caravanes",
+"niveau": "GROUPE",
+"parent": "55"
+},
+{
+"code": "5520",
+"libelle": "Terrains de camping, parcs pour véhicules de loisirs et caravanes",
+"niveau": "CLASSE",
+"parent": "552"
+},
+{
+"code": "559",
+"libelle": "Autres activités d’hébergement",
+"niveau": "GROUPE",
+"parent": "55"
+},
+{
+"code": "5590",
+"libelle": "Autres activités d’hébergement",
+"niveau": "CLASSE",
+"parent": "559"
+},
+{
+"code": "56",
+"libelle": "Activités de services de restauration et de consommation de boissons",
+"niveau": "DIVISION",
+"parent": "I"
+},
+{
+"code": "561",
+"libelle": "Activités de restaurants et de services de restauration mobiles",
+"niveau": "GROUPE",
+"parent": "56"
+},
+{
+"code": "5610",
+"libelle": "Activités de restaurants et de services de restauration mobiles",
+"niveau": "CLASSE",
+"parent": "561"
+},
+{
+"code": "562",
+"libelle": "Activités de restauration en kiosque et autres activités de services de restauration",
+"niveau": "GROUPE",
+"parent": "56"
+},
+{
+"code": "5621",
+"libelle": "Activités de restauration en kiosque",
+"niveau": "CLASSE",
+"parent": "562"
+},
+{
+"code": "5629",
+"libelle": "Autres activités de services de restauration",
+"niveau": "CLASSE",
+"parent": "562"
+},
+{
+"code": "563",
+"libelle": "Activités de consommation de boissons",
+"niveau": "GROUPE",
+"parent": "56"
+},
+{
+"code": "5630",
+"libelle": "Activités de consommation de boissons",
+"niveau": "CLASSE",
+"parent": "563"
+},
+{
+"code": "J",
+"libelle": "Information et communication",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "58",
+"libelle": "Activités d’édition",
+"niveau": "DIVISION",
+"parent": "J"
+},
+{
+"code": "581",
+"libelle": "Édition de livres, revues et autres activités d’édition",
+"niveau": "GROUPE",
+"parent": "58"
+},
+{
+"code": "5811",
+"libelle": "Édition de livres",
+"niveau": "CLASSE",
+"parent": "581"
+},
+{
+"code": "5812",
+"libelle": "Édition d’annuaires et de fichiers d’adresses",
+"niveau": "CLASSE",
+"parent": "581"
+},
+{
+"code": "5813",
+"libelle": "Édition de journaux, revues professionnelles, et périodiques",
+"niveau": "CLASSE",
+"parent": "581"
+},
+{
+"code": "5819",
+"libelle": "Autres activités d’édition",
+"niveau": "CLASSE",
+"parent": "581"
+},
+{
+"code": "582",
+"libelle": "Édition de logiciels",
+"niveau": "GROUPE",
+"parent": "58"
+},
+{
+"code": "5820",
+"libelle": "Édition de logiciels",
+"niveau": "CLASSE",
+"parent": "582"
+},
+{
+"code": "59",
+"libelle": "Activités de production de films cinématographiques et vidéo, de programmes de télévision, d’enregistrements sonores et d’édition musicale",
+"niveau": "DIVISION",
+"parent": "J"
+},
+{
+"code": "591",
+"libelle": "Activités de production de films cinématographiques et vidéo, et de programmes de télévision",
+"niveau": "GROUPE",
+"parent": "59"
+},
+{
+"code": "5911",
+"libelle": "Activités de production de films cinématographiques et vidéo, et de programmes de télévision",
+"niveau": "CLASSE",
+"parent": "591"
+},
+{
+"code": "5912",
+"libelle": "Activités consécutives à la production de films cinématographiques et vidéo, et de programmes de télévision",
+"niveau": "CLASSE",
+"parent": "591"
+},
+{
+"code": "5913",
+"libelle": "Activités de distribution de films cinématographiques et vidéo, et de programmes de télévision",
+"niveau": "CLASSE",
+"parent": "591"
+},
+{
+"code": "5914",
+"libelle": "Activités de projection de films cinématographiques",
+"niveau": "CLASSE",
+"parent": "591"
+},
+{
+"code": "592",
+"libelle": "Activités d’enregistrement du son et d’édition musicale.",
+"niveau": "GROUPE",
+"parent": "59"
+},
+{
+"code": "5920",
+"libelle": "Activités d’enregistrement du son et d’édition musicale.",
+"niveau": "CLASSE",
+"parent": "592"
+},
+{
+"code": "60",
+"libelle": "Activités de programmation et de diffusion",
+"niveau": "DIVISION",
+"parent": "J"
+},
+{
+"code": "601",
+"libelle": "Radiodiffusion",
+"niveau": "GROUPE",
+"parent": "60"
+},
+{
+"code": "6010",
+"libelle": "Radiodiffusion",
+"niveau": "CLASSE",
+"parent": "601"
+},
+{
+"code": "602",
+"libelle": "Activités de production et de diffusion de programmes de télévision",
+"niveau": "GROUPE",
+"parent": "60"
+},
+{
+"code": "6020",
+"libelle": "Activités de production et de diffusion de programmes de télévision",
+"niveau": "CLASSE",
+"parent": "602"
+},
+{
+"code": "61",
+"libelle": "Télécommunications",
+"niveau": "DIVISION",
+"parent": "J"
+},
+{
+"code": "611",
+"libelle": "Activités de télécommunications par câble",
+"niveau": "GROUPE",
+"parent": "61"
+},
+{
+"code": "6110",
+"libelle": "Activités de télécommunications par câble",
+"niveau": "CLASSE",
+"parent": "611"
+},
+{
+"code": "612",
+"libelle": "Activités de télécommunications sans fil",
+"niveau": "GROUPE",
+"parent": "61"
+},
+{
+"code": "6120",
+"libelle": "Activités de télécommunications sans fil",
+"niveau": "CLASSE",
+"parent": "612"
+},
+{
+"code": "613",
+"libelle": "Activités de télécommunications par satellite",
+"niveau": "GROUPE",
+"parent": "61"
+},
+{
+"code": "6130",
+"libelle": "Activités de télécommunications par satellite",
+"niveau": "CLASSE",
+"parent": "613"
+},
+{
+"code": "619",
+"libelle": "Autres activités de télécommunications",
+"niveau": "GROUPE",
+"parent": "61"
+},
+{
+"code": "6190",
+"libelle": "Autres activités de télécommunications",
+"niveau": "CLASSE",
+"parent": "619"
+},
+{
+"code": "62",
+"libelle": "Programmation informatique; conseils et activités connexes",
+"niveau": "DIVISION",
+"parent": "J"
+},
+{
+"code": "620",
+"libelle": "Programmation informatique; conseils et activités connexes",
+"niveau": "GROUPE",
+"parent": "62"
+},
+{
+"code": "6201",
+"libelle": "Activités de programmation informatique",
+"niveau": "CLASSE",
+"parent": "620"
+},
+{
+"code": "6202",
+"libelle": "Activités de conseils en matière informatique, et de gestion des moyens informatiques",
+"niveau": "CLASSE",
+"parent": "620"
+},
+{
+"code": "6209",
+"libelle": "Autres activités de services concernant la technologie de l’information et l’informatique",
+"niveau": "CLASSE",
+"parent": "620"
+},
+{
+"code": "63",
+"libelle": "Activités de services d’information",
+"niveau": "DIVISION",
+"parent": "J"
+},
+{
+"code": "631",
+"libelle": "Activités de traitement des données, d’hébergement et activités connexes; portails d’entrée sur le Web",
+"niveau": "GROUPE",
+"parent": "63"
+},
+{
+"code": "6311",
+"libelle": "Traitement de données, hébergement et activités connexes",
+"niveau": "CLASSE",
+"parent": "631"
+},
+{
+"code": "6312",
+"libelle": "Portails d’entrée sur le Web",
+"niveau": "CLASSE",
+"parent": "631"
+},
+{
+"code": "639",
+"libelle": "Autres activités de services d’information",
+"niveau": "GROUPE",
+"parent": "63"
+},
+{
+"code": "6391",
+"libelle": "Activités d’agence de presse",
+"niveau": "CLASSE",
+"parent": "639"
+},
+{
+"code": "6399",
+"libelle": "Autres activités de services d’information, n.c.a.",
+"niveau": "CLASSE",
+"parent": "639"
+},
+{
+"code": "K",
+"libelle": "Activités financières et d’assurances",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "64",
+"libelle": "Activités de services financiers, à l’exception des assurances et des caisses de retraite",
+"niveau": "DIVISION",
+"parent": "K"
+},
+{
+"code": "641",
+"libelle": "Intermédiation monétaire",
+"niveau": "GROUPE",
+"parent": "64"
+},
+{
+"code": "6411",
+"libelle": "Activités de banques centrales",
+"niveau": "CLASSE",
+"parent": "641"
+},
+{
+"code": "6419",
+"libelle": "Autres intermédiations monétaires",
+"niveau": "CLASSE",
+"parent": "641"
+},
+{
+"code": "642",
+"libelle": "Activités des sociétés de portefeuille",
+"niveau": "GROUPE",
+"parent": "64"
+},
+{
+"code": "6420",
+"libelle": "Activités des sociétés de portefeuille",
+"niveau": "CLASSE",
+"parent": "642"
+},
+{
+"code": "643",
+"libelle": "Fonds fiduciaires, fonds et entités financières analogues",
+"niveau": "GROUPE",
+"parent": "64"
+},
+{
+"code": "6430",
+"libelle": "Fonds fiduciaires, fonds et entités financières analogues",
+"niveau": "CLASSE",
+"parent": "643"
+},
+{
+"code": "649",
+"libelle": "Autres activités de services financiers, à l’exception des activités d’assurances et de caisses de retraite",
+"niveau": "GROUPE",
+"parent": "64"
+},
+{
+"code": "6491",
+"libelle": "Crédit-bail",
+"niveau": "CLASSE",
+"parent": "649"
+},
+{
+"code": "6492",
+"libelle": "Autres activités de crédit",
+"niveau": "CLASSE",
+"parent": "649"
+},
+{
+"code": "6499",
+"libelle": "Autres activités de services financiers, à l’exception des activités d’assurance et de caisses de retraite, n.c.a.",
+"niveau": "CLASSE",
+"parent": "649"
+},
+{
+"code": "65",
+"libelle": "Activités d’assurances, réassurance et de caisses de retraite, à l’exception de la sécurité sociale obligatoire",
+"niveau": "DIVISION",
+"parent": "K"
+},
+{
+"code": "651",
+"libelle": "Activités d’assurances",
+"niveau": "GROUPE",
+"parent": "65"
+},
+{
+"code": "6511",
+"libelle": "Activités d’assurances sur la vie",
+"niveau": "CLASSE",
+"parent": "651"
+},
+{
+"code": "6512",
+"libelle": "Activités d’assurances autres que sur la vie",
+"niveau": "CLASSE",
+"parent": "651"
+},
+{
+"code": "652",
+"libelle": "Activités de réassurance",
+"niveau": "GROUPE",
+"parent": "65"
+},
+{
+"code": "6520",
+"libelle": "Activités de réassurance",
+"niveau": "CLASSE",
+"parent": "652"
+},
+{
+"code": "653",
+"libelle": "Activités de caisses de retraite",
+"niveau": "GROUPE",
+"parent": "65"
+},
+{
+"code": "6530",
+"libelle": "Activités de caisses de retraite",
+"niveau": "CLASSE",
+"parent": "653"
+},
+{
+"code": "66",
+"libelle": "Activités auxiliaires des services financiers et des assurances",
+"niveau": "DIVISION",
+"parent": "K"
+},
+{
+"code": "661",
+"libelle": "Activités auxiliaires des services financiers à l’exception des assurances et des caisses de retraite",
+"niveau": "GROUPE",
+"parent": "66"
+},
+{
+"code": "6611",
+"libelle": "Administration de marchés financiers",
+"niveau": "CLASSE",
+"parent": "661"
+},
+{
+"code": "6612",
+"libelle": "Activités de courtage en contrats de valeurs et de produits",
+"niveau": "CLASSE",
+"parent": "661"
+},
+{
+"code": "6619",
+"libelle": "Autres activités auxiliaires des activités de services financiers",
+"niveau": "CLASSE",
+"parent": "661"
+},
+{
+"code": "662",
+"libelle": "Activités auxiliaires de financement des assurances et caisses de retraite",
+"niveau": "GROUPE",
+"parent": "66"
+},
+{
+"code": "6621",
+"libelle": "Évaluation de risque d’assurance et de dommages",
+"niveau": "CLASSE",
+"parent": "662"
+},
+{
+"code": "6622",
+"libelle": "Activités des agents d’assurance et des courtiers",
+"niveau": "CLASSE",
+"parent": "662"
+},
+{
+"code": "6629",
+"libelle": "Autres activités auxiliaires de financement des assurances et caisses de retraite",
+"niveau": "CLASSE",
+"parent": "662"
+},
+{
+"code": "663",
+"libelle": "Activités de gestion de fonds",
+"niveau": "GROUPE",
+"parent": "66"
+},
+{
+"code": "6630",
+"libelle": "Activités de gestion de fonds",
+"niveau": "CLASSE",
+"parent": "663"
+},
+{
+"code": "L",
+"libelle": "Activités immobilières",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "68",
+"libelle": "Activités immobilières",
+"niveau": "DIVISION",
+"parent": "L"
+},
+{
+"code": "681",
+"libelle": "Activités immobilières sur biens propres ou loués",
+"niveau": "GROUPE",
+"parent": "68"
+},
+{
+"code": "6810",
+"libelle": "Activités immobilières sur biens propres ou loués",
+"niveau": "CLASSE",
+"parent": "681"
+},
+{
+"code": "682",
+"libelle": "Activités immobilières à forfait ou sous contrat",
+"niveau": "GROUPE",
+"parent": "68"
+},
+{
+"code": "6820",
+"libelle": "Activités immobilières à forfait ou sous contrat",
+"niveau": "CLASSE",
+"parent": "682"
+},
+{
+"code": "M",
+"libelle": "Activités professionnelles, scientifiques et techniques",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "69",
+"libelle": "Activités juridiques et comptables",
+"niveau": "DIVISION",
+"parent": "M"
+},
+{
+"code": "691",
+"libelle": "Activités juridiques",
+"niveau": "GROUPE",
+"parent": "69"
+},
+{
+"code": "6910",
+"libelle": "Activités juridiques",
+"niveau": "CLASSE",
+"parent": "691"
+},
+{
+"code": "692",
+"libelle": "Activités comptables et d’audit; conseil fiscal",
+"niveau": "GROUPE",
+"parent": "69"
+},
+{
+"code": "6920",
+"libelle": "Activités comptables et d’audit; conseil fiscal",
+"niveau": "CLASSE",
+"parent": "692"
+},
+{
+"code": "70",
+"libelle": "Activités de bureaux principaux; activités de conseils en matière de gestion",
+"niveau": "DIVISION",
+"parent": "M"
+},
+{
+"code": "701",
+"libelle": "Activités de bureaux principaux",
+"niveau": "GROUPE",
+"parent": "70"
+},
+{
+"code": "7010",
+"libelle": "Activités de bureaux principaux",
+"niveau": "CLASSE",
+"parent": "701"
+},
+{
+"code": "702",
+"libelle": "Activités de conseils en matière de gestion",
+"niveau": "GROUPE",
+"parent": "70"
+},
+{
+"code": "7020",
+"libelle": "Activités de conseils en matière de gestion",
+"niveau": "CLASSE",
+"parent": "702"
+},
+{
+"code": "71",
+"libelle": "Activités d’architecture et d’ingénierie; activités d’essais et d’analyses techniques",
+"niveau": "DIVISION",
+"parent": "M"
+},
+{
+"code": "711",
+"libelle": "Activités d’architecture et d’ingénierie et de conseils techniques connexes",
+"niveau": "GROUPE",
+"parent": "71"
+},
+{
+"code": "7110",
+"libelle": "Activités d’architecture et d’ingénierie et de conseils techniques connexes",
+"niveau": "CLASSE",
+"parent": "711"
+},
+{
+"code": "712",
+"libelle": "Activités d’essais et d’analyses techniques",
+"niveau": "GROUPE",
+"parent": "71"
+},
+{
+"code": "7120",
+"libelle": "Activités d’essais et d’analyses techniques",
+"niveau": "CLASSE",
+"parent": "712"
+},
+{
+"code": "72",
+"libelle": "Recherche scientifique et développement",
+"niveau": "DIVISION",
+"parent": "M"
+},
+{
+"code": "721",
+"libelle": "Recherche-développement expérimental en sciences physiques et naturelles",
+"niveau": "GROUPE",
+"parent": "72"
+},
+{
+"code": "7210",
+"libelle": "Recherche-développement expérimental en sciences physiques et naturelles et en ingénierie",
+"niveau": "CLASSE",
+"parent": "721"
+},
+{
+"code": "722",
+"libelle": "Recherche-développement expérimental en sciences sociales et humaines",
+"niveau": "GROUPE",
+"parent": "72"
+},
+{
+"code": "7220",
+"libelle": "Recherche-développement expérimental en sciences sociales et humaines",
+"niveau": "CLASSE",
+"parent": "722"
+},
+{
+"code": "73",
+"libelle": "Publicité et études de marché",
+"niveau": "DIVISION",
+"parent": "M"
+},
+{
+"code": "731",
+"libelle": "Publicité",
+"niveau": "GROUPE",
+"parent": "73"
+},
+{
+"code": "7310",
+"libelle": "Publicité",
+"niveau": "CLASSE",
+"parent": "731"
+},
+{
+"code": "732",
+"libelle": "Activités d’études de marché et de sondage",
+"niveau": "GROUPE",
+"parent": "73"
+},
+{
+"code": "7320",
+"libelle": "Activités d’études de marché et de sondage",
+"niveau": "CLASSE",
+"parent": "732"
+},
+{
+"code": "74",
+"libelle": "Autres activités professionnelles, scientifiques et techniques",
+"niveau": "DIVISION",
+"parent": "M"
+},
+{
+"code": "741",
+"libelle": "Activités de conception de modèles",
+"niveau": "GROUPE",
+"parent": "74"
+},
+{
+"code": "7410",
+"libelle": "Activités de conception de modèles",
+"niveau": "CLASSE",
+"parent": "741"
+},
+{
+"code": "742",
+"libelle": "Activités photographiques",
+"niveau": "GROUPE",
+"parent": "74"
+},
+{
+"code": "7420",
+"libelle": "Activités photographiques",
+"niveau": "CLASSE",
+"parent": "742"
+},
+{
+"code": "749",
+"libelle": "Autres activités professionnelles, scientifiques et techniques, n.c.a.",
+"niveau": "GROUPE",
+"parent": "74"
+},
+{
+"code": "7490",
+"libelle": "Autres activités professionnelles, scientifiques et techniques, n.c.a.",
+"niveau": "CLASSE",
+"parent": "749"
+},
+{
+"code": "75",
+"libelle": "Activités de services vétérinaires",
+"niveau": "DIVISION",
+"parent": "M"
+},
+{
+"code": "750",
+"libelle": "Activités de services vétérinaires",
+"niveau": "GROUPE",
+"parent": "75"
+},
+{
+"code": "7500",
+"libelle": "Activités de services vétérinaires",
+"niveau": "CLASSE",
+"parent": "750"
+},
+{
+"code": "N",
+"libelle": "Activités de services administratifs et d’appui",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "77",
+"libelle": "Activités de location",
+"niveau": "DIVISION",
+"parent": "N"
+},
+{
+"code": "771",
+"libelle": "Location de véhicules automobiles",
+"niveau": "GROUPE",
+"parent": "77"
+},
+{
+"code": "7710",
+"libelle": "Location de véhicules automobiles",
+"niveau": "CLASSE",
+"parent": "771"
+},
+{
+"code": "772",
+"libelle": "Location d’articles personnels ou ménagers",
+"niveau": "GROUPE",
+"parent": "77"
+},
+{
+"code": "7721",
+"libelle": "Location d’articles pour le sport et les loisirs",
+"niveau": "CLASSE",
+"parent": "772"
+},
+{
+"code": "7722",
+"libelle": "Location de vidéocassettes et de vidéodisques",
+"niveau": "CLASSE",
+"parent": "772"
+},
+{
+"code": "7729",
+"libelle": "Location d’autres articles personnels ou ménagers",
+"niveau": "CLASSE",
+"parent": "772"
+},
+{
+"code": "773",
+"libelle": "Location d’autres machines, équipement et biens corporels",
+"niveau": "GROUPE",
+"parent": "77"
+},
+{
+"code": "7730",
+"libelle": "Location d’autres machines, équipement et biens corporels",
+"niveau": "CLASSE",
+"parent": "773"
+},
+{
+"code": "774",
+"libelle": "Location de produits de la propriété intellectuelle et d’autres produits similaires, à",
+"niveau": "GROUPE",
+"parent": "77"
+},
+{
+"code": "7740",
+"libelle": "Location de produits de la propriété intellectuelle et d’autres produits similaires, à l’exception des droits d’auteur",
+"niveau": "CLASSE",
+"parent": "774"
+},
+{
+"code": "78",
+"libelle": "Activités relatives à l’emploi",
+"niveau": "DIVISION",
+"parent": "N"
+},
+{
+"code": "781",
+"libelle": "Activités des agences de placement",
+"niveau": "GROUPE",
+"parent": "78"
+},
+{
+"code": "7810",
+"libelle": "Activités des agences de placement",
+"niveau": "CLASSE",
+"parent": "781"
+},
+{
+"code": "782",
+"libelle": "Activités des agences d’emploi temporaire",
+"niveau": "GROUPE",
+"parent": "78"
+},
+{
+"code": "7820",
+"libelle": "Activités des agences d’emploi temporaire",
+"niveau": "CLASSE",
+"parent": "782"
+},
+{
+"code": "783",
+"libelle": "Autres activités de fourniture de personnel",
+"niveau": "GROUPE",
+"parent": "78"
+},
+{
+"code": "7830",
+"libelle": "Autres activités de fourniture de personnel",
+"niveau": "CLASSE",
+"parent": "783"
+},
+{
+"code": "79",
+"libelle": "Activités des agences de voyages, voyagistes, services de réservation et activités connexes",
+"niveau": "DIVISION",
+"parent": "N"
+},
+{
+"code": "791",
+"libelle": "Activités des agences de voyages et des voyagistes",
+"niveau": "GROUPE",
+"parent": "79"
+},
+{
+"code": "7911",
+"libelle": "Activités des agences de voyages",
+"niveau": "CLASSE",
+"parent": "791"
+},
+{
+"code": "7912",
+"libelle": "Activités des voyagistes",
+"niveau": "CLASSE",
+"parent": "791"
+},
+{
+"code": "799",
+"libelle": "Autres activités des services de réservation et activités connexes",
+"niveau": "GROUPE",
+"parent": "79"
+},
+{
+"code": "7990",
+"libelle": "Autres activités des services de réservation et activités connexes",
+"niveau": "CLASSE",
+"parent": "799"
+},
+{
+"code": "80",
+"libelle": "Activités d’enquêtes et de sécurité",
+"niveau": "DIVISION",
+"parent": "N"
+},
+{
+"code": "801",
+"libelle": "Activités de services de sécurité privés",
+"niveau": "GROUPE",
+"parent": "80"
+},
+{
+"code": "8010",
+"libelle": "Activités de services de sécurité privés",
+"niveau": "CLASSE",
+"parent": "801"
+},
+{
+"code": "802",
+"libelle": "Activités des services de systèmes de sécurité",
+"niveau": "GROUPE",
+"parent": "80"
+},
+{
+"code": "8020",
+"libelle": "Activités des services de systèmes de sécurité",
+"niveau": "CLASSE",
+"parent": "802"
+},
+{
+"code": "803",
+"libelle": "Activités d’enquête",
+"niveau": "GROUPE",
+"parent": "80"
+},
+{
+"code": "8030",
+"libelle": "Activités d’enquête",
+"niveau": "CLASSE",
+"parent": "803"
+},
+{
+"code": "81",
+"libelle": "Activités des services concernant les bâtiments, architecture paysagère",
+"niveau": "DIVISION",
+"parent": "N"
+},
+{
+"code": "811",
+"libelle": "Activités d’appui aux installations intégrées",
+"niveau": "GROUPE",
+"parent": "81"
+},
+{
+"code": "8110",
+"libelle": "Activités d’appui aux installations intégrées",
+"niveau": "CLASSE",
+"parent": "811"
+},
+{
+"code": "812",
+"libelle": "Activités de nettoyage",
+"niveau": "GROUPE",
+"parent": "81"
+},
+{
+"code": "8121",
+"libelle": "Nettoyage général des bâtiments",
+"niveau": "CLASSE",
+"parent": "812"
+},
+{
+"code": "8129",
+"libelle": "Autres activités de nettoyage de bâtiments et de nettoyage industriel",
+"niveau": "CLASSE",
+"parent": "812"
+},
+{
+"code": "813",
+"libelle": "Activités des services d’entretien des espaces verts",
+"niveau": "GROUPE",
+"parent": "81"
+},
+{
+"code": "8130",
+"libelle": "Activités des services d’entretien des espaces verts",
+"niveau": "CLASSE",
+"parent": "813"
+},
+{
+"code": "82",
+"libelle": "Activités d’appui administratif, de secrétariat, et autres activités d’appui aux entreprises",
+"niveau": "DIVISION",
+"parent": "N"
+},
+{
+"code": "821",
+"libelle": "Activités d’appui administratif",
+"niveau": "GROUPE",
+"parent": "82"
+},
+{
+"code": "8211",
+"libelle": "Activités des services intégrés d’appui administratif",
+"niveau": "CLASSE",
+"parent": "821"
+},
+{
+"code": "8219",
+"libelle": "Photocopie, préparation de documents et autres activités spécialisées d’appui aux bureaux",
+"niveau": "CLASSE",
+"parent": "821"
+},
+{
+"code": "822",
+"libelle": "Activités des centres d’appel",
+"niveau": "GROUPE",
+"parent": "82"
+},
+{
+"code": "8220",
+"libelle": "Activités des centres d’appel",
+"niveau": "CLASSE",
+"parent": "822"
+},
+{
+"code": "823",
+"libelle": "Organisation de congrès et de foires commerciales",
+"niveau": "GROUPE",
+"parent": "82"
+},
+{
+"code": "8230",
+"libelle": "Organisation de congrès et de foires commerciales",
+"niveau": "CLASSE",
+"parent": "823"
+},
+{
+"code": "829",
+"libelle": "Activités de services d’appui aux entreprises, n.c.a.",
+"niveau": "GROUPE",
+"parent": "82"
+},
+{
+"code": "8291",
+"libelle": "Activités des agences de recouvrement et de crédit",
+"niveau": "CLASSE",
+"parent": "829"
+},
+{
+"code": "8292",
+"libelle": "Activités de conditionnement",
+"niveau": "CLASSE",
+"parent": "829"
+},
+{
+"code": "8299",
+"libelle": "Autres activités de services aux entreprises, n.c.a.",
+"niveau": "CLASSE",
+"parent": "829"
+},
+{
+"code": "O",
+"libelle": "Administration publique et défense; sécurité sociale obligatoire",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "84",
+"libelle": "Administration publique et défense; sécurité sociale obligatoire",
+"niveau": "DIVISION",
+"parent": "O"
+},
+{
+"code": "841",
+"libelle": "Administration générale; administration de la politique économique et sociale",
+"niveau": "GROUPE",
+"parent": "84"
+},
+{
+"code": "8411",
+"libelle": "Activités d’administration publique générale",
+"niveau": "CLASSE",
+"parent": "841"
+},
+{
+"code": "8412",
+"libelle": "Tutelle des activités des organismes qui s’occupent de santé, d’éducation, de culture et d’autres activités sociales, à l’exception de la sécurité sociale",
+"niveau": "CLASSE",
+"parent": "841"
+},
+{
+"code": "8413",
+"libelle": "Réglementation de l’exploitation des entreprises et contribution à l’amélioration de son efficacité",
+"niveau": "CLASSE",
+"parent": "841"
+},
+{
+"code": "842",
+"libelle": "Services fournis à l’ensemble de la collectivité",
+"niveau": "GROUPE",
+"parent": "84"
+},
+{
+"code": "8421",
+"libelle": "Affaires étrangères",
+"niveau": "CLASSE",
+"parent": "842"
+},
+{
+"code": "8422",
+"libelle": "Activités de défense",
+"niveau": "CLASSE",
+"parent": "842"
+},
+{
+"code": "8423",
+"libelle": "Activités de maintien de l’ordre et de la sécurité publics",
+"niveau": "CLASSE",
+"parent": "842"
+},
+{
+"code": "843",
+"libelle": "Activités de sécurité sociale obligatoire",
+"niveau": "GROUPE",
+"parent": "84"
+},
+{
+"code": "8430",
+"libelle": "Activités de sécurité sociale obligatoire",
+"niveau": "CLASSE",
+"parent": "843"
+},
+{
+"code": "P",
+"libelle": "Éducation",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "85",
+"libelle": "Éducation",
+"niveau": "DIVISION",
+"parent": "P"
+},
+{
+"code": "851",
+"libelle": "Activités d’enseignement préprimaire et primaire",
+"niveau": "GROUPE",
+"parent": "85"
+},
+{
+"code": "8510",
+"libelle": "Activités d’enseignement préprimaire et primaire",
+"niveau": "CLASSE",
+"parent": "851"
+},
+{
+"code": "852",
+"libelle": "Activités d’enseignement secondaire",
+"niveau": "GROUPE",
+"parent": "85"
+},
+{
+"code": "8521",
+"libelle": "Activités d’enseignement secondaire général",
+"niveau": "CLASSE",
+"parent": "852"
+},
+{
+"code": "8522",
+"libelle": "Activités d’enseignement secondaire technique et professionnel",
+"niveau": "CLASSE",
+"parent": "852"
+},
+{
+"code": "853",
+"libelle": "Activités d’enseignement supérieur",
+"niveau": "GROUPE",
+"parent": "85"
+},
+{
+"code": "8530",
+"libelle": "Activités d’enseignement supérieur",
+"niveau": "CLASSE",
+"parent": "853"
+},
+{
+"code": "854",
+"libelle": "Autres activités d’enseignement",
+"niveau": "GROUPE",
+"parent": "85"
+},
+{
+"code": "8541",
+"libelle": "Activités d’enseignement lié aux sports et aux loisirs",
+"niveau": "CLASSE",
+"parent": "854"
+},
+{
+"code": "8542",
+"libelle": "Activités d’enseignement à caractère culturel",
+"niveau": "CLASSE",
+"parent": "854"
+},
+{
+"code": "8549",
+"libelle": "Autres activités d’enseignement, n.c.a.",
+"niveau": "CLASSE",
+"parent": "854"
+},
+{
+"code": "855",
+"libelle": "Activités d’appui pédagogique",
+"niveau": "GROUPE",
+"parent": "85"
+},
+{
+"code": "8550",
+"libelle": "Activités d’appui pédagogique",
+"niveau": "CLASSE",
+"parent": "855"
+},
+{
+"code": "Q",
+"libelle": "Santé et et activités d’action sociale",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "86",
+"libelle": "Activités relatives à la santé",
+"niveau": "DIVISION",
+"parent": "Q"
+},
+{
+"code": "861",
+"libelle": "Activités hospitalières",
+"niveau": "GROUPE",
+"parent": "86"
+},
+{
+"code": "8610",
+"libelle": "Activités hospitalières",
+"niveau": "CLASSE",
+"parent": "861"
+},
+{
+"code": "862",
+"libelle": "Activités de pratique médicale et dentaire",
+"niveau": "GROUPE",
+"parent": "86"
+},
+{
+"code": "8620",
+"libelle": "Activités de pratique médicale et dentaire",
+"niveau": "CLASSE",
+"parent": "862"
+},
+{
+"code": "869",
+"libelle": "Autres activités relatives à la santé",
+"niveau": "GROUPE",
+"parent": "86"
+},
+{
+"code": "8690",
+"libelle": "Autres activités relatives à la santé",
+"niveau": "CLASSE",
+"parent": "869"
+},
+{
+"code": "87",
+"libelle": "Activités de soins de santé dispensés en établissement",
+"niveau": "DIVISION",
+"parent": "Q"
+},
+{
+"code": "871",
+"libelle": "Installations de soins de santé en établissement hospitalier",
+"niveau": "GROUPE",
+"parent": "87"
+},
+{
+"code": "8710",
+"libelle": "Installations de soins de santé en établissement hospitalier",
+"niveau": "CLASSE",
+"parent": "871"
+},
+{
+"code": "872",
+"libelle": "Activités de soins de santé pour retardés mentaux, malades mentaux et toxicomanes",
+"niveau": "GROUPE",
+"parent": "87"
+},
+{
+"code": "8720",
+"libelle": "Activités de soins de santé pour retardés mentaux, malades mentaux et toxicomanes",
+"niveau": "CLASSE",
+"parent": "872"
+},
+{
+"code": "873",
+"libelle": "Activités de soins de santé en établissement hospitalier pour les personnes âgées",
+"niveau": "GROUPE",
+"parent": "87"
+},
+{
+"code": "8730",
+"libelle": "Activités de soins de santé en établissement hospitalier pour les personnes âgées et les handicapés",
+"niveau": "CLASSE",
+"parent": "873"
+},
+{
+"code": "879",
+"libelle": "Autres activités de soins de santé en établissement hospitalier",
+"niveau": "GROUPE",
+"parent": "87"
+},
+{
+"code": "8790",
+"libelle": "Autres activités de soins de santé en établissement hospitalier",
+"niveau": "CLASSE",
+"parent": "879"
+},
+{
+"code": "88",
+"libelle": "Activités d’action sociale sans hébergement",
+"niveau": "DIVISION",
+"parent": "Q"
+},
+{
+"code": "881",
+"libelle": "Activités d’action sociale sans hébergement pour les personnes âgées",
+"niveau": "GROUPE",
+"parent": "88"
+},
+{
+"code": "8810",
+"libelle": "Activités d’action sociale sans hébergement pour les personnes âgées et les handicapés",
+"niveau": "CLASSE",
+"parent": "881"
+},
+{
+"code": "889",
+"libelle": "Autres activités d’action sociale sans hébergement",
+"niveau": "GROUPE",
+"parent": "88"
+},
+{
+"code": "8890",
+"libelle": "Autres activités d’action sociale sans hébergement",
+"niveau": "CLASSE",
+"parent": "889"
+},
+{
+"code": "R",
+"libelle": "Arts, spectacles et loisirs",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "90",
+"libelle": "Activités créatives, arts et spectacles",
+"niveau": "DIVISION",
+"parent": "R"
+},
+{
+"code": "900",
+"libelle": "Activités créatives, arts et spectacles",
+"niveau": "GROUPE",
+"parent": "90"
+},
+{
+"code": "9000",
+"libelle": "Activités créatives, arts et spectacles",
+"niveau": "CLASSE",
+"parent": "900"
+},
+{
+"code": "91",
+"libelle": "Activités des bibliothèques, archives, musées et autres activités culturelles",
+"niveau": "DIVISION",
+"parent": "R"
+},
+{
+"code": "910",
+"libelle": "Activités des bibliothèques, archives, musées et autres activités culturelles",
+"niveau": "GROUPE",
+"parent": "91"
+},
+{
+"code": "9101",
+"libelle": "Activités des bibliothèques et archives",
+"niveau": "CLASSE",
+"parent": "910"
+},
+{
+"code": "9102",
+"libelle": "Activités des musées et exploitation de sites et monuments historiques",
+"niveau": "CLASSE",
+"parent": "910"
+},
+{
+"code": "9103",
+"libelle": "Activités des jardins botaniques et zoologiques et des réserves naturelles",
+"niveau": "CLASSE",
+"parent": "910"
+},
+{
+"code": "92",
+"libelle": "Activités de jeux de hasard et de pari",
+"niveau": "DIVISION",
+"parent": "R"
+},
+{
+"code": "920",
+"libelle": "Activités de jeux de hasard et de pari",
+"niveau": "GROUPE",
+"parent": "92"
+},
+{
+"code": "9200",
+"libelle": "Activités de jeux de hasard et de pari",
+"niveau": "CLASSE",
+"parent": "920"
+},
+{
+"code": "93",
+"libelle": "Activités sportives et de loisirs et activités récréatives",
+"niveau": "DIVISION",
+"parent": "R"
+},
+{
+"code": "931",
+"libelle": "Activités sportives",
+"niveau": "GROUPE",
+"parent": "93"
+},
+{
+"code": "9311",
+"libelle": "Exploitation d’installations sportives",
+"niveau": "CLASSE",
+"parent": "931"
+},
+{
+"code": "9312",
+"libelle": "Activités des clubs sportifs",
+"niveau": "CLASSE",
+"parent": "931"
+},
+{
+"code": "9319",
+"libelle": "Autres activités sportives",
+"niveau": "CLASSE",
+"parent": "931"
+},
+{
+"code": "932",
+"libelle": "Autres activités récréatives et de loisirs",
+"niveau": "GROUPE",
+"parent": "93"
+},
+{
+"code": "9321",
+"libelle": "Activités des parcs d’attraction et à thèmes",
+"niveau": "CLASSE",
+"parent": "932"
+},
+{
+"code": "9329",
+"libelle": "Autres activités récréatives et de loisirs, n.c.a.",
+"niveau": "CLASSE",
+"parent": "932"
+},
+{
+"code": "S",
+"libelle": "Autres activités de services",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "94",
+"libelle": "Activités des organisations associatives",
+"niveau": "DIVISION",
+"parent": "S"
+},
+{
+"code": "941",
+"libelle": "Activités d’organisations associatives économiques, patronales et professionnelles",
+"niveau": "GROUPE",
+"parent": "94"
+},
+{
+"code": "9411",
+"libelle": "Activités d’organisations associatives économiques et patronales",
+"niveau": "CLASSE",
+"parent": "941"
+},
+{
+"code": "9412",
+"libelle": "Activités d’organisations associatives professionnelles",
+"niveau": "CLASSE",
+"parent": "941"
+},
+{
+"code": "942",
+"libelle": "Activités de syndicats de salariés",
+"niveau": "GROUPE",
+"parent": "94"
+},
+{
+"code": "9420",
+"libelle": "Activités de syndicats de salariés",
+"niveau": "CLASSE",
+"parent": "942"
+},
+{
+"code": "949",
+"libelle": "Activités d’autres organisations associatives",
+"niveau": "GROUPE",
+"parent": "94"
+},
+{
+"code": "9491",
+"libelle": "Activités d’organisations religieuses",
+"niveau": "CLASSE",
+"parent": "949"
+},
+{
+"code": "9492",
+"libelle": "Activités d’organisations politiques",
+"niveau": "CLASSE",
+"parent": "949"
+},
+{
+"code": "9499",
+"libelle": "Activités d’autres organisations associatives, n.c.a.",
+"niveau": "CLASSE",
+"parent": "949"
+},
+{
+"code": "95",
+"libelle": "Activités de réparation d’ordinateurs et d’articles personnels et ménagers",
+"niveau": "DIVISION",
+"parent": "S"
+},
+{
+"code": "951",
+"libelle": "Réparation d’ordinateurs et de matériel de communication",
+"niveau": "GROUPE",
+"parent": "95"
+},
+{
+"code": "9511",
+"libelle": "Réparation d’ordinateurs et de matériel périphérique",
+"niveau": "CLASSE",
+"parent": "951"
+},
+{
+"code": "9512",
+"libelle": "Réparation de matériel de communication",
+"niveau": "CLASSE",
+"parent": "951"
+},
+{
+"code": "952",
+"libelle": "Réparation d’articles personnels et ménagers",
+"niveau": "GROUPE",
+"parent": "95"
+},
+{
+"code": "9521",
+"libelle": "Réparation de biens de consommation : matériel électronique",
+"niveau": "CLASSE",
+"parent": "952"
+},
+{
+"code": "9522",
+"libelle": "Réparation d’appareils ménagers et de matériel pour la maison et le jardin",
+"niveau": "CLASSE",
+"parent": "952"
+},
+{
+"code": "9523",
+"libelle": "Réparation de chaussures et d’articles de cuir",
+"niveau": "CLASSE",
+"parent": "952"
+},
+{
+"code": "9524",
+"libelle": "Réparation de mobilier et de meubles de maison",
+"niveau": "CLASSE",
+"parent": "952"
+},
+{
+"code": "9529",
+"libelle": "Réparation d’autres articles personnels et ménagers",
+"niveau": "CLASSE",
+"parent": "952"
+},
+{
+"code": "96",
+"libelle": "Autres activités de services personnels",
+"niveau": "DIVISION",
+"parent": "S"
+},
+{
+"code": "960",
+"libelle": "Autres activités de services personnels",
+"niveau": "GROUPE",
+"parent": "96"
+},
+{
+"code": "9601",
+"libelle": "Lavage et nettoyage à sec de textiles et de fourrures",
+"niveau": "CLASSE",
+"parent": "960"
+},
+{
+"code": "9602",
+"libelle": "Coiffure et autres soins esthétiques",
+"niveau": "CLASSE",
+"parent": "960"
+},
+{
+"code": "9603",
+"libelle": "Activités de pompes funèbres et activités connexes",
+"niveau": "CLASSE",
+"parent": "960"
+},
+{
+"code": "9609",
+"libelle": "Autres activités de services personnels, n.c.a.",
+"niveau": "CLASSE",
+"parent": "960"
+},
+{
+"code": "T",
+"libelle": "Activités des ménages privés employant du personnel domestique; activités non différenciées de production de biens et de services des ménages privés pour usage propre",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "97",
+"libelle": "Activités des ménages privés employant du personnel domestique",
+"niveau": "DIVISION",
+"parent": "T"
+},
+{
+"code": "970",
+"libelle": "Activités des ménages privés employant du personnel domestique",
+"niveau": "GROUPE",
+"parent": "97"
+},
+{
+"code": "9700",
+"libelle": "Activités des ménages privés employant du personnel domestique",
+"niveau": "CLASSE",
+"parent": "970"
+},
+{
+"code": "98",
+"libelle": "Activités non différenciées de production de biens et de services des ménages privés pour usage propre",
+"niveau": "DIVISION",
+"parent": "T"
+},
+{
+"code": "981",
+"libelle": "Activités non différenciées de production de biens des ménages privés pour usage",
+"niveau": "GROUPE",
+"parent": "98"
+},
+{
+"code": "9810",
+"libelle": "Activités non différenciées de production de biens des ménages privés pour usage propre",
+"niveau": "CLASSE",
+"parent": "981"
+},
+{
+"code": "982",
+"libelle": "Activités non différenciées de production de services des ménages privés pour",
+"niveau": "GROUPE",
+"parent": "98"
+},
+{
+"code": "9820",
+"libelle": "Activités non différenciées de production de services des ménages privés pour usage propre",
+"niveau": "CLASSE",
+"parent": "982"
+},
+{
+"code": "U",
+"libelle": "Activités des organisations et organismes extra-territoriaux",
+"niveau": "SECTION",
+"parent": null
+},
+{
+"code": "99",
+"libelle": "Activités des organisations et organismes extra-territoriaux",
+"niveau": "DIVISION",
+"parent": "U"
+},
+{
+"code": "990",
+"libelle": "Activités des organisations et organismes extra-territoriaux",
+"niveau": "GROUPE",
+"parent": "99"
+},
+{
+"code": "9900",
+"libelle": "Activités des organisations et organismes extra-territoriaux trOiSième partie",
+"niveau": "CLASSE",
+"parent": "990"
+}
+]

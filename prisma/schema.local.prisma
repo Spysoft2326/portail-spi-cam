@@ -62,8 +62,8 @@ model VerificationToken {
 }
 
 model Entreprise {
-  id                      String       @id @default(uuid())
-  referenceSPI            String       @unique
+  id                      String          @id @default(uuid())
+  referenceSPI            String          @unique
   denomination            String
   sigle                   String?
   formeJuridique          String?
@@ -76,21 +76,99 @@ model Entreprise {
   email                   String?
   nomContact              String?
   siteWeb                 String?
-  numContribuable         String?
-  secteurActivite         String       @default("AUTRE")
+  numContribuable         String? // NIU (unicité contrôlée par l'API)
+  // Libellé de la filière, conservé pour l'affichage public et la conjoncture (renseigné automatiquement)
+  secteurActivite         String          @default("AUTRE")
   sousSecteur             String?
+  // Activité principale codée : classe de la nomenclature (CITI Rév.4, base de la NACAM)
+  activiteCode            String?
+  activite                Activite?       @relation("ActivitePrincipale", fields: [activiteCode], references: [code])
+  // Filière : déduite de l'activité par la table de passage, sauf si fixée manuellement
+  filiereCode             String?
+  filiere                 Filiere?        @relation(fields: [filiereCode], references: [code])
+  filiereManuelle         Boolean         @default(false)
+  // Champ industriel = sections B, C, D, E de la nomenclature (déduit de l'activité)
+  champIndustriel         Boolean         @default(true)
+  taille                  String? // GE, PME, TPE
   produitsPrincipaux      String?
-  statut                  String       @default("ACTIF") // EN_ATTENTE, ACTIF, REJETE, INACTIF
+  statut                  String          @default("ACTIF") // EN_ATTENTE, ACTIF, REJETE, INACTIF
   motifRejet              String? // motif saisi par l'admin lors d'un rejet
-  estExportateur          Boolean      @default(false)
-  estDansZoneIndustrielle Boolean      @default(false)
+  estExportateur          Boolean         @default(false)
+  estDansZoneIndustrielle Boolean         @default(false)
   nomZoneIndustrielle     String?
-  createdAt               DateTime     @default(now())
-  updatedAt               DateTime     @updatedAt
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
   agentId                 String?
-  agent                   User?        @relation("AgentEntreprises", fields: [agentId], references: [id])
+  agent                   User?           @relation("AgentEntreprises", fields: [agentId], references: [id])
   productions             Production[]
   produits                Produit[]
+  etablissements          Etablissement[]
+
+  @@index([filiereCode])
+  @@index([activiteCode])
+}
+
+// Nomenclature des activités : CITI Rév.4 (ONU, 2008), sur laquelle repose la NACAM de l'INS.
+// Hiérarchie : SECTION (A..U) > DIVISION (2 chiffres) > GROUPE (3) > CLASSE (4).
+model Activite {
+  code           String          @id
+  libelle        String
+  niveau         String // SECTION, DIVISION, GROUPE, CLASSE
+  parentCode     String?
+  parent         Activite?       @relation("ActiviteHierarchie", fields: [parentCode], references: [code])
+  enfants        Activite[]      @relation("ActiviteHierarchie")
+  section        String // lettre de section, pour filtrer rapidement
+  codeNacam      String? // correspondance NACAM Rév.1, à renseigner à partir du texte officiel de l'INS
+  entreprises    Entreprise[]    @relation("ActivitePrincipale")
+  etablissements Etablissement[]
+
+  @@index([niveau])
+  @@index([section])
+}
+
+// Filières industrielles (pilotage MINMIDT / SND30)
+model Filiere {
+  code        String         @id
+  libelle     String
+  prioritaire Boolean        @default(false) // sous-secteur prioritaire de la SND30
+  ordre       Int            @default(0)
+  regles      FiliereRegle[]
+  entreprises Entreprise[]
+}
+
+// Table de passage nomenclature -> filière : un préfixe de code CITI rattaché à une filière.
+// Le préfixe le plus long l'emporte (ex. "4661" commerce de combustibles -> Hydrocarbures).
+model FiliereRegle {
+  id          String  @id @default(uuid())
+  prefixe     String  @unique
+  filiereCode String
+  filiere     Filiere @relation(fields: [filiereCode], references: [code], onDelete: Cascade)
+}
+
+// Établissement (site, usine) d'une entreprise : une entreprise peut en avoir plusieurs.
+model Etablissement {
+  id                  String     @id @default(uuid())
+  entrepriseId        String
+  entreprise          Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  nom                 String? // ex. "Usine de Bonabéri"
+  principal           Boolean    @default(false)
+  activiteCode        String?
+  activite            Activite?  @relation(fields: [activiteCode], references: [code])
+  region              String?
+  departement         String?
+  ville               String?
+  quartier            String?
+  lieuDit             String?
+  adresse             String?
+  telephone           String?
+  // Établissement classé (loi n° 98/015 du 14 juillet 1998) : "1" ou "2" (classe), vide si non classé
+  classeEtablissement String?
+  latitude            Float?
+  longitude           Float?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  @@index([entrepriseId])
 }
 
 // Catalogue des produits d'une entreprise (une entreprise peut avoir plusieurs produits)
@@ -100,6 +178,7 @@ model Produit {
   entreprise   Entreprise        @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   nom          String
   unite        String // unité de mesure par défaut : t, kg, hl, L, m3, unités...
+  codeNpc      String? // code produit de la NPC (nomenclature des produits du Cameroun), optionnel
   actif        Boolean           @default(true)
   createdAt    DateTime          @default(now())
   lignes       LigneProduction[]

@@ -2,16 +2,20 @@
   - type: web
     name: portail-spi-cam
     env: node
+    # db:deploy met la base à jour (prisma db push sans perte de données + reprise des
+    # anciennes saisies). S'il échoue, le build échoue et la version en ligne reste en place.
     buildCommand: |
       npm install
       npx prisma generate
+      npm run db:deploy
       npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      # URL PostgreSQL (Internal Database URL) à renseigner dans le tableau de bord Render
       - key: DATABASE_URL
-        value: file:./dev.db
+        sync: false
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: NEXTAUTH_URL

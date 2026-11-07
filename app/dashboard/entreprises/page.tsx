@@ -2,7 +2,14 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { useSession } from "next-auth/react";
-import { SECTEURS, REGIONS, UNITES, normaliser, valeurReferentiel } from "@/lib/referentiels";
+import { REGIONS, UNITES, normaliser, valeurReferentiel } from "@/lib/referentiels";
+
+interface Filiere { code: string; libelle: string; prioritaire: boolean }
+interface ActiviteRef { code: string; libelle: string; section: string; filiereCode: string | null; industrielle: boolean }
+interface Etablissement {
+  id: string; nom: string | null; principal: boolean; region: string | null; ville: string | null;
+  quartier: string | null; lieuDit: string | null; classeEtablissement: string | null; activiteCode: string | null;
+}
 
 interface Enterprise {
   id: string;
@@ -19,7 +26,15 @@ interface Enterprise {
   statut: string;
   motifRejet: string | null;
   agentId: string | null;
-  _count?: { productions: number; produits: number };
+  numContribuable: string | null;
+  taille: string | null;
+  activiteCode: string | null;
+  filiereCode: string | null;
+  filiereManuelle: boolean;
+  champIndustriel: boolean;
+  activite: { code: string; libelle: string; section: string } | null;
+  filiere: { code: string; libelle: string; prioritaire: boolean } | null;
+  _count?: { productions: number; produits: number; etablissements: number };
 }
 
 interface Produit {
@@ -43,9 +58,11 @@ const btn = { padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6
 const btnPrimary = { ...btn, border: "none", background: "#059669", color: "white" } as const;
 
 const FORM_VIDE = {
-  denomination: "", sigle: "", secteurActivite: SECTEURS[0],
+  denomination: "", sigle: "", activiteCode: "", filiereCode: "", taille: "", numContribuable: "",
   ville: "", region: "", adresse: "", telephone: "", email: "", nomContact: "",
 };
+const ETAB_VIDE = { nom: "", region: "", ville: "", quartier: "", lieuDit: "", classeEtablissement: "" };
+const libelleActivite = (a: { code: string; libelle: string }) => `${a.code} — ${a.libelle}`;
 
 export default function EntreprisesPage() {
   const { data: session } = useSession();
@@ -59,7 +76,13 @@ export default function EntreprisesPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterSecteur, setFilterSecteur] = useState("");
+  const [filterFiliere, setFilterFiliere] = useState("");
+  const [filterChamp, setFilterChamp] = useState("");
+  const [filieres, setFilieres] = useState<Filiere[]>([]);
+  const [activites, setActivites] = useState<ActiviteRef[]>([]);
+  const [saisieActivite, setSaisieActivite] = useState(""); // texte du champ de recherche d'activité
+  const [etablissements, setEtablissements] = useState<Etablissement[]>([]);
+  const [nouvelEtab, setNouvelEtab] = useState(ETAB_VIDE);
   const [filterRegion, setFilterRegion] = useState("");
   const [filterVille, setFilterVille] = useState("");
   const [filterStatut, setFilterStatut] = useState("");
@@ -76,6 +99,49 @@ export default function EntreprisesPage() {
   useEffect(() => {
     if (session) fetchAllData();
   }, [session]);
+
+  // Référentiels : filières et classes d'activité (CITI Rév.4)
+  useEffect(() => {
+    fetch("/api/referentiels")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) { setFilieres(d.filieres); setActivites(d.activites); } })
+      .catch(() => {});
+  }, []);
+
+  const activiteChoisie = activites.find((a) => a.code === formData.activiteCode);
+  const filiereDeduite = filieres.find((f) => f.code === activiteChoisie?.filiereCode);
+
+  const choisirActivite = (texte: string) => {
+    setSaisieActivite(texte);
+    const code = texte.trim().slice(0, 4);
+    const a = activites.find((x) => x.code === code && texte.startsWith(code));
+    setFormData((f) => ({ ...f, activiteCode: a ? a.code : "" }));
+  };
+
+  const fetchEtablissements = async (id: string) => {
+    const res = await fetch(`/api/entreprises/${id}/etablissements`);
+    setEtablissements(res.ok ? await res.json() : []);
+  };
+
+  const ajouterEtablissement = async () => {
+    if (!editing) return;
+    if (!nouvelEtab.ville.trim() && !nouvelEtab.nom.trim()) return alert("Indiquez au moins un nom ou une ville");
+    const res = await fetch(`/api/entreprises/${editing.id}/etablissements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...nouvelEtab, activiteCode: formData.activiteCode || null }),
+    });
+    if (!res.ok) return alert("Erreur : " + ((await res.json().catch(() => ({}))).error || "ajout impossible"));
+    setNouvelEtab(ETAB_VIDE);
+    fetchEtablissements(editing.id);
+  };
+
+  const supprimerEtablissement = async (etab: Etablissement) => {
+    if (!editing || !confirm(`Supprimer l'établissement « ${etab.nom || etab.ville} » ?`)) return;
+    const res = await fetch(`/api/entreprises/${editing.id}/etablissements?etablissementId=${etab.id}`, { method: "DELETE" });
+    if (!res.ok) return alert("Erreur : " + ((await res.json().catch(() => ({}))).error || "suppression impossible"));
+    fetchEtablissements(editing.id);
+  };
 
   const fetchAllData = async () => {
     try {
@@ -100,6 +166,9 @@ export default function EntreprisesPage() {
 
   const resetForm = () => {
     setFormData(FORM_VIDE);
+    setSaisieActivite("");
+    setEtablissements([]);
+    setNouvelEtab(ETAB_VIDE);
     setProduits([]);
     setNouveauProduit({ nom: "", unite: "t" });
     setEditing(null);
@@ -110,8 +179,10 @@ export default function EntreprisesPage() {
     setFormData({
       denomination: e.denomination,
       sigle: e.sigle || "",
-      // Correspondance sans accents/casse : on ne remplace jamais le secteur par défaut
-      secteurActivite: valeurReferentiel(SECTEURS, e.secteurActivite) || SECTEURS[0],
+      activiteCode: e.activiteCode || "",
+      filiereCode: e.filiereManuelle ? e.filiereCode || "" : "",
+      taille: e.taille || "",
+      numContribuable: e.numContribuable || "",
       ville: e.ville || "",
       region: valeurReferentiel(REGIONS, e.region),
       adresse: e.adresse || "",
@@ -119,9 +190,11 @@ export default function EntreprisesPage() {
       email: e.email || "",
       nomContact: e.nomContact || "",
     });
+    setSaisieActivite(e.activite ? libelleActivite(e.activite) : "");
     setEditing(e);
     setProduits([]);
     fetchProduits(e.id);
+    fetchEtablissements(e.id);
     setShowForm(true);
   };
 
@@ -170,13 +243,18 @@ export default function EntreprisesPage() {
       alert("La région est obligatoire");
       return;
     }
+    if (!formData.activiteCode) {
+      alert("Choisissez l'activité principale dans la liste de la nomenclature (code à 4 chiffres)");
+      return;
+    }
     setSubmitting(true);
     try {
       const url = editing ? `/api/entreprises/${editing.id}` : "/api/entreprises";
       const res = await fetch(url, {
         method: editing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editing ? formData : { ...formData, produits }),
+        // Filière vide = déduite automatiquement de l'activité (seuls les admins peuvent la forcer)
+        body: JSON.stringify({ ...formData, filiereCode: isAdmin ? formData.filiereCode || null : undefined, ...(editing ? {} : { produits }) }),
       });
       if (res.ok) {
         alert(
@@ -228,22 +306,19 @@ export default function EntreprisesPage() {
 
   const q = normaliser(searchTerm);
   const filteredEnterprises = enterprises.filter((e) => {
-    const matchSearch = !q || [e.denomination, e.sigle, e.ville, e.region, e.adresse, e.nomContact, e.telephone, e.email, e.referenceSPI]
+    const matchSearch = !q || [e.denomination, e.sigle, e.ville, e.region, e.adresse, e.nomContact, e.telephone, e.email, e.referenceSPI, e.numContribuable, e.activite?.libelle, e.activiteCode]
       .some((v) => normaliser(v).includes(q));
-    // Comparaison sans accents ni casse : "BTP / MATERIAUX" == "BTP / Matériaux"
-    const matchSecteur = !filterSecteur || normaliser(e.secteurActivite) === normaliser(filterSecteur);
+    const matchFiliere = !filterFiliere || (filterFiliere === "AUCUNE" ? !e.filiereCode : e.filiereCode === filterFiliere);
+    const matchChamp = !filterChamp || (filterChamp === "industriel" ? e.champIndustriel : filterChamp === "hors" ? !e.champIndustriel : !e.activiteCode);
     const matchRegion = !filterRegion || normaliser(e.region) === normaliser(filterRegion);
     const matchVille = !filterVille || e.ville === filterVille;
     const matchStatut = !filterStatut || (filterStatut === "MES_SAISIES" ? e.agentId === userId : e.statut === filterStatut);
-    return matchSearch && matchSecteur && matchRegion && matchVille && matchStatut;
+    return matchSearch && matchFiliere && matchChamp && matchRegion && matchVille && matchStatut;
   });
+  const nonCodees = enterprises.filter((e) => !e.activiteCode).length;
 
   const enAttente = enterprises.filter((e) => e.statut === "EN_ATTENTE").length;
   const mesRejets = isAgent ? enterprises.filter((e) => e.agentId === userId && e.statut === "REJETE").length : 0;
-  // Secteurs présents dans les données mais absents du référentiel (pour ne pas les cacher du filtre)
-  const secteursFiltre = Array.from(new Set([...SECTEURS, ...enterprises.map((e) => valeurReferentiel(SECTEURS, e.secteurActivite))]))
-    .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b, "fr"));
 
   if (loading) {
     return (
@@ -286,14 +361,55 @@ export default function EntreprisesPage() {
               <input value={formData.sigle} onChange={(e) => setFormData({ ...formData, sigle: e.target.value })} style={input} />
             </div>
             <div>
-              <label style={label}>Secteur d&apos;activité <span style={{ color: "#ef4444" }}>*</span></label>
-              <select value={formData.secteurActivite} onChange={(e) => setFormData({ ...formData, secteurActivite: e.target.value })} style={input}>
-                {/* La valeur actuelle reste sélectionnable même si elle n'est pas dans le référentiel */}
-                {!SECTEURS.includes(formData.secteurActivite) && <option value={formData.secteurActivite}>{formData.secteurActivite}</option>}
-                {SECTEURS.map((s) => <option key={s} value={s}>{s}</option>)}
+              <label style={label}>NIU (numéro d&apos;identifiant unique)</label>
+              <input value={formData.numContribuable} onChange={(e) => setFormData({ ...formData, numContribuable: e.target.value })} style={input} placeholder="Ex : M0123456789012A" />
+            </div>
+            <div>
+              <label style={label}>Taille</label>
+              <select value={formData.taille} onChange={(e) => setFormData({ ...formData, taille: e.target.value })} style={input}>
+                <option value="">Non renseignée</option>
+                <option value="GE">Grande entreprise</option>
+                <option value="PME">PME</option>
+                <option value="TPE">Très petite entreprise</option>
               </select>
             </div>
           </div>
+
+          {/* ----------------------------- Activité codée (nomenclature) */}
+          <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#374151", margin: "28px 0 4px" }}>🏭 Activité principale</h3>
+          <p style={{ margin: "0 0 12px", color: "#6b7280", fontSize: "13px" }}>
+            Classe de la nomenclature d&apos;activités (CITI Rév.4, base de la NACAM). Tapez un mot-clé (« ciment », « bière ») ou un code.
+          </p>
+          {editing && !editing.activiteCode && editing.secteurActivite && (
+            <p style={{ margin: "0 0 10px", fontSize: "13px", color: "#92400e", background: "#fef3c7", padding: "8px 12px", borderRadius: "6px" }}>
+              Ancien secteur saisi en texte libre : « {editing.secteurActivite} ». Choisissez l&apos;activité codée correspondante.
+            </p>
+          )}
+          <input list="liste-activites" required value={saisieActivite} onChange={(e) => choisirActivite(e.target.value)}
+            placeholder="Ex : 2394 — Fabrication de ciment, chaux et plâtre" style={{ ...input, borderColor: saisieActivite && !formData.activiteCode ? "#ef4444" : "#d1d5db" }} />
+          <datalist id="liste-activites">
+            {activites.map((a) => <option key={a.code} value={libelleActivite(a)} />)}
+          </datalist>
+          {saisieActivite && !formData.activiteCode && <p style={{ margin: "6px 0 0", fontSize: "12px", color: "#dc2626" }}>Choisissez une ligne proposée dans la liste.</p>}
+          {activiteChoisie && (
+            <div style={{ marginTop: "10px", display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", fontSize: "13px" }}>
+              <span style={{ padding: "4px 10px", borderRadius: "12px", background: filiereDeduite ? "#dbeafe" : "#f3f4f6", color: filiereDeduite ? "#1e40af" : "#6b7280" }}>
+                Filière : {filiereDeduite ? filiereDeduite.libelle : "hors filière industrielle"}{filiereDeduite?.prioritaire ? " ★ SND30" : ""}
+              </span>
+              <span style={{ padding: "4px 10px", borderRadius: "12px", background: activiteChoisie.industrielle ? "#d1fae5" : "#fee2e2", color: activiteChoisie.industrielle ? "#065f46" : "#991b1b" }}>
+                {activiteChoisie.industrielle ? "Champ industriel" : `Hors champ industriel (section ${activiteChoisie.section})`}
+              </span>
+            </div>
+          )}
+          {isAdmin && (
+            <div style={{ marginTop: "12px", maxWidth: "420px" }}>
+              <label style={label}>Filière (forcer une autre filière — administrateurs)</label>
+              <select value={formData.filiereCode} onChange={(e) => setFormData({ ...formData, filiereCode: e.target.value })} style={input}>
+                <option value="">Déduite automatiquement de l&apos;activité</option>
+                {filieres.map((f) => <option key={f.code} value={f.code}>{f.libelle}</option>)}
+              </select>
+            </div>
+          )}
 
           <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#374151", margin: "28px 0 16px" }}>📍 Localisation</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
@@ -367,6 +483,46 @@ export default function EntreprisesPage() {
             )}
           </div>
 
+          {/* ----------------------------- Établissements (sites, usines) */}
+          {editing && (
+            <>
+              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#374151", margin: "28px 0 4px" }}>🏗️ Établissements (sites, usines)</h3>
+              <p style={{ margin: "0 0 12px", color: "#6b7280", fontSize: "13px" }}>
+                Une entreprise peut exploiter plusieurs sites. Classe 1 ou 2 : établissement classé (loi n° 98/015 du 14 juillet 1998).
+              </p>
+              <div style={{ border: "1px solid #e5e7eb", borderRadius: "8px" }}>
+                {etablissements.map((et) => (
+                  <div key={et.id} style={{ display: "flex", gap: "12px", alignItems: "center", padding: "10px 16px", borderBottom: "1px solid #f3f4f6", fontSize: "14px", flexWrap: "wrap" }}>
+                    <span style={{ flex: 1, minWidth: "200px" }}>
+                      <strong>{et.nom || "Site"}</strong>{et.principal && <span style={{ marginLeft: "6px", fontSize: "11px", padding: "2px 6px", background: "#d1fae5", color: "#065f46", borderRadius: "4px" }}>principal</span>}
+                      <span style={{ display: "block", fontSize: "12px", color: "#6b7280" }}>{[et.quartier, et.lieuDit, et.ville, et.region].filter(Boolean).join(" · ") || "Adresse non renseignée"}</span>
+                    </span>
+                    {et.classeEtablissement && <span style={{ fontSize: "12px", padding: "2px 8px", background: "#fef3c7", color: "#92400e", borderRadius: "4px" }}>Classé {et.classeEtablissement}<sup>{et.classeEtablissement === "1" ? "re" : "e"}</sup> classe</span>}
+                    {isAdmin && !et.principal && <button type="button" onClick={() => supprimerEtablissement(et)} style={{ ...btn, padding: "4px 8px", color: "#dc2626", fontSize: "12px" }}>Supprimer</button>}
+                  </div>
+                ))}
+                {canEdit(editing) && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "8px", padding: "12px 16px", background: "#f9fafb" }}>
+                    <input placeholder="Nom du site (ex : Usine de Bonabéri)" value={nouvelEtab.nom} onChange={(e) => setNouvelEtab({ ...nouvelEtab, nom: e.target.value })} style={input} />
+                    <input placeholder="Ville" value={nouvelEtab.ville} onChange={(e) => setNouvelEtab({ ...nouvelEtab, ville: e.target.value })} style={input} />
+                    <select value={nouvelEtab.region} onChange={(e) => setNouvelEtab({ ...nouvelEtab, region: e.target.value })} style={input}>
+                      <option value="">Région...</option>
+                      {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    <input placeholder="Quartier" value={nouvelEtab.quartier} onChange={(e) => setNouvelEtab({ ...nouvelEtab, quartier: e.target.value })} style={input} />
+                    <input placeholder="Lieu-dit" value={nouvelEtab.lieuDit} onChange={(e) => setNouvelEtab({ ...nouvelEtab, lieuDit: e.target.value })} style={input} />
+                    <select value={nouvelEtab.classeEtablissement} onChange={(e) => setNouvelEtab({ ...nouvelEtab, classeEtablissement: e.target.value })} style={input}>
+                      <option value="">Non classé</option>
+                      <option value="1">Établissement classé 1re classe</option>
+                      <option value="2">Établissement classé 2e classe</option>
+                    </select>
+                    <button type="button" onClick={ajouterEtablissement} style={btnPrimary}>Ajouter le site</button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
           <div style={{ display: "flex", gap: "12px", paddingTop: "24px" }}>
             <button type="button" onClick={resetForm} style={btn}>Annuler</button>
             <button type="submit" disabled={submitting} style={{ ...btnPrimary, opacity: submitting ? 0.5 : 1 }}>
@@ -405,9 +561,10 @@ export default function EntreprisesPage() {
         <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={() => {
-              const headers = ["Reference SPI", "Denomination", "Sigle", "Secteur", "Ville", "Region", "Telephone", "Email", "Contact", "Produits", "Statut"];
-              const rows = filteredEnterprises.map((e) => [e.referenceSPI, e.denomination, e.sigle || "", e.secteurActivite, e.ville || "", e.region || "",
-                e.telephone || "", e.email || "", e.nomContact || "", String(e._count?.produits ?? 0), e.statut]);
+              const headers = ["Reference SPI", "Denomination", "Sigle", "NIU", "Code CITI", "Activite", "Filiere", "Champ industriel", "Taille", "Ville", "Region", "Telephone", "Email", "Contact", "Produits", "Etablissements", "Statut"];
+              const rows = filteredEnterprises.map((e) => [e.referenceSPI, e.denomination, e.sigle || "", e.numContribuable || "", e.activiteCode || "", e.activite?.libelle || "",
+                e.filiere?.libelle || "", e.champIndustriel ? "oui" : "non", e.taille || "", e.ville || "", e.region || "",
+                e.telephone || "", e.email || "", e.nomContact || "", String(e._count?.produits ?? 0), String(e._count?.etablissements ?? 0), e.statut]);
               const csv = "﻿" + [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
               const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
               const a = document.createElement("a"); a.href = url; a.download = `entreprises_${new Date().toISOString().split("T")[0]}.csv`; a.click();
@@ -423,6 +580,11 @@ export default function EntreprisesPage() {
           ⏳ <strong>{enAttente}</strong> fiche(s) en attente de validation — cliquer pour les afficher
         </button>
       )}
+      {isAdmin && nonCodees > 0 && filterChamp !== "noncode" && (
+        <button onClick={() => setFilterChamp("noncode")} style={{ width: "100%", textAlign: "left", padding: "12px 16px", borderRadius: "8px", border: "1px solid #93c5fd", background: "#eff6ff", color: "#1e40af", marginBottom: "16px", cursor: "pointer", fontSize: "14px" }}>
+          🏷️ <strong>{nonCodees}</strong> fiche(s) sans activité codée (ancien secteur en texte libre) — cliquer pour les afficher et les classer
+        </button>
+      )}
       {isAgent && mesRejets > 0 && filterStatut !== "MES_SAISIES" && (
         <button onClick={() => setFilterStatut("MES_SAISIES")} style={{ width: "100%", textAlign: "left", padding: "12px 16px", borderRadius: "8px", border: "1px solid #fca5a5", background: "#fee2e2", color: "#991b1b", marginBottom: "16px", cursor: "pointer", fontSize: "14px" }}>
           ❌ <strong>{mesRejets}</strong> de vos fiches ont été rejetées et attendent une correction — cliquer pour les afficher
@@ -432,9 +594,16 @@ export default function EntreprisesPage() {
       <div style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", marginBottom: "24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" }}>
           <input placeholder="🔍 Nom, sigle, ville, contact, référence..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={input} />
-          <select value={filterSecteur} onChange={(e) => setFilterSecteur(e.target.value)} style={input}>
-            <option value="">Tous les secteurs</option>
-            {secteursFiltre.map((s) => <option key={s} value={s}>{s}</option>)}
+          <select value={filterFiliere} onChange={(e) => setFilterFiliere(e.target.value)} style={input}>
+            <option value="">Toutes les filières</option>
+            {filieres.map((f) => <option key={f.code} value={f.code}>{f.libelle}{f.prioritaire ? " ★" : ""}</option>)}
+            <option value="AUCUNE">Hors filière</option>
+          </select>
+          <select value={filterChamp} onChange={(e) => setFilterChamp(e.target.value)} style={input}>
+            <option value="">Champ : tous</option>
+            <option value="industriel">Champ industriel</option>
+            <option value="hors">Hors champ industriel</option>
+            <option value="noncode">Activité non codée</option>
           </select>
           <select value={filterRegion} onChange={(e) => { setFilterRegion(e.target.value); setFilterVille(""); }} style={input}>
             <option value="">Toutes les régions</option>
@@ -453,8 +622,8 @@ export default function EntreprisesPage() {
             {isAdmin && <option value="INACTIF">Inactives</option>}
           </select>
         </div>
-        {(searchTerm || filterSecteur || filterRegion || filterVille || filterStatut) && (
-          <button onClick={() => { setSearchTerm(""); setFilterSecteur(""); setFilterRegion(""); setFilterVille(""); setFilterStatut(""); }} style={{ ...btn, marginTop: "12px", fontSize: "13px", color: "#6b7280" }}>
+        {(searchTerm || filterFiliere || filterChamp || filterRegion || filterVille || filterStatut) && (
+          <button onClick={() => { setSearchTerm(""); setFilterFiliere(""); setFilterChamp(""); setFilterRegion(""); setFilterVille(""); setFilterStatut(""); }} style={{ ...btn, marginTop: "12px", fontSize: "13px", color: "#6b7280" }}>
             🔄 Réinitialiser les filtres
           </button>
         )}
@@ -469,7 +638,7 @@ export default function EntreprisesPage() {
         ) : (
           <div style={{ minWidth: "900px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1.2fr 1fr 1.2fr 0.7fr 1fr 150px", padding: "12px 16px", background: "#f9fafb", borderBottom: "1px solid #e5e7eb", fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase" }}>
-              <div>Entreprise</div><div>Secteur</div><div>Localisation</div><div>Contact</div><div>Produits</div><div>Statut</div><div style={{ textAlign: "right" }}>Actions</div>
+              <div>Entreprise</div><div>Filière / activité</div><div>Localisation</div><div>Contact</div><div>Produits</div><div>Statut</div><div style={{ textAlign: "right" }}>Actions</div>
             </div>
             {filteredEnterprises.map((e) => {
               const st = STATUT_LABEL[e.statut] || STATUT_LABEL.INACTIF;
@@ -480,7 +649,19 @@ export default function EntreprisesPage() {
                     {e.sigle && <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0 0" }}>{e.sigle}</p>}
                     <p style={{ fontSize: "11px", color: "#9ca3af", margin: "2px 0 0 0" }}>Réf : {e.referenceSPI}</p>
                   </div>
-                  <div><span style={{ padding: "3px 10px", borderRadius: "12px", fontSize: "12px", background: "#f3f4f6" }}>{e.secteurActivite}</span></div>
+                  <div>
+                    <span style={{ padding: "3px 10px", borderRadius: "12px", fontSize: "12px", background: e.filiere ? "#dbeafe" : "#f3f4f6", color: e.filiere ? "#1e40af" : "#6b7280" }}>
+                      {e.filiere?.libelle || (e.activiteCode ? "Hors filière" : e.secteurActivite)}
+                    </span>
+                    {e.activite ? (
+                      <p title={e.activite.libelle} style={{ margin: "4px 0 0", fontSize: "11px", color: "#6b7280", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {e.activite.code} · {e.activite.libelle}
+                      </p>
+                    ) : (
+                      <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#d97706" }}>Activité non codée</p>
+                    )}
+                    {e.activiteCode && !e.champIndustriel && <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#991b1b" }}>Hors champ industriel</p>}
+                  </div>
                   <div>
                     <p style={{ margin: 0 }}>{e.ville || "-"}</p>
                     {e.region && <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: "#9ca3af" }}>{e.region}</p>}

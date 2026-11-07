@@ -1,0 +1,20 @@
+{
+  "_description": "Filières industrielles du portail et table de passage CITI Rév.4 -> filière. Les 8 premières reprennent les sous-secteurs industriels prioritaires de la SND30 (le 9e n'a pas pu être confirmé). Une filière est une chaîne de valeur : elle peut inclure des activités hors champ industriel (commerce, services) ; le champ industriel, lui, est déterminé par la section CITI (B, C, D, E). Règle appliquée : le préfixe de code CITI le plus long l'emporte. BROUILLON à valider par le MINMIDT / l'INS.",
+  "filieres": [
+    { "code": "AGRO", "libelle": "Agro-industrie", "prioritaire": true, "prefixes": ["10", "11", "12", "01", "03", "4620"] },
+    { "code": "FORET_BOIS", "libelle": "Forêt-bois", "prioritaire": true, "prefixes": ["02", "16", "31"] },
+    { "code": "TEXTILE", "libelle": "Textile-confection-cuir", "prioritaire": true, "prefixes": ["13", "14", "15", "0116"] },
+    { "code": "MINES_METAL", "libelle": "Mines-métallurgie-sidérurgie", "prioritaire": true, "prefixes": ["05", "07", "08", "099", "24", "25"] },
+    { "code": "HYDROCARBURES", "libelle": "Hydrocarbures-pétrochimie-raffinage", "prioritaire": true, "prefixes": ["06", "091", "19", "4661", "4730", "4930", "5210"] },
+    { "code": "CHIMIE_PHARMA", "libelle": "Chimie-pharmacie", "prioritaire": true, "prefixes": ["20", "21"] },
+    { "code": "ENERGIE", "libelle": "Énergie", "prioritaire": true, "prefixes": ["35"] },
+    { "code": "NUMERIQUE", "libelle": "Numérique", "prioritaire": true, "prefixes": ["26", "61", "62", "63"] },
+    { "code": "MATERIAUX_BTP", "libelle": "Matériaux de construction et BTP", "prioritaire": false, "prefixes": ["23", "41", "42", "43"] },
+    { "code": "PLASTIQUE", "libelle": "Caoutchouc et plastiques", "prioritaire": false, "prefixes": ["22"] },
+    { "code": "PAPIER", "libelle": "Papier, carton et imprimerie", "prioritaire": false, "prefixes": ["17", "18"] },
+    { "code": "EQUIPEMENTS", "libelle": "Équipements, machines et matériels de transport", "prioritaire": false, "prefixes": ["27", "28", "29", "30", "33"] },
+    { "code": "EAU_DECHETS", "libelle": "Eau, assainissement et déchets", "prioritaire": false, "prefixes": ["36", "37", "38", "39"] },
+    { "code": "AUTRES_MANUF", "libelle": "Autres industries manufacturières", "prioritaire": false, "prefixes": ["32"] }
+  ],
+  "sectionsChampIndustriel": ["B", "C", "D", "E"]
+}
