@@ -1,18 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import SuperAdminContent from "@/components/dashboard/super-admin-content";
 
-export default function AdminRedirect() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace("/dashboard/super-admin");
-  }, [router]);
-
-  return (
-    <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    </div>
-  );
+// Tableau de bord des administrateurs : même contenu que celui du super admin
+// (statistiques accessibles à partir du rôle ADMIN). Auparavant, cette page redirigeait vers
+// /dashboard/super-admin, interdit aux admins, ce qui provoquait une boucle de redirection.
+export default function DashboardAdminPage() {
+  return <SuperAdminContent />;
 }

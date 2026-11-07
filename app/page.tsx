@@ -2,64 +2,43 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Search, Building2, TrendingUp, FileText, MapPin, Users, ArrowRight, Globe, Mail } from "lucide-react";
+import { Search, Building2, TrendingUp, FileText, MapPin, Users, Globe, Mail, ClipboardCheck, BarChart3, Target } from "lucide-react";
 
-// Apparence de chaque filière (codes du référentiel prisma/referentiels/filieres.json)
-const STYLE_FILIERE: Record<string, { emoji: string; color: string; border: string; text: string }> = {
-  AGRO: { emoji: "🌾", color: "bg-emerald-100", border: "border-emerald-300", text: "text-emerald-700" },
-  FORET_BOIS: { emoji: "🌲", color: "bg-green-100", border: "border-green-300", text: "text-green-700" },
-  TEXTILE: { emoji: "👕", color: "bg-rose-100", border: "border-rose-300", text: "text-rose-700" },
-  MINES_METAL: { emoji: "⚙️", color: "bg-slate-100", border: "border-slate-300", text: "text-slate-700" },
-  HYDROCARBURES: { emoji: "🛢️", color: "bg-stone-100", border: "border-stone-300", text: "text-stone-700" },
-  CHIMIE_PHARMA: { emoji: "🧪", color: "bg-blue-100", border: "border-blue-300", text: "text-blue-700" },
-  ENERGIE: { emoji: "⚡", color: "bg-yellow-100", border: "border-yellow-300", text: "text-yellow-700" },
-  NUMERIQUE: { emoji: "📡", color: "bg-indigo-100", border: "border-indigo-300", text: "text-indigo-700" },
-  MATERIAUX_BTP: { emoji: "🏗️", color: "bg-orange-100", border: "border-orange-300", text: "text-orange-700" },
-  PLASTIQUE: { emoji: "♻️", color: "bg-cyan-100", border: "border-cyan-300", text: "text-cyan-700" },
-  PAPIER: { emoji: "📄", color: "bg-lime-100", border: "border-lime-300", text: "text-lime-700" },
-  EQUIPEMENTS: { emoji: "🔧", color: "bg-sky-100", border: "border-sky-300", text: "text-sky-700" },
-  EAU_DECHETS: { emoji: "💧", color: "bg-teal-100", border: "border-teal-300", text: "text-teal-700" },
-  AUTRES_MANUF: { emoji: "🏭", color: "bg-amber-100", border: "border-amber-300", text: "text-amber-700" },
-};
-const STYLE_DEFAUT = { emoji: "🏭", color: "bg-gray-100", border: "border-gray-300", text: "text-gray-700" };
+const MISSIONS = [
+  {
+    titre: "Recenser le tissu industriel",
+    texte: "Tenir un annuaire à jour des entreprises et de leurs établissements, classés par activité selon la nomenclature officielle et par filière.",
+    icone: <Building2 className="w-6 h-6 text-[#007A3D]" />,
+    couleur: "bg-[#007A3D]/10",
+  },
+  {
+    titre: "Suivre la production",
+    texte: "Collecter chaque trimestre la production des entreprises, produit par produit, avec leur chiffre d'affaires et leurs effectifs.",
+    icone: <ClipboardCheck className="w-6 h-6 text-[#CE1126]" />,
+    couleur: "bg-[#CE1126]/10",
+  },
+  {
+    titre: "Éclairer la conjoncture",
+    texte: "Produire des indicateurs et des notes de conjoncture pour mesurer l'évolution de l'activité industrielle, filière par filière.",
+    icone: <BarChart3 className="w-6 h-6 text-amber-600" />,
+    couleur: "bg-[#FCD116]/25",
+  },
+  {
+    titre: "Appuyer la politique industrielle",
+    texte: "Fournir aux décideurs et aux investisseurs une base de pilotage des filières prioritaires de la SND30 et de la transformation locale.",
+    icone: <Target className="w-6 h-6 text-slate-700" />,
+    couleur: "bg-slate-100",
+  },
+];
 
-interface FiliereCompte { code: string; libelle: string; prioritaire: boolean; count: number }
-
-function FilieresGrid({ filieres }: { filieres: FiliereCompte[] }) {
-  if (filieres.length === 0) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        {Array.from({ length: 14 }).map((_, i) => (
-          <div key={i} className="p-5 bg-white rounded-2xl border border-gray-200 animate-pulse">
-            <div className="w-14 h-14 bg-gray-200 rounded-2xl mx-auto mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-      {filieres.map((f) => {
-        const st = STYLE_FILIERE[f.code] || STYLE_DEFAUT;
-        return (
-          <Link key={f.code} href={`/entreprises?filiere=${f.code}`} className={`group p-5 bg-white rounded-2xl border ${st.border} hover:shadow-xl transition-all duration-300 text-center hover:border-[#007A3D] relative`}>
-            {f.prioritaire && <span title="Sous-secteur prioritaire de la SND30" className="absolute top-2 right-2 text-xs text-amber-500">★</span>}
-            <div className={`w-14 h-14 ${st.color} rounded-2xl flex items-center justify-center mb-3 mx-auto group-hover:scale-110 transition-transform duration-300`}>
-              <span className="text-3xl">{st.emoji}</span>
-            </div>
-            <h4 className={`font-semibold text-sm ${st.text} group-hover:text-[#007A3D] transition-colors leading-tight mb-1`}>{f.libelle}</h4>
-            <p className="text-xs text-gray-400">{f.count > 0 ? `${f.count} entreprise${f.count > 1 ? "s" : ""}` : "Aucune entreprise"}</p>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
+const ETAPES = [
+  { titre: "Saisie", texte: "Les agents du MINMIDT enregistrent les entreprises et leurs déclarations trimestrielles de production." },
+  { titre: "Contrôle", texte: "Un administrateur vérifie chaque saisie, la valide ou la renvoie avec un motif pour correction." },
+  { titre: "Publication", texte: "Seules les données validées alimentent l'annuaire public et les notes de conjoncture." },
+];
 
 export default function HomePage() {
   const [stats, setStats] = useState({ totalEntreprises: 0, totalFilieres: 0, totalRegions: 0, totalEmplois: 0 });
-  const [filieres, setFilieres] = useState<FiliereCompte[]>([]);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   useEffect(() => { setMounted(true); }, []);
@@ -76,7 +55,6 @@ export default function HomePage() {
       const res = await fetch("/api/entreprises/sectors");
       if (!res.ok) return;
       const data = await res.json();
-      setFilieres(data.filieres || []);
       setStats((prev) => ({ ...prev, totalFilieres: (data.filieres || []).length }));
     } catch { }
   }, []);
@@ -110,7 +88,7 @@ export default function HomePage() {
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm mb-6">
               <span className="w-2 h-2 bg-[#FCD116] rounded-full animate-pulse" />
-              Données 2026 en temps réel
+              Données en temps réel
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">L'industrie camerounaise<span className="text-[#FCD116]"> en chiffres</span></h2>
             <p className="text-lg text-white/80 mb-8">Répertoire complet des entreprises industrielles, suivi de la production trimestrielle, semestrielle et annuelle. Notes de conjoncture et analyses sectorielles.</p>
@@ -122,42 +100,61 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 -mt-10 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon={<Building2 className="w-6 h-6" />} value={mounted ? stats.totalEntreprises.toString() : "--"} label="Entreprises répertoriées" color="bg-[#007A3D]" />
-          <StatCard icon={<TrendingUp className="w-6 h-6" />} value={mounted && stats.totalFilieres ? stats.totalFilieres.toString() : "--"} label="Filières industrielles" color="bg-[#CE1126]" />
-          <StatCard icon={<MapPin className="w-6 h-6" />} value={mounted && stats.totalRegions ? stats.totalRegions.toString() : "--"} label="Régions couvertes" color="bg-[#FCD116] text-black" />
-          <StatCard icon={<Users className="w-6 h-6" />} value={mounted && stats.totalEmplois ? stats.totalEmplois.toLocaleString("fr-FR") : "--"} label="Emplois déclarés" color="bg-slate-700" />
+      <section className="max-w-7xl mx-auto px-4 -mt-7 relative z-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard icon={<Building2 className="w-4 h-4" />} value={mounted ? stats.totalEntreprises.toString() : "--"} label="Entreprises répertoriées" color="bg-[#007A3D]" />
+          <StatCard icon={<TrendingUp className="w-4 h-4" />} value={mounted && stats.totalFilieres ? stats.totalFilieres.toString() : "--"} label="Filières industrielles" color="bg-[#CE1126]" />
+          <StatCard icon={<MapPin className="w-4 h-4" />} value={mounted && stats.totalRegions ? stats.totalRegions.toString() : "--"} label="Régions couvertes" color="bg-[#FCD116] text-black" />
+          <StatCard icon={<Users className="w-4 h-4" />} value={mounted && stats.totalEmplois ? stats.totalEmplois.toLocaleString("fr-FR") : "--"} label="Emplois déclarés" color="bg-slate-700" />
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16">
-        <h3 className="text-2xl font-bold text-center mb-4">Filières industrielles</h3>
-        <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">Découvrez les entreprises camerounaises par filière (★ : sous-secteur prioritaire de la SND30). Cliquez sur une filière pour explorer.</p>
-        <FilieresGrid filieres={filieres} />
+      {/* ---------------------------------------------------------------- Missions */}
+      <section className="max-w-7xl mx-auto px-4 pt-20 pb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <p className="text-sm font-semibold tracking-wider uppercase text-[#007A3D] mb-3">Nos missions</p>
+          <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Un outil public au service de l'industrialisation du Cameroun</h3>
+          <p className="text-gray-600 text-lg">
+            Le Portail de Suivi de la Production Industrielle (SPI-CAM), porté par le Ministère des Mines, de l'Industrie et du
+            Développement Technologique (MINMIDT), centralise, fiabilise et diffuse les données du secteur industriel camerounais.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {MISSIONS.map((m, k) => (
+            <div key={m.titre} className="group relative bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-xl hover:border-[#007A3D]/40 transition-all duration-300">
+              <span className="absolute top-5 right-6 text-4xl font-bold text-gray-100 group-hover:text-[#007A3D]/10 transition-colors select-none">{String(k + 1).padStart(2, "0")}</span>
+              <div className={`w-12 h-12 ${m.couleur} rounded-xl flex items-center justify-center mb-5`}>{m.icone}</div>
+              <h4 className="text-lg font-bold text-gray-900 mb-2">{m.titre}</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">{m.texte}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section className="bg-white py-16">
+      {/* ---------------------------------------------------------------- Comment ça marche */}
+      <section className="bg-white border-y border-gray-100 py-16">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
             <div>
-              <h3 className="text-2xl font-bold mb-4">Mission du Portail SPI-CAM</h3>
-              <p className="text-gray-600 mb-4">Le Portail de Suivi de la Production Industrielle du Cameroun (SPI-CAM) est une initiative du Ministère des Mines, de l'Industrie et du Développement Technologique pour centraliser et diffuser les données économiques du secteur industriel camerounais.</p>
-              <p className="text-gray-600 mb-6">Notre objectif : offrir un outil de transparence et d'analyse pour les décideurs, les investisseurs et les professionnels du secteur industriel.</p>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3"><div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center"><Globe className="w-4 h-4 text-[#007A3D]" /></div><span className="text-sm text-gray-700">Couverture nationale des 10 régions</span></div>
-                <div className="flex items-center gap-3"><div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center"><Building2 className="w-4 h-4 text-[#007A3D]" /></div><span className="text-sm text-gray-700">Annuaire complet des entreprises industrielles</span></div>
-                <div className="flex items-center gap-3"><div className="w-8 h-8 bg-[#007A3D]/10 rounded-lg flex items-center justify-center"><TrendingUp className="w-4 h-4 text-[#007A3D]" /></div><span className="text-sm text-gray-700">Indicateurs économiques en temps réel</span></div>
-              </div>
+              <p className="text-sm font-semibold tracking-wider uppercase text-[#CE1126] mb-3">Des données fiables</p>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Chaque chiffre publié a été vérifié</h3>
+              <p className="text-gray-600">
+                Les données suivent un circuit de validation : elles ne sont rendues publiques qu'après contrôle par
+                l'administration. Les activités sont classées selon la nomenclature officielle (NACAM, fondée sur la CITI Rév.4 des Nations Unies).
+              </p>
             </div>
-            <div className="bg-gradient-to-br from-[#007A3D]/5 to-[#CE1126]/5 rounded-2xl p-8">
-              <h4 className="font-bold text-lg mb-4">Accès rapide</h4>
-              <div className="space-y-3">
-                <Link href="/entreprises" className="flex items-center justify-between p-4 bg-white rounded-xl hover:shadow-md transition group"><div className="flex items-center gap-3"><Building2 className="w-5 h-5 text-[#007A3D]" /><span className="font-medium">Annuaire des entreprises</span></div><ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#007A3D] transition" /></Link>
-                <Link href="/conjoncture" className="flex items-center justify-between p-4 bg-white rounded-xl hover:shadow-md transition group"><div className="flex items-center gap-3"><TrendingUp className="w-5 h-5 text-[#CE1126]" /><span className="font-medium">Notes de conjoncture</span></div><ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#CE1126] transition" /></Link>
-                <Link href="/login" className="flex items-center justify-between p-4 bg-white rounded-xl hover:shadow-md transition group"><div className="flex items-center gap-3"><Users className="w-5 h-5 text-slate-700" /><span className="font-medium">Espace professionnel</span></div><ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-slate-700 transition" /></Link>
-              </div>
-            </div>
+            <ol className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+              {ETAPES.map((e, k) => (
+                <li key={e.titre} className="relative bg-slate-50 rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="w-9 h-9 rounded-full bg-[#007A3D] text-white font-bold flex items-center justify-center shrink-0">{k + 1}</span>
+                    <h4 className="font-bold text-gray-900">{e.titre}</h4>
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">{e.texte}</p>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
       </section>
@@ -167,7 +164,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4"><Building2 className="w-6 h-6 text-[#007A3D]" /><span className="font-bold">Portail SPI Cam</span></div>
-              <p className="text-sm text-gray-400">Plateforme officielle de suivi de la production industrielle du Cameroun. Données certifiées par le MINMIDT.</p>
+              <p className="text-sm text-gray-400">Plateforme officielle de suivi de la production industrielle du Cameroun, mise en œuvre par le MINMIDT. Données validées avant publication.</p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Liens rapides</h4>
@@ -195,9 +192,9 @@ export default function HomePage() {
 
 function StatCard({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 flex items-start gap-4">
-      <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center text-white shrink-0`}>{icon}</div>
-      <div><div className="text-2xl font-bold">{value}</div><div className="text-sm text-gray-500">{label}</div></div>
+    <div className="bg-white rounded-lg shadow-lg px-3 py-2.5 flex items-center gap-3">
+      <div className={`w-8 h-8 ${color} rounded-md flex items-center justify-center text-white shrink-0`}>{icon}</div>
+      <div className="min-w-0"><div className="text-xl font-bold leading-tight">{value}</div><div className="text-xs text-gray-500 truncate">{label}</div></div>
     </div>
   );
 }

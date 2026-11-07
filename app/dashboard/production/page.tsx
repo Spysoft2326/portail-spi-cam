@@ -8,6 +8,7 @@ import {
   CheckCircle, CheckSquare, Eye, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { UNITES, normaliser } from "@/lib/referentiels";
+import { KpiCard, KpiGrid } from "@/components/ui/kpi-card";
 
 // ------------------------------------------------------------------ Types
 interface Enterprise {
@@ -377,7 +378,7 @@ export default function ProductionPage() {
     return (
       <div style={{ padding: "24px", maxWidth: "960px", margin: "0 auto" }}>
         <button onClick={resetForm} style={{ ...btn, border: "none", padding: 0, marginBottom: "24px", background: "none" }}><ArrowLeft size={16} /> Retour aux déclarations</button>
-        <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: "0 0 4px", color: "#111827" }}>{editing ? "Modifier la déclaration" : "Nouvelle déclaration trimestrielle"}</h1>
+        <h1 style={{ fontSize: "20px", fontWeight: "bold", margin: "0 0 4px", color: "#111827" }}>{editing ? "Modifier la déclaration" : "Nouvelle déclaration trimestrielle"}</h1>
         <p style={{ margin: "0 0 24px", color: "#6b7280", fontSize: "14px" }}>Une déclaration par entreprise et par trimestre, avec un ou plusieurs produits.</p>
 
         {editing?.statut === "REJETE" && editing.motifRejet && (
@@ -574,9 +575,9 @@ SPI-CAM-005;2026;2;Ciment CPJ 32.5;40000;t;;;`}
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ padding: "10px", background: "#d1fae5", borderRadius: "8px" }}><Factory size={28} color="#059669" /></div>
+          <div style={{ padding: "8px", background: "#d1fae5", borderRadius: "8px" }}><Factory size={22} color="#059669" /></div>
           <div>
-            <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>Production</h1>
+            <h1 style={{ fontSize: "20px", fontWeight: "bold", margin: 0, color: "#111827" }}>Production</h1>
             <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>
               {isAgent ? "Vos déclarations trimestrielles" : "Déclarations trimestrielles des entreprises"}
             </p>
@@ -596,35 +597,22 @@ SPI-CAM-005;2026;2;Ciment CPJ 32.5;40000;t;;;`}
       )}
 
       {/* Statuts (cliquables = filtre) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginBottom: "16px" }}>
-        {[
-          { key: "EN_ATTENTE", n: nbAttente }, { key: "VALIDE", n: nbValide }, { key: "REJETE", n: nbRejete },
-        ].map(({ key, n }) => {
-          const s = STATUT[key];
-          const actif = filterStatut === key;
+      <div className="grid grid-cols-3 gap-3 mb-3">
+        {([["EN_ATTENTE", nbAttente, "En attente"], ["VALIDE", nbValide, "Validées"], ["REJETE", nbRejete, "Rejetées"]] as const).map(([key, n, lib]) => {
+          const st = STATUT[key];
           return (
-            <button key={key} onClick={() => setFilterStatut(actif ? "" : key)} style={{ padding: "12px", borderRadius: "8px", border: actif ? `2px solid ${s.color}` : "2px solid transparent", background: s.bg, cursor: "pointer", textAlign: "center" }}>
-              <p style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: s.color }}>{n}</p>
-              <p style={{ fontSize: "12px", margin: "4px 0 0", color: s.color, display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}><s.Icon size={12} /> {key === "EN_ATTENTE" ? "En attente" : s.label + (n > 1 ? "s" : "")}</p>
-            </button>
+            <KpiCard key={key} label={lib} value={n} icon={<st.Icon size={16} color={st.color} />} accent=""
+              onClick={() => setFilterStatut(filterStatut === key ? "" : key)} actif={filterStatut === key} />
           );
         })}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", marginBottom: "16px" }}>
-        {[
-          { label: "Déclarations", value: fmt(visibles.length), sub: "affichées" },
-          { label: "Entreprises déclarantes", value: fmt(nbEntreprises), sub: "distinctes" },
-          { label: "Lignes produit", value: fmt(nbProduits), sub: "produits déclarés" },
-          { label: "CA validé", value: fmt(caValide / MILLION, 1), sub: "millions de FCFA" },
-        ].map((k) => (
-          <div key={k.label} style={{ padding: "14px 16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white" }}>
-            <p style={{ fontSize: "13px", fontWeight: 600, color: "#059669", margin: "0 0 6px" }}>{k.label}</p>
-            <p style={{ fontSize: "24px", fontWeight: "bold", color: "#111827", margin: 0 }}>{k.value}</p>
-            <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 0" }}>{k.sub}</p>
-          </div>
-        ))}
-      </div>
+      <KpiGrid>
+        <KpiCard label="Déclarations" value={visibles.length} sub="affichées" icon={<Factory size={16} />} accent="bg-emerald-100 text-emerald-700" />
+        <KpiCard label="Entreprises déclarantes" value={nbEntreprises} sub="distinctes" icon={<Building2 size={16} />} accent="bg-blue-100 text-blue-700" />
+        <KpiCard label="Lignes produit" value={nbProduits} sub="produits déclarés" icon={<Package size={16} />} accent="bg-amber-100 text-amber-700" />
+        <KpiCard label="CA validé" value={fmt(caValide / MILLION, 1)} sub="millions de FCFA" icon={<DollarSign size={16} />} accent="bg-violet-100 text-violet-700" />
+      </KpiGrid>
 
       {/* Filtres */}
       <div style={{ padding: "16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", marginBottom: "16px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>

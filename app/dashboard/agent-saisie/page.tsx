@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { KpiCard, KpiGrid } from "@/components/ui/kpi-card";
 import {
   Building2, ClipboardList, Clock, CheckCircle, XCircle,
   TrendingUp, AlertCircle
@@ -114,57 +115,18 @@ export default function AgentSaisieDashboard() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Tableau de bord - Agent de saisie</h1>
+      <div className="mb-5">
+        <h1 className="text-xl font-bold text-gray-900">Tableau de bord - Agent de saisie</h1>
         <p className="text-gray-500 mt-1">Bienvenue, {session?.user?.name || "Agent"}</p>
       </div>
 
       {/* Compteurs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-blue-600" />
-            </div>
-            <span className="text-sm text-gray-500">Entreprises</span>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.totalEntreprises}</p>
-          <p className="text-sm text-gray-500 mt-1">repertoriees</p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <ClipboardList className="w-5 h-5 text-purple-600" />
-            </div>
-            <span className="text-sm text-gray-500">Mes saisies</span>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.mesProductions}</p>
-          <p className="text-sm text-gray-500 mt-1">productions</p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-5 h-5 text-yellow-600" />
-            </div>
-            <span className="text-sm text-gray-500">En attente</span>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.enAttente}</p>
-          <p className="text-sm text-gray-500 mt-1">a valider</p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </div>
-            <span className="text-sm text-gray-500">Validees</span>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.validees}</p>
-          <p className="text-sm text-gray-500 mt-1">acceptees</p>
-        </div>
-      </div>
+      <KpiGrid>
+        <KpiCard label="Entreprises" value={stats.totalEntreprises} sub="répertoriées" icon={<Building2 className="w-4 h-4" />} accent="bg-blue-100 text-blue-600" />
+        <KpiCard label="Mes saisies" value={stats.mesProductions} sub="déclarations" icon={<ClipboardList className="w-4 h-4" />} accent="bg-purple-100 text-purple-600" />
+        <KpiCard label="En attente" value={stats.enAttente} sub="à valider" icon={<Clock className="w-4 h-4" />} accent="bg-yellow-100 text-yellow-600" />
+        <KpiCard label="Validées" value={stats.validees} sub={`${stats.rejetees} rejetée(s)`} icon={<CheckCircle className="w-4 h-4" />} accent="bg-green-100 text-green-600" />
+      </KpiGrid>
 
       {/* Dernieres productions */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

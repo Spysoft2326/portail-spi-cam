@@ -336,7 +336,7 @@ export default function EntreprisesPage() {
         <button onClick={resetForm} style={{ marginBottom: "24px", background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: "14px" }}>
           ← Retour à l&apos;annuaire
         </button>
-        <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: "0 0 4px 0", color: "#111827" }}>
+        <h1 style={{ fontSize: "20px", fontWeight: "bold", margin: "0 0 4px 0", color: "#111827" }}>
           {editing ? "Modifier l'entreprise" : "Ajouter une entreprise"}
         </h1>
         <p style={{ margin: "0 0 24px 0", color: "#6b7280", fontSize: "14px" }}>
@@ -553,7 +553,7 @@ export default function EntreprisesPage() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div>
-          <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#111827" }}>🏢 Annuaire des entreprises</h1>
+          <h1 style={{ fontSize: "20px", fontWeight: "bold", margin: 0, color: "#111827" }}>🏢 Annuaire des entreprises</h1>
           <p style={{ margin: "4px 0 0 0", color: "#6b7280", fontSize: "14px" }}>
             {enterprises.length} entreprises · {filteredEnterprises.length} résultat{filteredEnterprises.length > 1 ? "s" : ""}
           </p>
