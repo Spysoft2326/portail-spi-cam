@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const fmtQ = (n: number) => n.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
@@ -13,7 +15,8 @@ export async function GET(request: Request) {
     const secteur = searchParams.get("secteur") || undefined;
 
     // Construire le where
-    const where: any = {};
+    // Données publiques : uniquement les déclarations validées par un administrateur
+    const where: any = { statut: "VALIDE" };
     if (annee) where.annee = annee;
     if (trimestre) where.trimestre = trimestre;
     if (secteur) {
@@ -23,9 +26,10 @@ export async function GET(request: Request) {
     }
 
     // Récupérer les productions avec les entreprises
-    const productions = await prisma.production.findMany({
+    const rows = await prisma.production.findMany({
       where,
       include: {
+        lignes: { orderBy: { produit: "asc" } },
         entreprise: {
           select: {
             denomination: true,
@@ -39,6 +43,13 @@ export async function GET(request: Request) {
       ],
       take: 100, // Limiter à 100 résultats
     });
+
+    // Résumé lisible des produits déclarés : « Ciment 125 000 t · Clinker 40 000 t »
+    const productions = rows.map(({ lignes, ...p }) => ({
+      ...p,
+      produits: lignes.map((l) => `${l.produit} ${fmtQ(l.quantite)} ${l.unite}`).join(" · "),
+      nbProduits: lignes.length,
+    }));
 
     // Calculer les stats
     const totalProductions = productions.length;
@@ -67,6 +78,7 @@ export async function GET(request: Request) {
 
     // Récupérer les années et secteurs disponibles
     const allProductions = await prisma.production.findMany({
+      where: { statut: "VALIDE" },
       select: { annee: true },
       distinct: ["annee"],
       orderBy: { annee: "desc" },
@@ -74,6 +86,7 @@ export async function GET(request: Request) {
     const annees = allProductions.map(p => p.annee).filter((a): a is number => a !== null);
 
     const allEntreprises = await prisma.entreprise.findMany({
+      where: { statut: "ACTIF" },
       select: { secteurActivite: true },
       distinct: ["secteurActivite"],
     });

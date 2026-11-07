@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/declarations";
 
 // ✅ GET — Détails d'une entreprise
 export async function GET(
@@ -17,10 +18,20 @@ export async function GET(
         _count: {
           select: { productions: true },
         },
+        produits: { where: { actif: true }, orderBy: { nom: "asc" }, select: { id: true, nom: true, unite: true } },
       },
     });
 
-    if (!entreprise) {
+    // Une fiche non validée n'est visible que des admins et de l'agent qui l'a saisie
+    const session = await getServerSession(authOptions);
+    const role = session?.user?.role;
+    const visible =
+      entreprise &&
+      (entreprise.statut === "ACTIF" ||
+        role === "ADMIN" || role === "SUPER_ADMIN" ||
+        (role === "AGENT_SAISIE" && entreprise.agentId === session?.user?.id));
+
+    if (!entreprise || !visible) {
       return NextResponse.json(
         { error: "Entreprise non trouvée" },
         { status: 404 }
@@ -70,28 +81,63 @@ export async function PATCH(
       return NextResponse.json({ error: "Entreprise non trouvée" }, { status: 404 });
     }
 
-    // Agent ne peut modifier que ses propres entreprises EN_ATTENTE
-    if (userRole === "AGENT_SAISIE" && existing.agentId !== session.user.id) {
-      return NextResponse.json({ error: "Vous ne pouvez modifier que vos propres saisies" }, { status: 403 });
+    const isAgent = userRole === "AGENT_SAISIE";
+
+    // Agent : uniquement ses propres fiches, tant qu'elles ne sont pas validées
+    if (isAgent) {
+      if (existing.agentId !== session.user.id) {
+        return NextResponse.json({ error: "Vous ne pouvez modifier que vos propres saisies" }, { status: 403 });
+      }
+      if (existing.statut === "ACTIF" || existing.statut === "INACTIF") {
+        return NextResponse.json(
+          { error: "Fiche déjà validée : demandez à un administrateur de la modifier" },
+          { status: 403 }
+        );
+      }
     }
 
     // Préparer les données à mettre à jour
     const updateData: any = {};
+    let auditAction = "ENTREPRISE_MODIFIEE";
 
-    // Si c'est une validation de statut (changement de statut uniquement)
+    // Changement de statut (validation / rejet / désactivation) : Admin et Super Admin
     if (body.statut !== undefined) {
-      if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
+      if (isAgent) {
         return NextResponse.json({ error: "Seuls Admin et SuperAdmin peuvent valider" }, { status: 403 });
       }
+      if (!["EN_ATTENTE", "ACTIF", "REJETE", "INACTIF"].includes(body.statut)) {
+        return NextResponse.json({ error: "Statut invalide" }, { status: 400 });
+      }
+      if (body.statut === "REJETE") {
+        const motif = typeof body.motifRejet === "string" ? body.motifRejet.trim() : "";
+        if (!motif) return NextResponse.json({ error: "Le motif du rejet est obligatoire" }, { status: 400 });
+        updateData.motifRejet = motif;
+      } else {
+        updateData.motifRejet = null;
+      }
       updateData.statut = body.statut;
+      auditAction = { ACTIF: "ENTREPRISE_VALIDEE", REJETE: "ENTREPRISE_REJETEE", INACTIF: "ENTREPRISE_DESACTIVEE", EN_ATTENTE: "ENTREPRISE_REMISE_EN_ATTENTE" }[body.statut as string]!;
+    }
+
+    // Une fiche corrigée par l'agent (en attente ou rejetée) repart en validation
+    if (isAgent) {
+      updateData.statut = "EN_ATTENTE";
+      updateData.motifRejet = null;
+      if (existing.statut === "REJETE") auditAction = "ENTREPRISE_RESOUMISE";
     }
 
     // Si c'est une modification complète
-    if (body.denomination !== undefined) updateData.denomination = body.denomination?.trim();
+    if (body.denomination !== undefined) {
+      if (!body.denomination?.trim()) {
+        return NextResponse.json({ error: "La dénomination est obligatoire" }, { status: 400 });
+      }
+      updateData.denomination = body.denomination.trim();
+    }
     if (body.sigle !== undefined) updateData.sigle = body.sigle?.trim() || null;
     if (body.secteurActivite !== undefined) updateData.secteurActivite = body.secteurActivite;
     if (body.ville !== undefined) updateData.ville = body.ville?.trim() || null;
-    if (body.region !== undefined) updateData.region = body.region?.trim() || null;
+    // region est obligatoire dans le schéma : on ne la vide jamais
+    if (body.region !== undefined && body.region?.trim()) updateData.region = body.region.trim();
     if (body.adresse !== undefined) updateData.adresse = body.adresse?.trim() || null;
     if (body.telephone !== undefined) updateData.telephone = body.telephone?.trim() || null;
     if (body.email !== undefined) updateData.email = body.email?.trim() || null;
@@ -103,7 +149,6 @@ export async function PATCH(
     if (body.numContribuable !== undefined) updateData.numContribuable = body.numContribuable?.trim() || null;
     if (body.sousSecteur !== undefined) updateData.sousSecteur = body.sousSecteur?.trim() || null;
     if (body.produitsPrincipaux !== undefined) updateData.produitsPrincipaux = body.produitsPrincipaux?.trim() || null;
-    if (body.anneeCreation !== undefined) updateData.anneeCreation = body.anneeCreation ? parseInt(body.anneeCreation) : null; // ✅ NOUVEAU
     if (body.estExportateur !== undefined) updateData.estExportateur = body.estExportateur;
     if (body.estDansZoneIndustrielle !== undefined) updateData.estDansZoneIndustrielle = body.estDansZoneIndustrielle;
     if (body.nomZoneIndustrielle !== undefined) updateData.nomZoneIndustrielle = body.nomZoneIndustrielle?.trim() || null;
@@ -113,6 +158,7 @@ export async function PATCH(
       data: updateData,
     });
 
+    await logAudit(session.user.id, auditAction, "Entreprise", id, updateData.motifRejet || undefined);
     return NextResponse.json(entreprise);
   } catch (error) {
     console.error("❌ Erreur PATCH entreprise:", error);

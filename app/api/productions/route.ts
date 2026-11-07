@@ -1,140 +1,103 @@
 import { NextResponse } from "next/server";
-import { requireApiRole } from "@/lib/api-guard";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireApiRole } from "@/lib/api-guard";
+import {
+  declarationSchema,
+  declarationInclude,
+  resolveLignes,
+  assertPeriodeLibre,
+  logAudit,
+  zodMessage,
+  DeclarationError,
+  STATUTS_DECLARATION,
+} from "@/lib/declarations";
 
-// ✅ GET — Liste des productions (filtrée par rôle)
+const ROLES_SAISIE = ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"];
+
+// GET /api/productions — liste des déclarations
+//   Agent : uniquement ses propres déclarations (imposé côté serveur)
+//   Admin / Super Admin : toutes
+//   Filtres : entrepriseId, annee, trimestre, statut
 export async function GET(request: Request) {
-  // Données internes : connexion obligatoire
-  const auth = await requireApiRole();
+  const auth = await requireApiRole(ROLES_SAISIE);
   if (auth.error) return auth.error;
+  const { role, id: userId } = auth.session.user as { role: string; id: string };
 
   try {
-    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
+    const where: any = {};
     const entrepriseId = searchParams.get("entrepriseId");
     const annee = searchParams.get("annee");
     const trimestre = searchParams.get("trimestre");
-    const mesProductions = searchParams.get("mesProductions");
+    const statut = searchParams.get("statut");
 
-    const userRole = session?.user?.role;
-    const userId = session?.user?.id;
-
-    const where: any = {};
-
-    if (entrepriseId) {
-      where.entrepriseId = entrepriseId;
-    }
-
-    if (annee) {
-      where.annee = parseInt(annee);
-    }
-
-    if (trimestre) {
-      where.trimestre = parseInt(trimestre);
-    }
-
-    // ✅ Agent ne voit que ses propres productions
-    if (userRole === "AGENT_SAISIE" && mesProductions === "true" && userId) {
-      where.saisiePar = userId;
-    }
+    if (entrepriseId) where.entrepriseId = entrepriseId;
+    if (annee) where.annee = parseInt(annee, 10);
+    if (trimestre) where.trimestre = parseInt(trimestre.replace(/^T/i, ""), 10);
+    if (statut && (STATUTS_DECLARATION as readonly string[]).includes(statut)) where.statut = statut;
+    if (role === "AGENT_SAISIE") where.saisiePar = userId;
 
     const productions = await prisma.production.findMany({
       where,
-      orderBy: { createdAt: "desc" },
-      include: {
-        entreprise: {
-          select: {
-            id: true,
-            denomination: true,
-            sigle: true,
-            secteurActivite: true,
-          },
-        },
-        agentSaisie: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      orderBy: [{ annee: "desc" }, { trimestre: "desc" }, { createdAt: "desc" }],
+      include: declarationInclude,
     });
-
     return NextResponse.json(productions);
   } catch (error) {
     console.error("Erreur GET productions:", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la recuperation des productions" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erreur lors de la récupération des déclarations" }, { status: 500 });
   }
 }
 
-// ✅ POST — Créer une production (Agent/Admin/SuperAdmin)
+// POST /api/productions — nouvelle déclaration trimestrielle (statut EN_ATTENTE)
 export async function POST(request: Request) {
+  const auth = await requireApiRole(ROLES_SAISIE);
+  if (auth.error) return auth.error;
+  const user = auth.session.user as { role: string; id: string };
+
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const parsed = declarationSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: zodMessage(parsed.error) }, { status: 400 });
     }
+    const data = parsed.data;
 
-    const userRole = session.user.role;
-    const userId = session.user.id;
-
-    if (!userRole) {
-      return NextResponse.json({ error: "Role non defini" }, { status: 403 });
-    }
-
-    const allowedRoles = ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"];
-    if (!allowedRoles.includes(userRole)) {
-      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
-    }
-
-    const body = await request.json();
-
-    // ✅ Validation des champs obligatoires
-    if (!body.entrepriseId) {
+    const entreprise = await prisma.entreprise.findUnique({ where: { id: data.entrepriseId } });
+    if (!entreprise) return NextResponse.json({ error: "Entreprise introuvable" }, { status: 404 });
+    if (entreprise.statut !== "ACTIF") {
       return NextResponse.json(
-        { error: "L'entreprise est obligatoire" },
+        { error: "Cette entreprise n'est pas encore validée : impossible de déclarer sa production" },
         { status: 400 }
       );
     }
 
-    // ✅ Convertir trimestre "T1" → 1
-    let trimestreNum: number | null = null;
-    if (body.trimestre) {
-      const trimMap: Record<string, number> = { "T1": 1, "T2": 2, "T3": 3, "T4": 4 };
-      trimestreNum = trimMap[body.trimestre] || parseInt(body.trimestre) || null;
-    }
-
-    const production = await prisma.production.create({
-      data: {
-        entrepriseId: body.entrepriseId,
-        produit: body.produit?.trim() || null,
-        quantite: body.quantite ? parseFloat(body.quantite) : null,
-        unite: body.unite?.trim() || null,
-        periode: body.periode?.trim() || null,
-        annee: body.annee ? parseInt(body.annee) : null,
-        trimestre: trimestreNum,
-        productionPhysique: body.productionPhysique ? parseFloat(body.productionPhysique) : null,
-        // ✅ Nouveaux champs
-        chiffreAffaires: body.chiffreAffaires ? parseFloat(body.chiffreAffaires) : null,
-        effectifs: body.effectifs ? parseInt(body.effectifs) : null,
-        commentaire: body.commentaire?.trim() || null,
-        statut: "EN_ATTENTE",
-        saisiePar: userId,
-      },
+    const created = await prisma.$transaction(async (tx) => {
+      await assertPeriodeLibre(tx, data.entrepriseId, data.annee, data.trimestre);
+      const lignes = await resolveLignes(tx, data.entrepriseId, data.lignes);
+      return tx.production.create({
+        data: {
+          entrepriseId: data.entrepriseId,
+          annee: data.annee,
+          trimestre: data.trimestre,
+          periode: `T${data.trimestre} ${data.annee}`,
+          chiffreAffaires: data.chiffreAffaires ?? null,
+          effectifs: data.effectifs ?? null,
+          commentaire: data.commentaire || null,
+          statut: "EN_ATTENTE",
+          saisiePar: user.id,
+          lignes: { create: lignes },
+        },
+        include: declarationInclude,
+      });
     });
 
-    return NextResponse.json(production, { status: 201 });
-  } catch (error: any) {
+    await logAudit(user.id, "DECLARATION_CREEE", "Production", created.id, `${entreprise.denomination} T${data.trimestre} ${data.annee}`);
+    return NextResponse.json(created, { status: 201 });
+  } catch (error) {
+    if (error instanceof DeclarationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Erreur POST production:", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la creation de la production" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erreur lors de la création de la déclaration" }, { status: 500 });
   }
 }

@@ -1,87 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { requireApiRole } from "@/lib/api-guard";
+import { decideDeclaration, DeclarationError } from "@/lib/declarations";
 
-// POST /api/validation - Valider ou rejeter une production
+// Ancienne route de validation (POST { productionId, action: "VALIDEE"|"REJETEE", commentaireValidation }).
+// Elle se contentait d'écrire un journal sans changer le statut : elle applique maintenant
+// réellement la décision, via la même logique que /api/admin/productions/[id]/validate.
 export async function POST(request: NextRequest) {
+  const auth = await requireApiRole(["ADMIN", "SUPER_ADMIN"]);
+  if (auth.error) return auth.error;
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const { productionId, action, commentaireValidation } = await request.json();
+    const statut = action === "VALIDEE" ? "VALIDE" : action === "REJETEE" ? "REJETE" : null;
+    if (!productionId || !statut) {
+      return NextResponse.json({ error: "productionId et action (VALIDEE ou REJETEE) obligatoires" }, { status: 400 });
     }
-
-    // Seuls admin et super-admin peuvent valider
-    const userRole = session.user.role;
-    if (!userRole || !["ADMIN", "SUPER_ADMIN"].includes(userRole)) {
-      return NextResponse.json(
-        { error: "Accès refusé - Rôle insuffisant" },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const { productionId, action, commentaireValidation } = body;
-
-    if (!productionId || !action) {
-      return NextResponse.json(
-        { error: "ID production et action obligatoires" },
-        { status: 400 }
-      );
-    }
-
-    if (!["VALIDEE", "REJETEE"].includes(action)) {
-      return NextResponse.json(
-        { error: "Action invalide (VALIDEE ou REJETEE)" },
-        { status: 400 }
-      );
-    }
-
-    // Vérifier que la production existe
-    const existingProduction = await prisma.production.findUnique({
-      where: { id: productionId },
-      include: {
-        entreprise: {
-          select: {
-            id: true,
-            denomination: true,
-            referenceSPI: true,
-          },
-        },
-      },
-    });
-
-    if (!existingProduction) {
-      return NextResponse.json(
-        { error: "Production non trouvée" },
-        { status: 404 }
-      );
-    }
-
-    // ✅ Production n'a pas de champ statut, validePar, dateValidation, commentaire
-    // On crée un audit log pour tracer la validation
-    await prisma.auditLog.create({
-      data: {
-        action: `VALIDATION_${action}`,
-        entity: "Production",
-        entityId: productionId,
-        details: commentaireValidation
-          ? `${action === "VALIDEE" ? "✅ Validée" : "❌ Rejetée"}: ${commentaireValidation}`
-          : `Production ${action === "VALIDEE" ? "validée" : "rejetée"} par ${session.user.email || session.user.name}`,
-        userId: session.user.id,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: `Production ${action === "VALIDEE" ? "validée" : "rejetée"} avec succès`,
-      production: existingProduction,
-    });
-  } catch (error) {
-    console.error("[VALIDATION_POST]", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la validation" },
-      { status: 500 }
+    const production = await decideDeclaration(
+      auth.session.user as { id: string; role: string },
+      productionId,
+      statut,
+      commentaireValidation
     );
+    return NextResponse.json({ success: true, production });
+  } catch (error) {
+    if (error instanceof DeclarationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error("[VALIDATION]", error);
+    return NextResponse.json({ error: "Erreur lors de la validation" }, { status: 500 });
   }
 }

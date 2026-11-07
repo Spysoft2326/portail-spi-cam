@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/declarations";
+import { normaliser, nettoyerProduits } from "@/lib/referentiels";
 
 // ✅ GET — Liste des entreprises (filtrée par rôle, recherche, secteur, région, ville)
 export async function GET(request: Request) {
@@ -17,31 +19,26 @@ export async function GET(request: Request) {
     const userRole = session?.user?.role;
     const userId = session?.user?.id;
 
-    // Déterminer le statut selon le rôle
-    let statutFilter = "ACTIF";
-    if (!userRole) {
-      // Public : voir uniquement ACTIF
-      statutFilter = "ACTIF";
-    } else if (userRole === "AGENT_SAISIE") {
-      statutFilter = statutParam || "ACTIF";
-    } else if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-      statutFilter = statutParam || "ALL";
-    }
-
+    // Visibilité selon le rôle :
+    //   Public : entreprises ACTIF uniquement
+    //   Agent  : toutes les ACTIF + ses propres saisies (en attente / rejetées) pour pouvoir les suivre et corriger
+    //   Admin / Super Admin : toutes (filtre ?statut= optionnel)
     const where: any = {};
+    const and: any[] = [];
+    const isAdminRole = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
 
-    if (statutFilter !== "ALL") {
-      where.statut = statutFilter;
-    }
-
-    // Agent ne voit que ses propres EN_ATTENTE + toutes les ACTIF
-    if (userRole === "AGENT_SAISIE" && statutFilter === "EN_ATTENTE") {
-      where.agentId = userId;
+    if (isAdminRole) {
+      if (statutParam && statutParam !== "ALL") where.statut = statutParam;
+    } else if (userRole === "AGENT_SAISIE") {
+      and.push({ OR: [{ statut: "ACTIF" }, { agentId: userId }] });
+      if (statutParam && statutParam !== "ALL") where.statut = statutParam;
+    } else {
+      where.statut = "ACTIF";
     }
 
     // Recherche textuelle (nom, sigle, ville, contact, téléphone, email)
     if (search) {
-      where.OR = [
+      and.push({ OR: [
         { denomination: { contains: search, mode: "insensitive" } },
         { sigle: { contains: search, mode: "insensitive" } },
         { ville: { contains: search, mode: "insensitive" } },
@@ -49,7 +46,7 @@ export async function GET(request: Request) {
         { telephone: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
         { adresse: { contains: search, mode: "insensitive" } },
-      ];
+      ] });
     }
 
     if (secteur) {
@@ -64,12 +61,14 @@ export async function GET(request: Request) {
       where.ville = { equals: ville, mode: "insensitive" };
     }
 
+    if (and.length) where.AND = and;
+
     const entreprises = await prisma.entreprise.findMany({
       where,
       orderBy: { denomination: "asc" },
       include: {
         _count: {
-          select: { productions: true },
+          select: { productions: true, produits: true },
         },
       },
     });
@@ -107,16 +106,33 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    // Déterminer le statut selon le rôle
-    let statut = "EN_ATTENTE";
-    if (userRole === "SUPER_ADMIN") {
-      statut = "ACTIF";
+    const denomination = body.denomination?.trim();
+    if (!denomination) {
+      return NextResponse.json({ error: "La dénomination est obligatoire" }, { status: 400 });
     }
+
+    // Doublon : même dénomination (sans tenir compte de la casse ni des accents)
+    const cle = normaliser(denomination);
+    const existantes = await prisma.entreprise.findMany({ select: { denomination: true, statut: true } });
+    const doublon = existantes.find((e) => normaliser(e.denomination) === cle);
+    if (doublon) {
+      return NextResponse.json(
+        { error: `Une entreprise « ${doublon.denomination} » existe déjà (statut : ${doublon.statut})` },
+        { status: 409 }
+      );
+    }
+
+    // Workflow : une fiche créée par un agent attend la validation d'un admin ;
+    // un admin ou super admin crée directement une fiche active.
+    const statut = userRole === "AGENT_SAISIE" ? "EN_ATTENTE" : "ACTIF";
+
+    // Produits fabriqués par l'entreprise (catalogue) : [{ nom, unite }]
+    const produits = nettoyerProduits(body.produits);
 
     const entreprise = await prisma.entreprise.create({
       data: {
         referenceSPI: body.referenceSPI?.trim() || `SPI-${Date.now()}`,
-        denomination: body.denomination?.trim(),
+        denomination,
         sigle: body.sigle?.trim() || null,
         formeJuridique: body.formeJuridique?.trim() || null,
         capitalSocial: body.capitalSocial ? parseFloat(body.capitalSocial) : null,
@@ -131,16 +147,18 @@ export async function POST(request: Request) {
         numContribuable: body.numContribuable?.trim() || null,
         secteurActivite: body.secteurActivite || "AUTRE",
         sousSecteur: body.sousSecteur?.trim() || null,
-        produitsPrincipaux: body.produitsPrincipaux?.trim() || null,
-        // ✅ NOUVEAU
-        statut: statut,
+        produitsPrincipaux: body.produitsPrincipaux?.trim() || produits.map((p) => p.nom).join(", ") || null,
+        statut,
         estExportateur: body.estExportateur || false,
         estDansZoneIndustrielle: body.estDansZoneIndustrielle || false,
         nomZoneIndustrielle: body.nomZoneIndustrielle?.trim() || null,
         agentId: userRole === "AGENT_SAISIE" ? session.user.id : null,
+        produits: { create: produits },
       },
+      include: { produits: true },
     });
 
+    await logAudit(session.user.id, "ENTREPRISE_CREEE", "Entreprise", entreprise.id, `${denomination} (${statut})`);
     return NextResponse.json(entreprise, { status: 201 });
   } catch (error) {
     console.error("❌ Erreur POST entreprise:", error);

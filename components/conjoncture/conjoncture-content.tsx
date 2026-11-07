@@ -30,6 +30,7 @@ interface Production {
   annee: number;
   trimestre: number;
   productionPhysique: number;
+  produits?: string;
   chiffreAffaires: number;
   effectifs: number;
   investissements: number;
@@ -217,7 +218,7 @@ export default function ConjonctureContent() {
               <th>Secteur</th>
               <th>Année</th>
               <th>Trimestre</th>
-              <th>Production</th>
+              <th>Produits</th>
               <th>CA (FCFA)</th>
               <th>Effectifs</th>
             </tr>
@@ -229,7 +230,7 @@ export default function ConjonctureContent() {
                 <td>${p.entreprise?.secteurActivite || 'N/A'}</td>
                 <td>${p.annee || 'N/A'}</td>
                 <td>T${p.trimestre || 'N/A'}</td>
-                <td>${safeLocaleString(p.productionPhysique)}</td>
+                <td>${p.produits || "-"}</td>
                 <td>${safeLocaleString(p.chiffreAffaires)}</td>
                 <td>${p.effectifs ?? 0}</td>
               </tr>
@@ -471,7 +472,7 @@ export default function ConjonctureContent() {
                       <th className="text-left py-3 px-4">Entreprise</th>
                       <th className="text-left py-3 px-4">Secteur</th>
                       <th className="text-left py-3 px-4">Période</th>
-                      <th className="text-right py-3 px-4">Production</th>
+                      <th className="text-left py-3 px-4">Produits</th>
                       <th className="text-right py-3 px-4">CA (FCFA)</th>
                       <th className="text-right py-3 px-4">Effectifs</th>
                       <th className="text-center py-3 px-4">Statut</th>
@@ -487,7 +488,7 @@ export default function ConjonctureContent() {
                           </span>
                         </td>
                         <td className="py-3 px-4">{p.annee || 'N/A'} T{p.trimestre || 'N/A'}</td>
-                        <td className="py-3 px-4 text-right">{safeLocaleString(p.productionPhysique)}</td>
+                        <td className="py-3 px-4 text-sm">{p.produits || "-"}</td>
                         <td className="py-3 px-4 text-right">{safeLocaleString(p.chiffreAffaires)}</td>
                         <td className="py-3 px-4 text-right">{p.effectifs ?? 0}</td>
                         <td className="py-3 px-4 text-center">

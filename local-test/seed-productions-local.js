@@ -1,50 +1,84 @@
-// Données de production de TEST pour la base SQLite locale uniquement.
-// Lancé par local-test/setup-local.bat — ne touche jamais la base Render.
+// Données de TEST pour la base SQLite locale uniquement (lancé par local-test/setup-local.bat).
+// Crée un catalogue de plusieurs produits par entreprise et des déclarations trimestrielles
+// multi-produits dans les trois statuts du workflow. Ne touche jamais la base Render.
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-const PRODUITS = [
-  ["Ciment", "tonnes"], ["Boissons", "hectolitres"], ["Aluminium", "tonnes"],
-  ["Huile de palme", "tonnes"], ["Savon", "tonnes"], ["Sucre", "tonnes"],
+// Catalogues types : une entreprise fabrique 1 à 3 produits
+const CATALOGUES = [
+  [["Ciment CPJ 42.5", "t"], ["Ciment CPJ 32.5", "t"], ["Clinker", "t"]],
+  [["Bière", "hl"], ["Boissons gazeuses", "hl"], ["Eau minérale", "hl"]],
+  [["Aluminium primaire", "t"], ["Tôles aluminium", "t"]],
+  [["Huile de palme raffinée", "t"], ["Savon de ménage", "cartons"]],
+  [["Sucre en morceaux", "t"], ["Sucre en poudre", "t"]],
+  [["Contreplaqué", "m3"]],
 ];
 
 async function main() {
-  const agent = await prisma.user.findFirst({ where: { role: "AGENT_SAISIE" } });
+  const agent = await prisma.user.findFirst({ where: { email: "agent1@spi-cam.cm" } });
+  const agent2 = await prisma.user.findFirst({ where: { email: "agent2@spi-cam.cm" } });
   const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
   const entreprises = await prisma.entreprise.findMany({ take: 20, orderBy: { referenceSPI: "asc" } });
   if (!agent || !admin || entreprises.length === 0) {
     throw new Error("Utilisateurs ou entreprises manquants : lancer d'abord les seeds users et entreprises.");
   }
 
+  await prisma.ligneProduction.deleteMany();
   await prisma.production.deleteMany();
-  let n = 0;
+  await prisma.produit.deleteMany();
+
+  let nDecl = 0;
+  let nLignes = 0;
   for (const [i, e] of entreprises.entries()) {
-    const [produit, unite] = PRODUITS[i % PRODUITS.length];
+    const produits = [];
+    for (const [nom, unite] of CATALOGUES[i % CATALOGUES.length]) {
+      produits.push(await prisma.produit.create({ data: { entrepriseId: e.id, nom, unite } }));
+    }
+    const saisiePar = i % 2 === 0 ? agent.id : (agent2 || agent).id;
+
     for (const [annee, trimestre] of [[2025, 3], [2025, 4], [2026, 1], [2026, 2]]) {
-      const base = 10000 + i * 3500;
-      const quantite = Math.round(base * (1 + 0.04 * trimestre) * (annee === 2026 ? 1.06 : 1));
-      // Les trimestres les plus récents restent en attente de validation
-      const statut = annee === 2026 && trimestre === 2 ? (i % 3 === 0 ? "REJETE" : "EN_ATTENTE") : "VALIDE";
+      const recent = annee === 2026 && trimestre === 2;
+      const statut = recent ? (i % 4 === 0 ? "REJETE" : "EN_ATTENTE") : "VALIDE";
+      const croissance = (1 + 0.03 * trimestre) * (annee === 2026 ? 1.05 : 1);
       await prisma.production.create({
         data: {
           entrepriseId: e.id,
-          produit, unite, quantite,
-          productionPhysique: quantite,
-          periode: `T${trimestre} ${annee}`,
-          annee, trimestre,
-          chiffreAffaires: quantite * 35000,
+          annee, trimestre, periode: `T${trimestre} ${annee}`,
+          chiffreAffaires: Math.round((800 + i * 250) * croissance) * 1_000_000,
           effectifs: 80 + i * 25,
           commentaire: "Donnée de test locale",
           statut,
-          saisiePar: agent.id,
+          motifRejet: statut === "REJETE" ? "Quantités incohérentes avec le trimestre précédent : merci de vérifier." : null,
+          saisiePar,
           validePar: statut === "EN_ATTENTE" ? null : admin.id,
           dateValidation: statut === "EN_ATTENTE" ? null : new Date(),
+          lignes: {
+            create: produits.map((p, k) => ({
+              produitId: p.id,
+              produit: p.nom,
+              unite: p.unite,
+              quantite: Math.round((5000 + i * 1800) / (k + 1) * croissance),
+            })),
+          },
         },
       });
-      n++;
+      nDecl++;
+      nLignes += produits.length;
     }
   }
-  console.log(`✅ ${n} productions de test créées pour ${entreprises.length} entreprises`);
+  console.log(`✅ ${nDecl} déclarations de test (${nLignes} lignes produit) pour ${entreprises.length} entreprises`);
+
+  // Quelques fiches entreprise dans le workflow (saisies par un agent)
+  const enAttente = await prisma.entreprise.findMany({ skip: 140, take: 3, orderBy: { referenceSPI: "asc" } });
+  for (const [k, e] of enAttente.entries()) {
+    await prisma.entreprise.update({
+      where: { id: e.id },
+      data: k < 2
+        ? { statut: "EN_ATTENTE", agentId: agent.id, motifRejet: null }
+        : { statut: "REJETE", agentId: agent.id, motifRejet: "Numéro de contribuable manquant." },
+    });
+  }
+  console.log("✅ 2 fiches entreprise en attente et 1 rejetée (saisies par agent1)");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

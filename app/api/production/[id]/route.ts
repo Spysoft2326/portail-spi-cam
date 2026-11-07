@@ -1,189 +1,118 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireApiRole } from "@/lib/api-guard";
+import {
+  declarationSchema,
+  declarationInclude,
+  resolveLignes,
+  assertPeriodeLibre,
+  canEditDeclaration,
+  logAudit,
+  zodMessage,
+  DeclarationError,
+} from "@/lib/declarations";
 
-// Helper pour la mise à jour (utilisé par PATCH et PUT)
-async function updateProduction(
-  request: NextRequest,
-  params: { id: string }
-) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+const ROLES_SAISIE = ["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"];
+type Ctx = { params: { id: string } };
+
+// GET /api/production/[id] — détail d'une déclaration (un agent ne voit que les siennes)
+export async function GET(_request: NextRequest, { params }: Ctx) {
+  const auth = await requireApiRole(ROLES_SAISIE);
+  if (auth.error) return auth.error;
+  const user = auth.session.user as { role: string; id: string };
+
+  const production = await prisma.production.findUnique({ where: { id: params.id }, include: declarationInclude });
+  if (!production || (user.role === "AGENT_SAISIE" && production.saisiePar !== user.id)) {
+    return NextResponse.json({ error: "Déclaration introuvable" }, { status: 404 });
   }
-
-  const { id } = params;
-  const body = await request.json();
-
-  const existing = await prisma.production.findUnique({
-    where: { id },
-  });
-
-  if (!existing) {
-    return NextResponse.json({ error: "Production non trouvee" }, { status: 404 });
-  }
-
-  const userRole = session.user.role;
-  const userId = session.user.id;
-
-  // Agent ne peut modifier que SES productions EN_ATTENTE
-  if (userRole === "AGENT_SAISIE") {
-    if (existing.saisiePar !== userId) {
-      return NextResponse.json({ error: "Non autorise - ce n'est pas votre production" }, { status: 403 });
-    }
-    if (existing.statut !== "EN_ATTENTE") {
-      return NextResponse.json({ error: "Non autorise - production deja validee" }, { status: 403 });
-    }
-  }
-
-  // Admin/SuperAdmin peuvent tout modifier
-  const updateData: any = {};
-  if (body.produit !== undefined) updateData.produit = body.produit;
-  if (body.quantite !== undefined) updateData.quantite = parseFloat(body.quantite);
-  if (body.unite !== undefined) updateData.unite = body.unite;
-  if (body.periode !== undefined) updateData.periode = body.periode;
-  if (body.annee !== undefined) updateData.annee = parseInt(body.annee);
-  if (body.trimestre !== undefined) updateData.trimestre = parseInt(body.trimestre);
-  if (body.productionPhysique !== undefined) updateData.productionPhysique = parseFloat(body.productionPhysique);
-  if (body.chiffreAffaires !== undefined) updateData.chiffreAffaires = parseFloat(body.chiffreAffaires);
-  if (body.effectifs !== undefined) updateData.effectifs = parseInt(body.effectifs);
-  if (body.commentaire !== undefined) updateData.commentaire = body.commentaire;
-  // Gestion des champs investissements si présents
-  if (body.investissements !== undefined) updateData.investissements = parseFloat(body.investissements);
-
-  const production = await prisma.production.update({
-    where: { id },
-    data: updateData,
-    include: {
-      entreprise: {
-        select: {
-          id: true,
-          denomination: true,
-          referenceSPI: true,
-        },
-      },
-    },
-  });
-
   return NextResponse.json({ production });
 }
 
-// PUT /api/production/[id] - Modifier une production (alias de PATCH)
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    return await updateProduction(request, params);
-  } catch (error) {
-    console.error("[PRODUCTION_PUT]", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la modification de la production" },
-      { status: 500 }
-    );
-  }
-}
+// PUT /api/production/[id] — modifier une déclaration (lignes remplacées)
+// Une déclaration REJETEE corrigée par l'agent repasse EN_ATTENTE.
+async function update(request: NextRequest, { params }: Ctx) {
+  const auth = await requireApiRole(ROLES_SAISIE);
+  if (auth.error) return auth.error;
+  const user = auth.session.user as { role: string; id: string };
 
-// PATCH /api/production/[id] - Modifier une production (Agent/Admin/SuperAdmin)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
   try {
-    return await updateProduction(request, params);
-  } catch (error) {
-    console.error("[PRODUCTION_PATCH]", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la modification de la production" },
-      { status: 500 }
-    );
-  }
-}
-
-// GET /api/production/[id] - Details d'une production
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const existing = await prisma.production.findUnique({ where: { id: params.id } });
+    if (!existing || (user.role === "AGENT_SAISIE" && existing.saisiePar !== user.id)) {
+      return NextResponse.json({ error: "Déclaration introuvable" }, { status: 404 });
     }
+    const perm = canEditDeclaration(user.role, user.id, existing);
+    if (!perm.ok) return NextResponse.json({ error: perm.reason }, { status: 403 });
 
-    const { id } = params;
+    // L'entreprise d'une déclaration ne change pas
+    const parsed = declarationSchema.safeParse({ ...(await request.json()), entrepriseId: existing.entrepriseId });
+    if (!parsed.success) return NextResponse.json({ error: zodMessage(parsed.error) }, { status: 400 });
+    const data = parsed.data;
 
-    const production = await prisma.production.findUnique({
-      where: { id },
-      include: {
-        entreprise: {
-          select: {
-            id: true,
-            denomination: true,
-            referenceSPI: true,
-            secteurActivite: true,
-          },
+    // Correction d'une déclaration en attente ou rejetée => (re)soumise pour validation
+    const resoumise = existing.statut !== "VALIDE";
+
+    const updated = await prisma.$transaction(async (tx) => {
+      await assertPeriodeLibre(tx, existing.entrepriseId, data.annee, data.trimestre, existing.id);
+      const lignes = await resolveLignes(tx, existing.entrepriseId, data.lignes);
+      await tx.ligneProduction.deleteMany({ where: { productionId: existing.id } });
+      return tx.production.update({
+        where: { id: existing.id },
+        data: {
+          annee: data.annee,
+          trimestre: data.trimestre,
+          periode: `T${data.trimestre} ${data.annee}`,
+          chiffreAffaires: data.chiffreAffaires ?? null,
+          effectifs: data.effectifs ?? null,
+          commentaire: data.commentaire || null,
+          ...(resoumise ? { statut: "EN_ATTENTE", motifRejet: null, validePar: null, dateValidation: null } : {}),
+          lignes: { create: lignes },
         },
-      },
+        include: declarationInclude,
+      });
     });
 
-    if (!production) {
-      return NextResponse.json({ error: "Production non trouvee" }, { status: 404 });
-    }
-
-    return NextResponse.json({ production });
-  } catch (error) {
-    console.error("[PRODUCTION_GET_ID]", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la recuperation de la production" },
-      { status: 500 }
+    await logAudit(
+      user.id,
+      existing.statut === "REJETE" ? "DECLARATION_RESOUMISE" : existing.statut === "VALIDE" ? "DECLARATION_VALIDEE_MODIFIEE" : "DECLARATION_MODIFIEE",
+      "Production",
+      existing.id
     );
+    return NextResponse.json({ production: updated });
+  } catch (error) {
+    if (error instanceof DeclarationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error("[PRODUCTION_PUT]", error);
+    return NextResponse.json({ error: "Erreur lors de la modification de la déclaration" }, { status: 500 });
   }
 }
 
-// DELETE /api/production/[id] - Supprimer une production (Agent/Admin/SuperAdmin)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const PUT = update;
+export const PATCH = update;
+
+// DELETE /api/production/[id] — mêmes droits que la modification
+export async function DELETE(_request: NextRequest, { params }: Ctx) {
+  const auth = await requireApiRole(ROLES_SAISIE);
+  if (auth.error) return auth.error;
+  const user = auth.session.user as { role: string; id: string };
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-
-    const { id } = params;
-
     const existing = await prisma.production.findUnique({
-      where: { id },
+      where: { id: params.id },
+      include: { entreprise: { select: { denomination: true } } },
     });
-
-    if (!existing) {
-      return NextResponse.json({ error: "Production non trouvee" }, { status: 404 });
+    if (!existing || (user.role === "AGENT_SAISIE" && existing.saisiePar !== user.id)) {
+      return NextResponse.json({ error: "Déclaration introuvable" }, { status: 404 });
     }
+    const perm = canEditDeclaration(user.role, user.id, existing);
+    if (!perm.ok) return NextResponse.json({ error: perm.reason }, { status: 403 });
 
-    const userRole = session.user.role;
-    const userId = session.user.id;
-
-    // Agent ne peut supprimer que SES productions EN_ATTENTE
-    if (userRole === "AGENT_SAISIE") {
-      if (existing.saisiePar !== userId) {
-        return NextResponse.json({ error: "Non autorise" }, { status: 403 });
-      }
-      if (existing.statut !== "EN_ATTENTE") {
-        return NextResponse.json({ error: "Non autorise - production deja validee" }, { status: 403 });
-      }
-    }
-
-    await prisma.production.delete({ where: { id } });
-
-    return NextResponse.json({ message: "Production supprimee" });
+    await prisma.production.delete({ where: { id: existing.id } });
+    await logAudit(user.id, "DECLARATION_SUPPRIMEE", "Production", existing.id,
+      `${existing.entreprise.denomination} T${existing.trimestre} ${existing.annee} (${existing.statut})`);
+    return NextResponse.json({ message: "Déclaration supprimée" });
   } catch (error) {
     console.error("[PRODUCTION_DELETE]", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la suppression de la production" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 });
   }
 }
