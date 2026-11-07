@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // mot de passe hashé pour les utilisateurs créés manuellement
+  role          String    @default("USER")
+  accounts      Account[]
+  sessions      Session[]
+  entreprises   Entreprise[] @relation("AgentEntreprises")
+  auditLogs     AuditLog[]
+  productionsSaisies Production[] @relation("SaisiePar")
+  productionsValidees Production[] @relation("ValidePar")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Entreprise {
+  id                      String       @id @default(uuid())
+  referenceSPI            String       @unique
+  denomination            String
+  sigle                   String?
+  formeJuridique          String?
+  capitalSocial           Float?
+  adresse                 String?
+  ville                   String?
+  departement             String?
+  region                  String
+  telephone               String?
+  email                   String?
+  nomContact              String?
+  siteWeb                 String?
+  numContribuable         String?
+  secteurActivite         String       @default("AUTRE")
+  sousSecteur             String?
+  produitsPrincipaux      String?
+  statut                  String       @default("ACTIF")
+  estExportateur          Boolean      @default(false)
+  estDansZoneIndustrielle Boolean      @default(false)
+  nomZoneIndustrielle     String?
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  agentId                 String?
+  agent                   User?        @relation("AgentEntreprises", fields: [agentId], references: [id])
+  productions             Production[]
+}
+
+model Production {
+  id                String     @id @default(uuid())
+  entrepriseId      String
+  entreprise        Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  produit           String?
+  quantite          Float?
+  unite             String?
+  periode           String?
+  annee             Int?
+  trimestre         Int?
+  productionPhysique Float?
+  // ✅ NOUVEAUX CHAMPS — workflow validation Agent → Admin
+  chiffreAffaires   Float?
+  effectifs         Int?
+  commentaire       String?
+  statut            String     @default("EN_ATTENTE") // EN_ATTENTE, VALIDE, REJETE
+  saisiePar         String?    // ID de l'agent qui a saisi
+  agentSaisie       User?      @relation("SaisiePar", fields: [saisiePar], references: [id])
+  validePar         String?    // ID de l'admin qui a validé
+  adminValidation   User?      @relation("ValidePar", fields: [validePar], references: [id])
+  dateValidation    DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String
+  details   String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model ConfigSystem {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}

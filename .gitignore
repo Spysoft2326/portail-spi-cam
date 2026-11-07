@@ -25,3 +25,9 @@ Thumbs.db
 
 .env.production
 .env.local
+
+# Test local
+prisma/local-test.db
+prisma/local-test.db-journal
+*.tsbuildinfo
+.claude/
