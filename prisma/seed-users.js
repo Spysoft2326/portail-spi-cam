@@ -1,45 +1,30 @@
+/**
+ * Compte initial : crée le super administrateur « Spysoft » s'il n'existe aucun super admin.
+ * (Ne supprime rien. Pour repartir de zéro : node scripts/reinitialiser-comptes.js --confirmer)
+ * Les autres comptes sont créés par Spysoft depuis Paramètres > Utilisateurs.
+ */
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
-async function seedUsers() {
-  console.log("🌱 Seeding users...");
-
-  const hashedPassword = await bcrypt.hash("SpiCam2026!", 10);
-
-  const users = [
-    { email: "superadmin@spi-cam.cm", name: "Super Administrateur", password: hashedPassword, role: "SUPER_ADMIN" },
-    { email: "admin@spi-cam.cm", name: "Administrateur", password: hashedPassword, role: "ADMIN" },
-    { email: "agent1@spi-cam.cm", name: "Agent 1", password: hashedPassword, role: "AGENT_SAISIE" },
-    { email: "agent2@spi-cam.cm", name: "Agent 2", password: hashedPassword, role: "AGENT_SAISIE" },
-  ];
-
-  let created = 0;
-  let updated = 0;
-
-  for (const user of users) {
-    try {
-      await prisma.user.upsert({
-        where: { email: user.email },
-        update: { password: user.password, name: user.name, role: user.role },
-        create: user,
-      });
-      console.log(`  ✅ User ${user.email} ready`);
-      created++;
-    } catch (e) {
-      console.error(`  ❌ Error ${user.email}:`, e.message);
-    }
+async function main() {
+  const existant = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
+  if (existant) {
+    console.log(`ℹ️  Un super administrateur existe déjà (${existant.identifiant || existant.email}) : rien à faire.`);
+    return;
   }
-
-  console.log(`📊 Users: ${created} ready`);
+  await prisma.user.create({
+    data: {
+      identifiant: "spysoft",
+      email: "spysoft@spi-cam.cm",
+      name: "Spysoft",
+      role: "SUPER_ADMIN",
+      password: await bcrypt.hash("SpiCam2026!", 12),
+      doitChangerMotDePasse: true,
+    },
+  });
+  console.log("✅ Super administrateur créé : identifiant « spysoft », mot de passe provisoire SpiCam2026! (à changer à la 1re connexion)");
 }
 
-seedUsers()
-  .catch((e) => {
-    console.error("❌ Fatal error:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

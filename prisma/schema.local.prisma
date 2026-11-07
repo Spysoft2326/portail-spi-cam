@@ -38,19 +38,28 @@ model Session {
 }
 
 model User {
-  id                  String       @id @default(cuid())
-  name                String?
-  email               String?      @unique
-  emailVerified       DateTime?
-  image               String?
-  password            String? // mot de passe hashé pour les utilisateurs créés manuellement
-  role                String       @default("USER")
-  accounts            Account[]
-  sessions            Session[]
-  entreprises         Entreprise[] @relation("AgentEntreprises")
-  auditLogs           AuditLog[]
-  productionsSaisies  Production[] @relation("SaisiePar")
-  productionsValidees Production[] @relation("ValidePar")
+  id                    String       @id @default(cuid())
+  name                  String?
+  email                 String?      @unique
+  emailVerified         DateTime?
+  image                 String?
+  password              String? // mot de passe haché (bcrypt)
+  role                  String       @default("AGENT_SAISIE") // AGENT_SAISIE < ADMIN < SUPER_ADMIN (voir lib/rbac.ts)
+  // Identifiant de connexion (en minuscules), utilisable à la place de l'email, ex. "spysoft"
+  identifiant           String?      @unique
+  actif                 Boolean      @default(true) // un compte désactivé ne peut plus se connecter
+  // Imposé après création ou réinitialisation (mot de passe par défaut) : changement obligatoire à la connexion
+  doitChangerMotDePasse Boolean      @default(false)
+  tentativesEchouees    Int          @default(0) // échecs de connexion consécutifs
+  bloqueJusqua          DateTime? // verrouillage temporaire après trop d'échecs
+  derniereConnexion     DateTime?
+  createdAt             DateTime     @default(now())
+  accounts              Account[]
+  sessions              Session[]
+  entreprises           Entreprise[] @relation("AgentEntreprises")
+  auditLogs             AuditLog[]
+  productionsSaisies    Production[] @relation("SaisiePar")
+  productionsValidees   Production[] @relation("ValidePar")
 }
 
 model VerificationToken {

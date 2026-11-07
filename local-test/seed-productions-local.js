@@ -21,9 +21,9 @@ const CATALOGUES = {
 const catalogue = (filiere) => CATALOGUES[filiere] || CATALOGUES.AUTRE;
 
 async function main() {
-  const agent = await prisma.user.findFirst({ where: { email: "agent1@spi-cam.cm" } });
-  const agent2 = await prisma.user.findFirst({ where: { email: "agent2@spi-cam.cm" } });
-  const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+  // Seul le compte Spysoft existe au départ : il est l'auteur des données de test
+  const spysoft = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
+  const agent = spysoft, agent2 = spysoft, admin = spysoft;
   // 20 entreprises industrielles, prises à intervalles réguliers pour varier les filières
   const industrielles = await prisma.entreprise.findMany({ where: { champIndustriel: true, statut: "ACTIF" }, orderBy: { referenceSPI: "asc" } });
   const pas = Math.max(1, Math.floor(industrielles.length / 20));
@@ -90,7 +90,7 @@ async function main() {
         : { statut: "REJETE", agentId: agent.id, motifRejet: "Numéro de contribuable manquant." },
     });
   }
-  console.log("✅ 2 fiches entreprise en attente et 1 rejetée (saisies par agent1)");
+  console.log("✅ 2 fiches entreprise en attente et 1 rejetée (saisies par Spysoft)");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

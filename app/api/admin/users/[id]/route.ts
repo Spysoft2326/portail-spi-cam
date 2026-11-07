@@ -1,157 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import { requireApiNiveau } from "@/lib/api-guard";
+import { listerComptes, modifierCompte, supprimerCompte, CompteError } from "@/lib/comptes";
 
-// PATCH /api/production/[id] - Modifier une production (Admin/SuperAdmin)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+// Un compte utilisateur (ce fichier gérait auparavant, par erreur, des productions).
+//   GET    : détail (si visible par l'acteur)
+//   PATCH  : { name, email, identifiant, role, actif, reinitialiserMotDePasse }
+//   DELETE : suppression (super admin)
 
-    if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json(
-        { error: "Non autorisé - Seuls Admin et SuperAdmin peuvent modifier" },
-        { status: 403 }
-      );
-    }
+type Ctx = { params: { id: string } };
+const erreur = (e: unknown) =>
+  e instanceof CompteError
+    ? NextResponse.json({ error: e.message }, { status: e.status })
+    : (console.error("[USER]", e), NextResponse.json({ error: "Erreur serveur" }, { status: 500 }));
 
-    const { id } = params;
-    const body = await request.json();
-    const { produit, quantite, unite, periode, annee } = body;
-
-    const existing = await prisma.production.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      return NextResponse.json(
-        { error: "Production non trouvée" },
-        { status: 404 }
-      );
-    }
-
-    const updateData: any = {};
-    if (produit !== undefined) updateData.produit = produit;
-    if (quantite !== undefined) updateData.quantite = quantite;
-    if (unite !== undefined) updateData.unite = unite;
-    if (periode !== undefined) updateData.periode = periode;
-    if (annee !== undefined) updateData.annee = annee;
-
-    const production = await prisma.production.update({
-      where: { id },
-      data: updateData,
-      include: {
-        entreprise: {
-          select: {
-            id: true,
-            denomination: true,
-            referenceSPI: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({ production });
-  } catch (error) {
-    console.error("[PRODUCTION_PATCH]", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la modification de la production" },
-      { status: 500 }
-    );
-  }
+export async function GET(_request: Request, { params }: Ctx) {
+  const auth = await requireApiNiveau("ADMIN");
+  if (auth.error) return auth.error;
+  const compte = (await listerComptes(auth.session.user)).find((c) => c.id === params.id);
+  return compte ? NextResponse.json(compte) : NextResponse.json({ error: "Compte introuvable" }, { status: 404 });
 }
 
-// GET /api/production/[id] - Détails d'une production
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, { params }: Ctx) {
+  const auth = await requireApiNiveau("ADMIN");
+  if (auth.error) return auth.error;
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-
-    const { id } = params;
-
-    const production = await prisma.production.findUnique({
-      where: { id },
-      include: {
-        entreprise: {
-          select: {
-            id: true,
-            denomination: true,
-            referenceSPI: true,
-            secteurActivite: true,
-          },
-        },
-      },
-    });
-
-    if (!production) {
-      return NextResponse.json(
-        { error: "Production non trouvée" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ production });
-  } catch (error) {
-    console.error("[PRODUCTION_GET_ID]", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la récupération de la production" },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json(await modifierCompte(auth.session.user, params.id, await request.json()));
+  } catch (e) { return erreur(e); }
 }
 
-// DELETE /api/production/[id] - Supprimer une production
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: Request, { params }: Ctx) {
+  const auth = await requireApiNiveau("ADMIN");
+  if (auth.error) return auth.error;
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-
-    const { id } = params;
-
-    const existing = await prisma.production.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      return NextResponse.json(
-        { error: "Production non trouvée" },
-        { status: 404 }
-      );
-    }
-
-    if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json(
-        { error: "Non autorisé - Seuls Admin et SuperAdmin peuvent supprimer" },
-        { status: 403 }
-      );
-    }
-
-    await prisma.production.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({ message: "Production supprimée" });
-  } catch (error) {
-    console.error("[PRODUCTION_DELETE]", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la suppression de la production" },
-      { status: 500 }
-    );
-  }
+    await supprimerCompte(auth.session.user, params.id);
+    return NextResponse.json({ success: true });
+  } catch (e) { return erreur(e); }
 }

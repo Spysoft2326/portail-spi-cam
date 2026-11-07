@@ -1,83 +1,30 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+/**
+ * Compte initial : crée le super administrateur « Spysoft » s'il n'existe aucun super admin.
+ * (Ne supprime rien. Pour repartir de zéro : node scripts/reinitialiser-comptes.js --confirmer)
+ * Les autres comptes sont créés par Spysoft depuis Paramètres > Utilisateurs.
+ */
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Début du seeding Portail_SPI_Cam...');
-
-  const hashedPassword = await bcrypt.hash('SpiCam2026!', 10);
-
-  const users = [];
-
-  const superAdmin = await prisma.user.upsert({
-    where: { email: 'superadmin@spi-cam.cm' },
-    update: {},
-    create: {
-      email: 'superadmin@spi-cam.cm',
-      name: 'Administrateur Système',
-      password: hashedPassword,
-      role: 'SUPER_ADMIN',
-      isActive: true,
+  const existant = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
+  if (existant) {
+    console.log(`ℹ️  Un super administrateur existe déjà (${existant.identifiant || existant.email}) : rien à faire.`);
+    return;
+  }
+  await prisma.user.create({
+    data: {
+      identifiant: "spysoft",
+      email: "spysoft@spi-cam.cm",
+      name: "Spysoft",
+      role: "SUPER_ADMIN",
+      password: await bcrypt.hash("SpiCam2026!", 12),
+      doitChangerMotDePasse: true,
     },
   });
-  users.push(superAdmin);
-  console.log('✅ Super-Admin créé');
-
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@spi-cam.cm' },
-    update: {},
-    create: {
-      email: 'admin@spi-cam.cm',
-      name: 'Responsable Analyse',
-      password: hashedPassword,
-      role: 'ADMIN',
-      isActive: true,
-    },
-  });
-  users.push(admin);
-  console.log('✅ Admin créé');
-
-  const agent1 = await prisma.user.upsert({
-    where: { email: 'agent1@spi-cam.cm' },
-    update: {},
-    create: {
-      email: 'agent1@spi-cam.cm',
-      name: 'Agent Saisie Douala',
-      password: hashedPassword,
-      role: 'AGENT_SAISIE',
-      isActive: true,
-    },
-  });
-  users.push(agent1);
-  console.log('✅ Agent 1 créé');
-
-  const agent2 = await prisma.user.upsert({
-    where: { email: 'agent2@spi-cam.cm' },
-    update: {},
-    create: {
-      email: 'agent2@spi-cam.cm',
-      name: 'Agent Saisie Yaoundé',
-      password: hashedPassword,
-      role: 'AGENT_SAISIE',
-      isActive: true,
-    },
-  });
-  users.push(agent2);
-  console.log('✅ Agent 2 créé');
-
-  console.log(`\n👤 ${users.length} utilisateurs créés avec succès`);
-  console.log('   • superadmin@spi-cam.cm / SpiCam2026! (SUPER_ADMIN)');
-  console.log('   • admin@spi-cam.cm / SpiCam2026! (ADMIN)');
-  console.log('   • agent1@spi-cam.cm / SpiCam2026! (AGENT_SAISIE)');
-  console.log('   • agent2@spi-cam.cm / SpiCam2026! (AGENT_SAISIE)');
+  console.log("✅ Super administrateur créé : identifiant « spysoft », mot de passe provisoire SpiCam2026! (à changer à la 1re connexion)");
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Erreur:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

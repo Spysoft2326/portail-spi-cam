@@ -51,3 +51,14 @@ second passage sans doublon, et refus si des données devaient être perdues.
 
 - Connexion admin, puis vérification des pages Entreprises, Production et Conjoncture.
 - Changez les mots de passe de tous les comptes (Paramètres → Mon compte).
+
+## Comptes utilisateurs (sécurité)
+
+Le déploiement ne touche pas aux comptes. Pour appliquer en production la réinitialisation décidée
+(suppression de tous les comptes, compte unique « Spysoft » super administrateur), lancer **une fois**,
+après sauvegarde de la base, avec `DATABASE_URL` pointant vers la base Render (External Database URL) :
+
+    node scripts/reinitialiser-comptes.js --confirmer
+
+Puis se connecter avec l'identifiant `Spysoft` et le mot de passe provisoire `SpiCam2026!` (changement
+obligatoire), et recréer les comptes depuis Paramètres > Utilisateurs.

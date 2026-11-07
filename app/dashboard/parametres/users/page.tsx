@@ -1,25 +1,12 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import UsersContent from "@/components/parametres/users-content";
 
-export const dynamic = 'force-dynamic';
-
-export default async function UsersPage() {
-  const session = await getServerSession(authOptions);
-
-  // Récupérer les utilisateurs depuis la base de données
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      // ❌ REMOVED: isActive n'existe pas dans le modèle Prisma User
-      emailVerified: true,
-    },
-    orderBy: { id: "desc" },
-  });
-
-  return <UsersContent users={users} />;
+// Gestion des comptes : les données sont chargées via l'API protégée /api/admin/users
+// (droits selon lib/rbac.ts ; l'accès à la page est réservé aux administrateurs par le middleware).
+export default function UsersPage() {
+  return (
+    <div style={{ padding: "24px" }}>
+      <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: "0 0 20px" }}>Utilisateurs</h1>
+      <UsersContent />
+    </div>
+  );
 }

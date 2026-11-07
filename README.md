@@ -33,14 +33,24 @@ npm run dev
 npm install && npx prisma generate && npx prisma db push && node scripts/seed-users.js && npm run dev
 ```
 
-### 👤 Utilisateurs de test
+### 👤 Comptes et droits d'accès
 
-| Email | Mot de passe | Rôle |
-|-------|-------------|------|
-| superadmin@spi-cam.cm | SpiCam2026! | SUPER_ADMIN |
-| admin@spi-cam.cm | SpiCam2026! | ADMIN |
-| agent1@spi-cam.cm | SpiCam2026! | AGENT_SAISIE |
-| agent2@spi-cam.cm | SpiCam2026! | AGENT_SAISIE |
+Un seul compte existe au départ : le super administrateur **Spysoft**.
+
+| Identifiant | Mot de passe provisoire | Rôle |
+|-------------|-------------------------|------|
+| `Spysoft` | `SpiCam2026!` | SUPER_ADMIN |
+
+- Le changement du mot de passe provisoire est **obligatoire** à la première connexion
+  (10 caractères minimum, majuscules, minuscules, chiffre et caractère spécial).
+- Spysoft crée les autres comptes (Paramètres > Utilisateurs) et leur attribue un rôle ; chaque nouveau
+  compte reçoit le même mot de passe provisoire, à changer à la première connexion.
+- Politique « qui peut le plus peut le moins » : SUPER_ADMIN > ADMIN > AGENT_SAISIE
+  (un rôle a tous les droits des rôles inférieurs). Les administrateurs modifient les comptes des agents
+  (informations, activation, réinitialisation du mot de passe). Voir `lib/rbac.ts`.
+- 5 échecs de connexion consécutifs bloquent le compte 15 minutes.
+- Repartir de zéro (supprime tous les comptes, recrée Spysoft) :
+  `node scripts/reinitialiser-comptes.js --confirmer`
 
 ### 📁 Structure du projet
 
@@ -88,8 +98,9 @@ npm run setup            # Setup complet (install + generate + push + seed + dev
 **Erreur "@prisma/client did not initialize yet"**
 → Exécuter `npx prisma generate`
 
-**Erreur "Email ou mot de passe incorrect"**
-→ Exécuter `node scripts/seed-users.js` pour recréer les utilisateurs
+**Erreur "Identifiant ou mot de passe incorrect"**
+→ Vérifier l'identifiant ; après 5 échecs le compte est bloqué 15 minutes. Un super administrateur peut
+réinitialiser le mot de passe (Paramètres > Utilisateurs).
 
 **Base de données corrompue**
 → Supprimer `prisma/dev.db` et relancer `npx prisma db push && node scripts/seed-users.js`

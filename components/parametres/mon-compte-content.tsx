@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, User, Mail, Shield, Save } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Shield, Save, AlertTriangle } from "lucide-react";
+import { verifierMotDePasse } from "@/lib/rbac";
 
 export default function MonCompteContent() {
   const { data: session, update } = useSession();
@@ -30,8 +31,10 @@ export default function MonCompteContent() {
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      setMessage("❌ Le mot de passe doit contenir au moins 6 caractères.");
+    // Même politique que le serveur (lib/rbac.ts)
+    const probleme = verifierMotDePasse(passwordData.newPassword);
+    if (probleme) {
+      setMessage("❌ " + probleme + ".");
       return;
     }
 
@@ -51,6 +54,14 @@ export default function MonCompteContent() {
       if (res.ok) {
         setMessage("✅ Mot de passe modifié avec succès !");
         setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        // Rafraîchit la session (le changement obligatoire est levé), puis retour à l'espace de travail
+        const etaitImpose = !!(user as any)?.doitChangerMotDePasse;
+        await update();
+        if (etaitImpose) {
+          const r = user?.role;
+          window.location.href = r === "SUPER_ADMIN" ? "/dashboard/super-admin" : r === "ADMIN" ? "/dashboard/admin" : "/dashboard/agent-saisie";
+          return;
+        }
         setTimeout(() => setMessage(""), 3000);
       } else {
         setMessage("❌ " + (data.error || "Erreur lors de la modification."));
@@ -84,6 +95,18 @@ export default function MonCompteContent() {
 
   return (
     <div>
+      {(user as any)?.doitChangerMotDePasse && (
+        <div role="alert" style={{ padding: "16px 20px", borderRadius: "12px", border: "1px solid #fbbf24", background: "#fef3c7", color: "#92400e", marginBottom: "24px", display: "flex", gap: "12px", alignItems: "flex-start" }}>
+          <AlertTriangle size={22} style={{ flexShrink: 0 }} />
+          <div>
+            <strong>Changement de mot de passe obligatoire</strong>
+            <p style={{ margin: "4px 0 0", fontSize: "14px" }}>
+              Votre compte utilise le mot de passe par défaut. Choisissez un mot de passe personnel pour accéder au portail.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Informations du profil */}
       <div style={{ padding: "24px", borderRadius: "12px", border: "1px solid #e5e7eb", background: "white", marginBottom: "24px" }}>
         <h3 style={{ fontSize: "18px", fontWeight: "600", margin: "0 0 20px 0", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -128,7 +151,7 @@ export default function MonCompteContent() {
           </div>
         </div>
         <p style={{ marginTop: "16px", fontSize: "13px", color: "#6b7280" }}>
-          ℹ️ Ces informations sont gérées par l'administrateur. Contactez un administrateur pour les modifier.
+          ℹ️ Ces informations sont gérées par l'administration du portail. Contactez un administrateur pour les modifier.
         </p>
       </div>
 
@@ -175,12 +198,12 @@ export default function MonCompteContent() {
               <div style={{ position: "relative" }}>
                 <input
                   type={showNewPassword ? "text" : "password"}
-                  placeholder="Minimum 6 caractères"
+                  placeholder="10 caractères minimum"
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   style={{ width: "100%", padding: "10px 44px 10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
                   required
-                  minLength={6}
+                  minLength={10}
                 />
                 <button
                   type="button"
@@ -203,7 +226,7 @@ export default function MonCompteContent() {
                   onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   style={{ width: "100%", padding: "10px 44px 10px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "14px" }}
                   required
-                  minLength={6}
+                  minLength={10}
                 />
                 <button
                   type="button"
@@ -216,6 +239,9 @@ export default function MonCompteContent() {
             </div>
           </div>
 
+          <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#6b7280" }}>
+            Au moins 10 caractères, avec des majuscules, des minuscules, un chiffre et un caractère spécial.
+          </p>
           <button
             type="submit"
             disabled={loading}

@@ -1,38 +1,18 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { requireApiNiveau } from "@/lib/api-guard";
+import { modifierCompte, CompteError } from "@/lib/comptes";
 
-export const dynamic = 'force-dynamic';
-
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// PUT /api/admin/users/[id]/role { role } — attribution d'un rôle (super admin uniquement, voir lib/rbac.ts)
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const auth = await requireApiNiveau("ADMIN");
+  if (auth.error) return auth.error;
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
-    }
-
-    const { id } = params;
     const { role } = await request.json();
-
-    if (!["AGENT_SAISIE", "ADMIN", "SUPER_ADMIN"].includes(role)) {
-      return NextResponse.json({ error: "Role invalide" }, { status: 400 });
-    }
-
-    await prisma.user.update({
-      where: { id },
-      data: { role },
-    });
-
-    return NextResponse.json({ success: true, role });
-  } catch (error) {
-    console.error("Erreur API change role:", error);
-    return NextResponse.json(
-      { error: "Erreur lors du changement de role" },
-      { status: 500 }
-    );
+    const compte = await modifierCompte(auth.session.user, params.id, { role });
+    return NextResponse.json({ success: true, role: compte.role });
+  } catch (e) {
+    if (e instanceof CompteError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Erreur API change role:", e);
+    return NextResponse.json({ error: "Erreur lors du changement de rôle" }, { status: 500 });
   }
 }

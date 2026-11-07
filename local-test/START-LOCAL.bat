@@ -22,8 +22,8 @@ call npx prisma generate --schema prisma\schema.local.prisma
 
 echo.
 echo  Ouvrez http://localhost:%PORT% dans votre navigateur
-echo  Comptes de test : superadmin@spi-cam.cm / admin@spi-cam.cm / agent1@spi-cam.cm
-echo  Mot de passe    : SpiCam2026!
+echo  Compte : identifiant Spysoft (super administrateur)
+echo  Mot de passe provisoire : SpiCam2026! (a changer a la 1re connexion)
 echo  Ctrl+C pour arreter.
 echo.
 call npx next dev -p %PORT%

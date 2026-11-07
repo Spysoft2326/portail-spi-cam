@@ -11,24 +11,27 @@ function LoginForm() {
   const callbackUrl = searchParams.get("callbackUrl");
   const error = searchParams.get("error");
 
-  const [email, setEmail] = useState("");
+  const [identifiant, setIdentifiant] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [echec, setEchec] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setEchec("");
 
     try {
       const result = await signIn("credentials", {
-        email,
+        identifiant,
         password,
         redirect: false,
       });
 
       if (result?.error) {
-        console.error("Erreur de connexion:", result.error);
+        // Message volontairement générique (ne révèle pas si le compte existe)
+        setEchec("Identifiant ou mot de passe incorrect. Après 5 échecs, le compte est bloqué 15 minutes.");
         setLoading(false);
         return;
       }
@@ -37,14 +40,11 @@ function LoginForm() {
       const role = session?.user?.role;
 
       let redirectUrl = "/dashboard/agent-saisie";
+      if (role === "SUPER_ADMIN") redirectUrl = "/dashboard/super-admin";
+      else if (role === "ADMIN") redirectUrl = "/dashboard/admin";
 
-      if (role === "SUPER_ADMIN" || role === "ADMIN") {
-        redirectUrl = "/dashboard/admin";
-      } else if (role === "AGENT_SAISIE") {
-        redirectUrl = "/dashboard/agent-saisie";
-      }
-
-      if (callbackUrl && callbackUrl !== "/login") {
+      // Retour vers la page demandée : chemins internes uniquement (pas de redirection vers un autre site)
+      if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") && callbackUrl !== "/login") {
         redirectUrl = callbackUrl;
       }
 
@@ -61,21 +61,21 @@ function LoginForm() {
         <h1 className="text-2xl font-bold text-center mb-6">Portail SPI-Cam</h1>
         <p className="text-center text-slate-500 mb-8">Connexion à votre espace</p>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-            {error === "CredentialsSignin"
-              ? "Email ou mot de passe incorrect"
-              : "Une erreur est survenue"}
+        {(echec || error) && (
+          <div role="alert" className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+            {echec || (error === "CredentialsSignin" ? "Identifiant ou mot de passe incorrect" : "Une erreur est survenue")}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Identifiant ou email</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              value={identifiant}
+              onChange={(e) => setIdentifiant(e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />

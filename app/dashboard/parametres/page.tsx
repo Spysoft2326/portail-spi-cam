@@ -50,9 +50,7 @@ function ParametresContent() {
   const visibleTabs = allTabs.filter((tab) => tab.roles.includes(role));
 
   useEffect(() => {
-    if (activeTab === "users" && !isAgent) {
-      fetchUsers();
-    }
+    // La liste des comptes est chargée par UsersContent (API protégée)
   }, [activeTab, isAgent]);
 
   const fetchUsers = async () => {
@@ -183,14 +181,7 @@ function ParametresContent() {
         {/* Utilisateurs — ADMIN/SUPER_ADMIN uniquement */}
         {activeTab === "users" && !isAgent && (
           <>
-            {loadingUsers ? (
-              <div style={{ textAlign: "center", padding: "40px" }}>
-                <div style={{ display: "inline-block", width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTop: "4px solid #059669", borderRadius: "50%", animation: "spin 1s linear infinite" }}></div>
-                <p style={{ marginTop: "16px", color: "#6b7280" }}>Chargement des utilisateurs...</p>
-              </div>
-            ) : (
-              <UsersContent users={users} />
-            )}
+            <UsersContent />
           </>
         )}
 
